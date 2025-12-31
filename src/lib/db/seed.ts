@@ -5,7 +5,7 @@ import * as path from "path";
 // Use /app/data in Docker, otherwise current directory
 const dataDir = fs.existsSync("/app/data") ? "/app/data" : process.cwd();
 const dbPath = path.join(dataDir, "chore-calendar.db");
-const csvPath = path.join(process.cwd(), "Chore Calendar.csv");
+const csvPath = path.join(process.cwd(), "chore-calendar.csv");
 
 function parseCSV(content: string): string[][] {
   const lines = content.split("\n");

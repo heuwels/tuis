@@ -37,7 +37,7 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src/lib/db ./src/lib/db
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
-COPY --from=builder /app/"Chore Calendar.csv" "./"
+COPY --from=builder /app/chore-calendar.csv ./
 
 # Create data directory for SQLite and set permissions
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app

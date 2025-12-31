@@ -30,4 +30,4 @@ README.md
 .env*
 
 # Keep CSV for seeding
-!Chore Calendar.csv
+!chore-calendar.csv
