@@ -1,15 +1,20 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Task } from "@/types";
 import { TaskSection } from "./TaskSection";
-import { parseISO, isToday, isBefore, isAfter, addDays, startOfDay } from "date-fns";
+import { DailyTasksList } from "./DailyTasksList";
+import { parseISO, isToday, isBefore, addDays, startOfDay } from "date-fns";
 
 interface CategorizedTasks {
   overdue: Task[];
   today: Task[];
   upcoming: Task[];
   adhoc: Task[];
+}
+
+function isDaily(task: Task): boolean {
+  return task.frequency.toLowerCase() === "daily";
 }
 
 function categorizeTasks(tasks: Task[]): CategorizedTasks {
@@ -24,6 +29,11 @@ function categorizeTasks(tasks: Task[]): CategorizedTasks {
   };
 
   for (const task of tasks) {
+    // Skip daily tasks - they're shown separately
+    if (isDaily(task)) {
+      continue;
+    }
+
     // Ad-hoc tasks (no due date or frequency contains "ad-hoc" or "as needed")
     const isAdhoc =
       !task.nextDue ||
@@ -42,11 +52,8 @@ function categorizeTasks(tasks: Task[]): CategorizedTasks {
       categorized.today.push(task);
     } else if (isBefore(dueDate, now)) {
       categorized.overdue.push(task);
-    } else if (isBefore(dueDate, weekFromNow) || isAfter(dueDate, now)) {
-      // Show upcoming tasks for next 7 days
-      if (isBefore(dueDate, weekFromNow)) {
-        categorized.upcoming.push(task);
-      }
+    } else if (isBefore(dueDate, weekFromNow)) {
+      categorized.upcoming.push(task);
     }
   }
 
@@ -87,6 +94,9 @@ export function Dashboard() {
     fetchTasks();
   }, [fetchTasks]);
 
+  const dailyTasks = useMemo(() => tasks.filter(isDaily), [tasks]);
+  const categorized = useMemo(() => categorizeTasks(tasks), [tasks]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -95,10 +105,10 @@ export function Dashboard() {
     );
   }
 
-  const categorized = categorizeTasks(tasks);
-
   return (
     <div className="space-y-8">
+      <DailyTasksList tasks={dailyTasks} />
+
       {categorized.overdue.length > 0 && (
         <TaskSection
           title="Overdue"

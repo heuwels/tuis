@@ -2,7 +2,9 @@ import Database from "better-sqlite3";
 import * as fs from "fs";
 import * as path from "path";
 
-const dbPath = path.join(process.cwd(), "chore-calendar.db");
+// Use /app/data in Docker, otherwise current directory
+const dataDir = fs.existsSync("/app/data") ? "/app/data" : process.cwd();
+const dbPath = path.join(dataDir, "chore-calendar.db");
 const csvPath = path.join(process.cwd(), "Chore Calendar.csv");
 
 function parseCSV(content: string): string[][] {

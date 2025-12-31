@@ -1,0 +1,12 @@
+services:
+  chore-calendar:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persist database between container restarts
+      - chore-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  chore-data:
