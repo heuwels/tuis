@@ -9,6 +9,7 @@ import {
   format,
   parseISO,
 } from "date-fns";
+import { syncTask } from "@/lib/calendar";
 
 function calculateNextDue(frequency: string, completedDate: Date): string | null {
   const freq = frequency.toLowerCase();
@@ -77,6 +78,16 @@ export async function POST(
         updatedAt: new Date().toISOString(),
       })
       .where(eq(tasks.id, parseInt(id)));
+
+    // Sync to Google Calendar (if connected and task is syncable)
+    const updatedTask = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, parseInt(id)))
+      .limit(1);
+    if (updatedTask[0]) {
+      syncTask(updatedTask[0]).catch(console.error);
+    }
 
     return NextResponse.json({
       success: true,

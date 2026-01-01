@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { tasks, completions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { syncTask, deleteTaskCalendarEvents } from "@/lib/calendar";
 
 export async function GET(
   request: Request,
@@ -42,6 +43,16 @@ export async function PUT(
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
+    // Sync to Google Calendar (if connected and task is syncable)
+    const updatedTask = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, parseInt(id)))
+      .limit(1);
+    if (updatedTask[0]) {
+      syncTask(updatedTask[0]).catch(console.error);
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating task:", error);
@@ -57,7 +68,10 @@ export async function DELETE(
     const { id } = await params;
     const taskId = parseInt(id);
 
-    // Delete related completions first to avoid foreign key constraint
+    // Delete calendar events first
+    await deleteTaskCalendarEvents(taskId).catch(console.error);
+
+    // Delete related completions to avoid foreign key constraint
     await db.delete(completions).where(eq(completions.taskId, taskId));
 
     // Then delete the task

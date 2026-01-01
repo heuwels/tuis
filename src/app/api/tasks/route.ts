@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { tasks } from "@/lib/db/schema";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
+import { syncTask } from "@/lib/calendar";
 
 export async function GET() {
   try {
@@ -36,7 +37,18 @@ export async function POST(request: Request) {
       lastCompleted: null,
     });
 
-    return NextResponse.json({ success: true, id: result.lastInsertRowid }, { status: 201 });
+    // Sync to Google Calendar (if connected and task is syncable)
+    const newTaskId = Number(result.lastInsertRowid);
+    const newTask = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, newTaskId))
+      .limit(1);
+    if (newTask[0]) {
+      syncTask(newTask[0]).catch(console.error);
+    }
+
+    return NextResponse.json({ success: true, id: newTaskId }, { status: 201 });
   } catch (error) {
     console.error("Error creating task:", error);
     return NextResponse.json({ error: "Failed to create task" }, { status: 500 });

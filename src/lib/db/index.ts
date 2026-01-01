@@ -51,6 +51,28 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       completed_by INTEGER REFERENCES users(id),
       FOREIGN KEY (task_id) REFERENCES tasks(id)
     );
+
+    CREATE TABLE IF NOT EXISTS google_calendar_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      access_token TEXT NOT NULL,
+      refresh_token TEXT NOT NULL,
+      token_expiry TEXT NOT NULL,
+      calendar_id TEXT DEFAULT 'primary',
+      connected_email TEXT NOT NULL,
+      sync_enabled INTEGER DEFAULT 1,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS task_calendar_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      task_id INTEGER NOT NULL,
+      google_event_id TEXT NOT NULL,
+      event_date TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+    );
   `);
 
   // Add new columns if they don't exist (migrations for existing databases)

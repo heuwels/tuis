@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { User } from "@/types";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
+import { GoogleCalendarCard } from "@/components/settings/GoogleCalendarCard";
 
 const COLORS = [
   "#3b82f6", // blue
@@ -121,6 +122,8 @@ export default function SettingsPage() {
         </div>
       </header>
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        <GoogleCalendarCard />
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">

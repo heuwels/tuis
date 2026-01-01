@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { tasks } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { addDays, addWeeks, format, parseISO } from "date-fns";
+import { syncTask } from "@/lib/calendar";
 
 export async function POST(
   request: Request,
@@ -57,6 +58,16 @@ export async function POST(
         updatedAt: new Date().toISOString(),
       })
       .where(eq(tasks.id, parseInt(id)));
+
+    // Sync to Google Calendar (if connected and task is syncable)
+    const updatedTask = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, parseInt(id)))
+      .limit(1);
+    if (updatedTask[0]) {
+      syncTask(updatedTask[0]).catch(console.error);
+    }
 
     return NextResponse.json({
       success: true,
