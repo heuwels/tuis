@@ -54,6 +54,35 @@ export const taskCalendarEvents = sqliteTable("task_calendar_events", {
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
 });
 
+export const shoppingLists = sqliteTable("shopping_lists", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  color: text("color").default("#3b82f6"),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const shoppingItems = sqliteTable("shopping_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  listId: integer("list_id")
+    .notNull()
+    .references(() => shoppingLists.id),
+  name: text("name").notNull(),
+  quantity: text("quantity"),
+  checked: integer("checked", { mode: "boolean" }).default(false),
+  sortOrder: integer("sort_order").default(0),
+  addedBy: integer("added_by").references(() => users.id),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const itemHistory = sqliteTable("item_history", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull().unique(),
+  useCount: integer("use_count").default(1),
+  lastUsed: text("last_used").default("CURRENT_TIMESTAMP"),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
@@ -64,3 +93,9 @@ export type GoogleCalendarSettings = typeof googleCalendarSettings.$inferSelect;
 export type NewGoogleCalendarSettings = typeof googleCalendarSettings.$inferInsert;
 export type TaskCalendarEvent = typeof taskCalendarEvents.$inferSelect;
 export type NewTaskCalendarEvent = typeof taskCalendarEvents.$inferInsert;
+export type ShoppingList = typeof shoppingLists.$inferSelect;
+export type NewShoppingList = typeof shoppingLists.$inferInsert;
+export type ShoppingItem = typeof shoppingItems.$inferSelect;
+export type NewShoppingItem = typeof shoppingItems.$inferInsert;
+export type ItemHistory = typeof itemHistory.$inferSelect;
+export type NewItemHistory = typeof itemHistory.$inferInsert;

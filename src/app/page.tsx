@@ -9,6 +9,12 @@ export default function Home() {
           <h1 className="text-2xl font-bold text-gray-900">Chore Calendar</h1>
           <div className="flex items-center gap-4">
             <Link
+              href="/shopping"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              Shopping
+            </Link>
+            <Link
               href="/stats"
               className="text-sm font-medium text-blue-600 hover:text-blue-800"
             >
