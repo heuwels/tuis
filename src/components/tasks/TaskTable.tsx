@@ -9,13 +9,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CompleteButton } from "@/components/dashboard/CompleteButton";
+import { Button } from "@/components/ui/button";
+import { CompleteButton, SnoozeButton } from "@/components/dashboard";
 import { Task } from "@/types";
 import { format, parseISO, isBefore, startOfDay } from "date-fns";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface TaskTableProps {
   tasks: Task[];
   onTaskComplete: () => void;
+  onEdit: (task: Task) => void;
+  onDelete: (task: Task) => void;
 }
 
 const areaColors: Record<string, string> = {
@@ -31,7 +35,7 @@ const areaColors: Record<string, string> = {
   Laundry: "bg-cyan-100 text-cyan-800",
 };
 
-export function TaskTable({ tasks, onTaskComplete }: TaskTableProps) {
+export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete }: TaskTableProps) {
   const today = startOfDay(new Date());
 
   const getStatusBadge = (task: Task) => {
@@ -104,8 +108,27 @@ export function TaskTable({ tasks, onTaskComplete }: TaskTableProps) {
                       {getStatusBadge(task)}
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <CompleteButton taskId={task.id} onComplete={onTaskComplete} />
+                  <TableCell>
+                    <div className="flex items-center justify-end gap-1">
+                      <SnoozeButton taskId={task.id} onSnooze={onTaskComplete} />
+                      <CompleteButton taskId={task.id} onComplete={onTaskComplete} />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2"
+                        onClick={() => onEdit(task)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => onDelete(task)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );

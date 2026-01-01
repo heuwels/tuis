@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CompleteButton } from "./CompleteButton";
+import { SnoozeButton } from "./SnoozeButton";
 import { Task, TaskStatus } from "@/types";
 import { format, parseISO } from "date-fns";
 
@@ -58,7 +59,10 @@ export function TaskCard({ task, status, onComplete }: TaskCardProps) {
             </p>
           )}
         </div>
-        <CompleteButton taskId={task.id} onComplete={onComplete} />
+        <div className="flex items-center gap-1">
+          <SnoozeButton taskId={task.id} onSnooze={onComplete} />
+          <CompleteButton taskId={task.id} onComplete={onComplete} />
+        </div>
       </CardContent>
     </Card>
   );

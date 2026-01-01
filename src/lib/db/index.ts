@@ -22,6 +22,13 @@ function initDb(): BetterSQLite3Database<typeof schema> {
 
   // Initialize tables
   sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      color TEXT NOT NULL DEFAULT '#3b82f6',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS tasks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -30,6 +37,7 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       assigned_day TEXT,
       season TEXT,
       notes TEXT,
+      assigned_to INTEGER REFERENCES users(id),
       last_completed TEXT,
       next_due TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -40,9 +48,19 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       task_id INTEGER NOT NULL,
       completed_at TEXT NOT NULL,
+      completed_by INTEGER REFERENCES users(id),
       FOREIGN KEY (task_id) REFERENCES tasks(id)
     );
   `);
+
+  // Add new columns if they don't exist (migrations for existing databases)
+  try {
+    sqlite.exec(`ALTER TABLE tasks ADD COLUMN assigned_to INTEGER REFERENCES users(id)`);
+  } catch { /* column already exists */ }
+
+  try {
+    sqlite.exec(`ALTER TABLE completions ADD COLUMN completed_by INTEGER REFERENCES users(id)`);
+  } catch { /* column already exists */ }
 
   _db = drizzle(sqlite, { schema });
   return _db;

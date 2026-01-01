@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { tasks } from "@/lib/db/schema";
+import { tasks, completions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(
@@ -55,7 +55,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const result = await db.delete(tasks).where(eq(tasks.id, parseInt(id)));
+    const taskId = parseInt(id);
+
+    // Delete related completions first to avoid foreign key constraint
+    await db.delete(completions).where(eq(completions.taskId, taskId));
+
+    // Then delete the task
+    const result = await db.delete(tasks).where(eq(tasks.id, taskId));
 
     if (result.changes === 0) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
