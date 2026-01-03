@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Plus,
   Heart,
@@ -12,6 +17,11 @@ import {
   UtensilsCrossed,
   ChefHat,
   Film,
+  Download,
+  Upload,
+  FileJson,
+  FileSpreadsheet,
+  FileText,
 } from "lucide-react";
 import { ActivityCard, Activity } from "@/components/together/ActivityCard";
 import { ActivityForm } from "@/components/together/ActivityForm";
@@ -42,6 +52,9 @@ export default function TogetherPage() {
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchActivities = async () => {
     try {
@@ -98,6 +111,66 @@ export default function TogetherPage() {
     }
   };
 
+  const handleExport = async (format: "json" | "csv" | "markdown") => {
+    try {
+      const response = await fetch(`/api/together/export?format=${format}`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const ext = format === "markdown" ? "md" : format;
+        a.download = `to-do-together-${new Date().toISOString().split("T")[0]}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        setIsExportOpen(false);
+      }
+    } catch (error) {
+      console.error("Error exporting:", error);
+    }
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportError(null);
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      const response = await fetch("/api/together/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Successfully imported ${result.imported} activities!`);
+        fetchActivities();
+      } else {
+        const error = await response.json();
+        setImportError(
+          error.details
+            ? `Import failed:\n${error.details.join("\n")}`
+            : error.error || "Import failed"
+        );
+      }
+    } catch (error) {
+      console.error("Error importing:", error);
+      setImportError("Invalid JSON file. Please check the file format.");
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b">
@@ -132,16 +205,80 @@ export default function TogetherPage() {
             })}
           </div>
 
-          <Button
-            onClick={() => {
-              setEditingActivity(null);
-              setIsFormOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add New
-          </Button>
+          <div className="flex gap-2">
+            <Popover open={isExportOpen} onOpenChange={setIsExportOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2" align="end">
+                <div className="space-y-1">
+                  <button
+                    onClick={() => handleExport("json")}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+                  >
+                    <FileJson className="h-4 w-4" />
+                    JSON (for import)
+                  </button>
+                  <button
+                    onClick={() => handleExport("csv")}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+                  >
+                    <FileSpreadsheet className="h-4 w-4" />
+                    CSV (spreadsheet)
+                  </button>
+                  <button
+                    onClick={() => handleExport("markdown")}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Markdown (document)
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Import
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+
+            <Button
+              onClick={() => {
+                setEditingActivity(null);
+                setIsFormOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New
+            </Button>
+          </div>
         </div>
+
+        {importError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm whitespace-pre-wrap">
+            {importError}
+            <button
+              onClick={() => setImportError(null)}
+              className="ml-2 text-red-500 hover:text-red-700"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         <div className="flex gap-2 mb-6">
           {STATUSES.map((status) => (
