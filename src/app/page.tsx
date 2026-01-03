@@ -15,6 +15,18 @@ export default function Home() {
               Shopping
             </Link>
             <Link
+              href="/meals"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              Meals
+            </Link>
+            <Link
+              href="/together"
+              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+            >
+              Together
+            </Link>
+            <Link
               href="/stats"
               className="text-sm font-medium text-blue-600 hover:text-blue-800"
             >

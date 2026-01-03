@@ -101,6 +101,58 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       use_count INTEGER DEFAULT 1,
       last_used TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS recipes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT,
+      instructions TEXT,
+      prep_time INTEGER,
+      cook_time INTEGER,
+      servings INTEGER,
+      image_url TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS recipe_ingredients (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      recipe_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      quantity TEXT,
+      sort_order INTEGER DEFAULT 0,
+      FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS meal_plan (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL UNIQUE,
+      recipe_id INTEGER REFERENCES recipes(id),
+      custom_meal TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS activities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      category TEXT NOT NULL,
+      image_url TEXT,
+      notes TEXT,
+      status TEXT NOT NULL DEFAULT 'wishlist',
+      completed_date TEXT,
+      rating INTEGER,
+      url TEXT,
+      location TEXT,
+      estimated_cost TEXT,
+      duration TEXT,
+      season TEXT,
+      priority TEXT DEFAULT 'medium',
+      tags TEXT,
+      review TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Add new columns if they don't exist (migrations for existing databases)

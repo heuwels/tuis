@@ -83,6 +83,59 @@ export const itemHistory = sqliteTable("item_history", {
   lastUsed: text("last_used").default("CURRENT_TIMESTAMP"),
 });
 
+export const recipes = sqliteTable("recipes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  description: text("description"),
+  instructions: text("instructions"),
+  prepTime: integer("prep_time"),
+  cookTime: integer("cook_time"),
+  servings: integer("servings"),
+  imageUrl: text("image_url"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const recipeIngredients = sqliteTable("recipe_ingredients", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  recipeId: integer("recipe_id")
+    .notNull()
+    .references(() => recipes.id),
+  name: text("name").notNull(),
+  quantity: text("quantity"),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const mealPlan = sqliteTable("meal_plan", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  date: text("date").notNull().unique(),
+  recipeId: integer("recipe_id").references(() => recipes.id),
+  customMeal: text("custom_meal"),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const activities = sqliteTable("activities", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  category: text("category").notNull(), // location, activity, restaurant, dish, film
+  imageUrl: text("image_url"),
+  notes: text("notes"),
+  status: text("status").notNull().default("wishlist"), // wishlist, planned, completed
+  completedDate: text("completed_date"),
+  rating: integer("rating"), // 1-5
+  url: text("url"),
+  location: text("location"),
+  estimatedCost: text("estimated_cost"), // low, medium, high, splurge
+  duration: text("duration"), // quick, half-day, full-day, weekend, week+
+  season: text("season"), // any, spring, summer, fall, winter
+  priority: text("priority").default("medium"), // low, medium, high
+  tags: text("tags"), // JSON array as string
+  review: text("review"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
@@ -99,3 +152,11 @@ export type ShoppingItem = typeof shoppingItems.$inferSelect;
 export type NewShoppingItem = typeof shoppingItems.$inferInsert;
 export type ItemHistory = typeof itemHistory.$inferSelect;
 export type NewItemHistory = typeof itemHistory.$inferInsert;
+export type Recipe = typeof recipes.$inferSelect;
+export type NewRecipe = typeof recipes.$inferInsert;
+export type RecipeIngredient = typeof recipeIngredients.$inferSelect;
+export type NewRecipeIngredient = typeof recipeIngredients.$inferInsert;
+export type MealPlan = typeof mealPlan.$inferSelect;
+export type NewMealPlan = typeof mealPlan.$inferInsert;
+export type Activity = typeof activities.$inferSelect;
+export type NewActivity = typeof activities.$inferInsert;
