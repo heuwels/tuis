@@ -1,0 +1,9 @@
+services:
+  chore-calendar:
+    image: registry.home.lukeboyle.com/chore-calendar:${CHORE_CALENDAR_VERSION:-latest}
+    container_name: chore-calendar
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
