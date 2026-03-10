@@ -153,6 +153,34 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS appliances (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      location TEXT,
+      brand TEXT,
+      model TEXT,
+      purchase_date TEXT,
+      warranty_expiry TEXT,
+      manual_url TEXT,
+      warranty_doc_url TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS vendors (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      category TEXT,
+      phone TEXT,
+      email TEXT,
+      website TEXT,
+      notes TEXT,
+      rating INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Add new columns if they don't exist (migrations for existing databases)
@@ -162,6 +190,18 @@ function initDb(): BetterSQLite3Database<typeof schema> {
 
   try {
     sqlite.exec(`ALTER TABLE completions ADD COLUMN completed_by INTEGER REFERENCES users(id)`);
+  } catch { /* column already exists */ }
+
+  try {
+    sqlite.exec(`ALTER TABLE tasks ADD COLUMN appliance_id INTEGER REFERENCES appliances(id)`);
+  } catch { /* column already exists */ }
+
+  try {
+    sqlite.exec(`ALTER TABLE completions ADD COLUMN vendor_id INTEGER REFERENCES vendors(id)`);
+  } catch { /* column already exists */ }
+
+  try {
+    sqlite.exec(`ALTER TABLE completions ADD COLUMN cost TEXT`);
   } catch { /* column already exists */ }
 
   _db = drizzle(sqlite, { schema });

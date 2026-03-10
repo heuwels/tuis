@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -12,6 +11,7 @@ import {
   Calendar,
   ListTodo,
 } from "lucide-react";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 interface Stats {
   totalTasks: number;
@@ -65,35 +65,21 @@ export default function StatsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b">
-          <div className="max-w-6xl mx-auto px-4 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Statistics</h1>
-          </div>
-        </header>
-        <main className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-muted-foreground">Loading statistics...</div>
-          </div>
-        </main>
-      </div>
+      <AppLayout title="Statistics">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-muted-foreground">Loading statistics...</div>
+        </div>
+      </AppLayout>
     );
   }
 
   if (!stats) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b">
-          <div className="max-w-6xl mx-auto px-4 py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Statistics</h1>
-          </div>
-        </header>
-        <main className="max-w-6xl mx-auto px-4 py-8">
-          <div className="text-center text-muted-foreground">
-            Failed to load statistics
-          </div>
-        </main>
-      </div>
+      <AppLayout title="Statistics">
+        <div className="text-center text-muted-foreground">
+          Failed to load statistics
+        </div>
+      </AppLayout>
     );
   }
 
@@ -103,19 +89,8 @@ export default function StatsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            href="/"
-            className="text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            &larr; Dashboard
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Statistics</h1>
-        </div>
-      </header>
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+    <AppLayout title="Statistics">
+      <div className="space-y-6">
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
@@ -293,7 +268,7 @@ export default function StatsPage() {
             )}
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

@@ -17,7 +17,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, area, frequency, assignedDay, season, notes, nextDue } = body;
+    const { name, area, frequency, assignedDay, season, notes, nextDue, applianceId } = body;
 
     if (!name || !area || !frequency) {
       return NextResponse.json(
@@ -35,6 +35,7 @@ export async function POST(request: Request) {
       notes: notes || null,
       nextDue: nextDue || null,
       lastCompleted: null,
+      applianceId: applianceId || null,
     });
 
     // Sync to Google Calendar (if connected and task is syncable)

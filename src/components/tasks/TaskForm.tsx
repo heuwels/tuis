@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Task, User } from "@/types";
+import { Task, User, Appliance } from "@/types";
 
 const AREAS = [
   "Kitchen",
@@ -62,12 +62,14 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
     notes: "",
     nextDue: "",
     assignedTo: "",
+    applianceId: "",
   });
   const [users, setUsers] = useState<User[]>([]);
+  const [appliances, setAppliances] = useState<Appliance[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch users
+  // Fetch users and appliances
   useEffect(() => {
     async function fetchUsers() {
       try {
@@ -80,7 +82,19 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
         console.error("Error fetching users:", error);
       }
     }
+    async function fetchAppliances() {
+      try {
+        const response = await fetch("/api/appliances");
+        if (response.ok) {
+          const data = await response.json();
+          setAppliances(data);
+        }
+      } catch (error) {
+        console.error("Error fetching appliances:", error);
+      }
+    }
     fetchUsers();
+    fetchAppliances();
   }, []);
 
   // Update form when task changes (for editing different tasks)
@@ -95,6 +109,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
         notes: task?.notes || "",
         nextDue: task?.nextDue || "",
         assignedTo: task?.assignedTo?.toString() || "",
+        applianceId: task?.applianceId?.toString() || "",
       });
       setError("");
     }
@@ -110,6 +125,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
       notes: "",
       nextDue: "",
       assignedTo: "",
+      applianceId: "",
     });
     setError("");
   };
@@ -126,6 +142,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
       const payload = {
         ...formData,
         assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : null,
+        applianceId: formData.applianceId ? parseInt(formData.applianceId) : null,
       };
 
       const response = await fetch(url, {
@@ -274,6 +291,31 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
                 onChange={(e) => setFormData({ ...formData, nextDue: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="applianceId">Related Appliance</Label>
+            <Select
+              value={formData.applianceId || "none"}
+              onValueChange={(value) => setFormData({ ...formData, applianceId: value === "none" ? "" : value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="None" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                {appliances.map((appliance) => (
+                  <SelectItem key={appliance.id} value={appliance.id.toString()}>
+                    {appliance.name}
+                    {appliance.location && (
+                      <span className="text-muted-foreground ml-2">
+                        ({appliance.location})
+                      </span>
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

@@ -111,7 +111,7 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete }: TaskTable
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
                       <SnoozeButton taskId={task.id} onSnooze={onTaskComplete} />
-                      <CompleteButton taskId={task.id} onComplete={onTaskComplete} />
+                      <CompleteButton taskId={task.id} taskName={task.name} onComplete={onTaskComplete} />
                       <Button
                         size="sm"
                         variant="ghost"

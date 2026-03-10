@@ -10,6 +10,7 @@ import { RecipePicker } from "@/components/meals/RecipePicker";
 import { RecipeDetail } from "@/components/meals/RecipeDetail";
 import { MissingIngredients } from "@/components/meals/MissingIngredients";
 import { Recipe } from "@/components/meals/RecipeCard";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 interface MealEntry {
   id: number;
@@ -194,71 +195,71 @@ function MealsContent() {
   const isCurrentWeek =
     formatDateKey(weekStart) === formatDateKey(getStartOfWeek(new Date()));
 
-  return (
+  const actions = (
     <>
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Week Navigation */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={handlePreviousWeek}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={handleNextWeek}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            {!isCurrentWeek && (
-              <Button variant="outline" size="sm" onClick={handleThisWeek}>
-                Today
-              </Button>
-            )}
-            <span className="font-medium text-lg ml-2">{weekLabel}</span>
-          </div>
+      <Link href="/recipes">
+        <Button variant="outline">
+          <BookOpen className="h-4 w-4 mr-2" />
+          Recipes
+        </Button>
+      </Link>
+      <Button onClick={() => setIsIngredientsOpen(true)}>
+        <ShoppingCart className="h-4 w-4 mr-2" />
+        Add to Shopping List
+      </Button>
+    </>
+  );
 
-          <div className="flex items-center gap-2">
-            <Link href="/recipes">
-              <Button variant="outline">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Recipes
-              </Button>
-            </Link>
-            <Button onClick={() => setIsIngredientsOpen(true)}>
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Add to Shopping List
+  return (
+    <AppLayout title="Meal Planner" actions={actions}>
+      {/* Week Navigation */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={handlePreviousWeek}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={handleNextWeek}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          {!isCurrentWeek && (
+            <Button variant="outline" size="sm" onClick={handleThisWeek}>
+              Today
             </Button>
-          </div>
+          )}
+          <span className="font-medium text-lg ml-2">{weekLabel}</span>
         </div>
+      </div>
 
-        {/* Week Grid */}
-        {isLoading ? (
-          <p className="text-center text-muted-foreground py-12">
-            Loading meals...
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-            {weekDates.map((date) => {
-              const dateKey = formatDateKey(date);
-              const meal = meals.get(dateKey) || null;
-              const isToday = formatDateKey(date) === formatDateKey(today);
+      {/* Week Grid */}
+      {isLoading ? (
+        <p className="text-center text-muted-foreground py-12">
+          Loading meals...
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+          {weekDates.map((date) => {
+            const dateKey = formatDateKey(date);
+            const meal = meals.get(dateKey) || null;
+            const isToday = formatDateKey(date) === formatDateKey(today);
 
-              return (
-                <MealDay
-                  key={dateKey}
-                  date={date}
-                  meal={meal}
-                  isToday={isToday}
-                  onAddMeal={() => handleAddMeal(date)}
-                  onClearMeal={() => handleClearMeal(date)}
-                  onViewRecipe={
-                    meal?.recipeId
-                      ? () => handleViewRecipe(meal.recipeId!)
-                      : undefined
-                  }
-                />
-              );
-            })}
-          </div>
-        )}
-      </main>
+            return (
+              <MealDay
+                key={dateKey}
+                date={date}
+                meal={meal}
+                isToday={isToday}
+                onAddMeal={() => handleAddMeal(date)}
+                onClearMeal={() => handleClearMeal(date)}
+                onViewRecipe={
+                  meal?.recipeId
+                    ? () => handleViewRecipe(meal.recipeId!)
+                    : undefined
+                }
+              />
+            );
+          })}
+        </div>
+      )}
 
       <RecipePicker
         open={isPickerOpen}
@@ -280,32 +281,18 @@ function MealsContent() {
         startDate={startDateKey}
         endDate={endDateKey}
       />
-    </>
+    </AppLayout>
   );
 }
 
 export default function MealsPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            href="/"
-            className="text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            &larr; Dashboard
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Meal Planner</h1>
-        </div>
-      </header>
-
-      <Suspense fallback={
-        <main className="max-w-6xl mx-auto px-4 py-8">
-          <p className="text-center text-muted-foreground py-12">Loading...</p>
-        </main>
-      }>
-        <MealsContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={
+      <AppLayout title="Meal Planner">
+        <p className="text-center text-muted-foreground py-12">Loading...</p>
+      </AppLayout>
+    }>
+      <MealsContent />
+    </Suspense>
   );
 }

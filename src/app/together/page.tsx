@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -26,6 +25,7 @@ import {
 import { ActivityCard, Activity } from "@/components/together/ActivityCard";
 import { ActivityForm } from "@/components/together/ActivityForm";
 import { ActivityDetail } from "@/components/together/ActivityDetail";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 const CATEGORIES = [
   { value: "", label: "All", icon: Heart },
@@ -171,166 +171,154 @@ export default function TogetherPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            href="/"
-            className="text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            &larr; Dashboard
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">To-Do Together</h1>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => {
-              const Icon = cat.icon;
-              return (
-                <Button
-                  key={cat.value}
-                  variant={selectedCategory === cat.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat.value)}
-                  className="gap-1"
-                >
-                  <Icon className="h-4 w-4" />
-                  {cat.label}
-                </Button>
-              );
-            })}
-          </div>
-
-          <div className="flex gap-2">
-            <Popover open={isExportOpen} onOpenChange={setIsExportOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-2" align="end">
-                <div className="space-y-1">
-                  <button
-                    onClick={() => handleExport("json")}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
-                  >
-                    <FileJson className="h-4 w-4" />
-                    JSON (for import)
-                  </button>
-                  <button
-                    onClick={() => handleExport("csv")}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
-                  >
-                    <FileSpreadsheet className="h-4 w-4" />
-                    CSV (spreadsheet)
-                  </button>
-                  <button
-                    onClick={() => handleExport("markdown")}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Markdown (document)
-                  </button>
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Import
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              className="hidden"
-            />
-
-            <Button
-              onClick={() => {
-                setEditingActivity(null);
-                setIsFormOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add New
-            </Button>
-          </div>
-        </div>
-
-        {importError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm whitespace-pre-wrap">
-            {importError}
+  const actions = (
+    <>
+      <Popover open={isExportOpen} onOpenChange={setIsExportOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-48 p-2" align="end">
+          <div className="space-y-1">
             <button
-              onClick={() => setImportError(null)}
-              className="ml-2 text-red-500 hover:text-red-700"
+              onClick={() => handleExport("json")}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
             >
-              Dismiss
+              <FileJson className="h-4 w-4" />
+              JSON (for import)
+            </button>
+            <button
+              onClick={() => handleExport("csv")}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              CSV (spreadsheet)
+            </button>
+            <button
+              onClick={() => handleExport("markdown")}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+            >
+              <FileText className="h-4 w-4" />
+              Markdown (document)
             </button>
           </div>
-        )}
+        </PopoverContent>
+      </Popover>
 
-        <div className="flex gap-2 mb-6">
-          {STATUSES.map((status) => (
-            <Button
-              key={status.value}
-              variant={selectedStatus === status.value ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setSelectedStatus(status.value)}
-            >
-              {status.label}
-            </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <Upload className="h-4 w-4 mr-2" />
+        Import
+      </Button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleImport}
+        className="hidden"
+      />
+
+      <Button
+        onClick={() => {
+          setEditingActivity(null);
+          setIsFormOpen(true);
+        }}
+      >
+        <Plus className="h-4 w-4 mr-2" />
+        Add New
+      </Button>
+    </>
+  );
+
+  return (
+    <AppLayout title="To-Do Together" actions={actions}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <Button
+                key={cat.value}
+                variant={selectedCategory === cat.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(cat.value)}
+                className="gap-1"
+              >
+                <Icon className="h-4 w-4" />
+                {cat.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      {importError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm whitespace-pre-wrap">
+          {importError}
+          <button
+            onClick={() => setImportError(null)}
+            className="ml-2 text-red-500 hover:text-red-700"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      <div className="flex gap-2 mb-6">
+        {STATUSES.map((status) => (
+          <Button
+            key={status.value}
+            variant={selectedStatus === status.value ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setSelectedStatus(status.value)}
+          >
+            {status.label}
+          </Button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <p className="text-center text-muted-foreground py-12">
+          Loading activities...
+        </p>
+      ) : activities.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-4">
+              {selectedCategory || selectedStatus
+                ? "No activities found matching your filters."
+                : "Your to-do together list is empty. Add your first activity!"}
+            </p>
+            {!selectedCategory && !selectedStatus && (
+              <Button
+                onClick={() => {
+                  setEditingActivity(null);
+                  setIsFormOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add First Activity
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {activities.map((activity) => (
+            <ActivityCard
+              key={activity.id}
+              activity={activity}
+              onClick={() => handleActivityClick(activity)}
+            />
           ))}
         </div>
-
-        {isLoading ? (
-          <p className="text-center text-muted-foreground py-12">
-            Loading activities...
-          </p>
-        ) : activities.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Heart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">
-                {selectedCategory || selectedStatus
-                  ? "No activities found matching your filters."
-                  : "Your to-do together list is empty. Add your first activity!"}
-              </p>
-              {!selectedCategory && !selectedStatus && (
-                <Button
-                  onClick={() => {
-                    setEditingActivity(null);
-                    setIsFormOpen(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add First Activity
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activities.map((activity) => (
-              <ActivityCard
-                key={activity.id}
-                activity={activity}
-                onClick={() => handleActivityClick(activity)}
-              />
-            ))}
-          </div>
-        )}
-      </main>
+      )}
 
       <ActivityForm
         activity={editingActivity || undefined}
@@ -346,6 +334,6 @@ export default function TogetherPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-    </div>
+    </AppLayout>
   );
 }

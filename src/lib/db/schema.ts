@@ -16,6 +16,7 @@ export const tasks = sqliteTable("tasks", {
   season: text("season"),
   notes: text("notes"),
   assignedTo: integer("assigned_to").references(() => users.id),
+  applianceId: integer("appliance_id"),
   lastCompleted: text("last_completed"),
   nextDue: text("next_due"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
@@ -29,6 +30,8 @@ export const completions = sqliteTable("completions", {
     .references(() => tasks.id),
   completedAt: text("completed_at").notNull(),
   completedBy: integer("completed_by").references(() => users.id),
+  vendorId: integer("vendor_id"),
+  cost: text("cost"),
 });
 
 export const googleCalendarSettings = sqliteTable("google_calendar_settings", {
@@ -136,6 +139,34 @@ export const activities = sqliteTable("activities", {
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
 });
 
+export const appliances = sqliteTable("appliances", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  location: text("location"),
+  brand: text("brand"),
+  model: text("model"),
+  purchaseDate: text("purchase_date"),
+  warrantyExpiry: text("warranty_expiry"),
+  manualUrl: text("manual_url"),
+  warrantyDocUrl: text("warranty_doc_url"),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const vendors = sqliteTable("vendors", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  category: text("category"), // Plumber, Electrician, HVAC, Appliance Repair, Landscaping, Cleaning, General, Other
+  phone: text("phone"),
+  email: text("email"),
+  website: text("website"),
+  notes: text("notes"),
+  rating: integer("rating"), // 1-5
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
@@ -160,3 +191,7 @@ export type MealPlan = typeof mealPlan.$inferSelect;
 export type NewMealPlan = typeof mealPlan.$inferInsert;
 export type Activity = typeof activities.$inferSelect;
 export type NewActivity = typeof activities.$inferInsert;
+export type Appliance = typeof appliances.$inferSelect;
+export type NewAppliance = typeof appliances.$inferInsert;
+export type Vendor = typeof vendors.$inferSelect;
+export type NewVendor = typeof vendors.$inferInsert;

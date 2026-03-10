@@ -9,6 +9,7 @@ import { Plus, Search, ChefHat } from "lucide-react";
 import { RecipeCard, Recipe } from "@/components/meals/RecipeCard";
 import { RecipeForm } from "@/components/meals/RecipeForm";
 import { RecipeDetail } from "@/components/meals/RecipeDetail";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 interface RecipeWithIngredients extends Recipe {
   ingredients?: { id: number; recipeId: number; name: string; quantity: string | null; sortOrder: number }[];
@@ -88,80 +89,71 @@ export default function RecipesPage() {
     }
   };
 
+  const actions = (
+    <>
+      <Button onClick={() => {
+        setEditingRecipe(null);
+        setIsFormOpen(true);
+      }}>
+        <Plus className="h-4 w-4 mr-2" />
+        New Recipe
+      </Button>
+      <Link href="/meals">
+        <Button variant="outline">
+          View Meal Plan
+        </Button>
+      </Link>
+    </>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            href="/"
-            className="text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            &larr; Dashboard
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Recipe Library</h1>
+    <AppLayout title="Recipe Library" actions={actions}>
+      <div className="flex items-center gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search recipes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search recipes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+      {isLoading ? (
+        <p className="text-center text-muted-foreground py-12">Loading recipes...</p>
+      ) : recipes.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <ChefHat className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-4">
+              {searchQuery
+                ? "No recipes found matching your search."
+                : "No recipes yet. Add your first recipe to get started!"}
+            </p>
+            {!searchQuery && (
+              <Button onClick={() => {
+                setEditingRecipe(null);
+                setIsFormOpen(true);
+              }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Recipe
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {recipes.map((recipe) => (
+            <RecipeCard
+              key={recipe.id}
+              recipe={recipe}
+              onClick={() => fetchRecipeDetails(recipe.id)}
             />
-          </div>
-          <Button onClick={() => {
-            setEditingRecipe(null);
-            setIsFormOpen(true);
-          }}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Recipe
-          </Button>
-          <Link href="/meals">
-            <Button variant="outline">
-              View Meal Plan
-            </Button>
-          </Link>
+          ))}
         </div>
-
-        {isLoading ? (
-          <p className="text-center text-muted-foreground py-12">Loading recipes...</p>
-        ) : recipes.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <ChefHat className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">
-                {searchQuery
-                  ? "No recipes found matching your search."
-                  : "No recipes yet. Add your first recipe to get started!"}
-              </p>
-              {!searchQuery && (
-                <Button onClick={() => {
-                  setEditingRecipe(null);
-                  setIsFormOpen(true);
-                }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Recipe
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recipes.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                recipe={recipe}
-                onClick={() => fetchRecipeDetails(recipe.id)}
-              />
-            ))}
-          </div>
-        )}
-      </main>
+      )}
 
       <RecipeForm
         recipe={editingRecipe || undefined}
@@ -183,6 +175,6 @@ export default function RecipesPage() {
           window.location.href = `/meals?addRecipe=${selectedRecipe?.id}`;
         }}
       />
-    </div>
+    </AppLayout>
   );
 }

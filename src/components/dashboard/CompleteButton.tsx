@@ -8,17 +8,27 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, CalendarIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Check, CalendarIcon, ChevronDown, FileText } from "lucide-react";
 import { format } from "date-fns";
+import { CompletionDetailsDialog } from "./CompletionDetailsDialog";
 
 interface CompleteButtonProps {
   taskId: number;
+  taskName?: string;
   onComplete: () => void;
 }
 
-export function CompleteButton({ taskId, onComplete }: CompleteButtonProps) {
+export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const completeTask = async (date?: Date) => {
     setIsLoading(true);
@@ -43,22 +53,41 @@ export function CompleteButton({ taskId, onComplete }: CompleteButtonProps) {
   };
 
   return (
-    <div className="flex gap-1">
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={() => completeTask()}
-        disabled={isLoading}
-        className="h-8"
-      >
-        <Check className="h-4 w-4 mr-1" />
-        Done
-      </Button>
+    <>
+      <div className="flex gap-1">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => completeTask()}
+          disabled={isLoading}
+          className="h-8"
+        >
+          <Check className="h-4 w-4 mr-1" />
+          Done
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="ghost" className="h-8 px-1">
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setIsCalendarOpen(true)}>
+              <CalendarIcon className="h-4 w-4 mr-2" />
+              Complete on date...
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
+              <FileText className="h-4 w-4 mr-2" />
+              Complete with details...
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
         <PopoverTrigger asChild>
-          <Button size="sm" variant="ghost" className="h-8 px-2">
-            <CalendarIcon className="h-4 w-4" />
-          </Button>
+          <span className="hidden" />
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="end">
           <Calendar
@@ -70,6 +99,14 @@ export function CompleteButton({ taskId, onComplete }: CompleteButtonProps) {
           />
         </PopoverContent>
       </Popover>
-    </div>
+
+      <CompletionDetailsDialog
+        taskId={taskId}
+        taskName={taskName || "Task"}
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+        onComplete={onComplete}
+      />
+    </>
   );
 }

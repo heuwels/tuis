@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,7 @@ import {
 import { User } from "@/types";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { GoogleCalendarCard } from "@/components/settings/GoogleCalendarCard";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 const COLORS = [
   "#3b82f6", // blue
@@ -109,19 +109,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            href="/"
-            className="text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            &larr; Dashboard
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        </div>
-      </header>
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <AppLayout title="Settings">
+      <div className="space-y-6 max-w-2xl">
         <GoogleCalendarCard />
 
         <Card>
@@ -181,7 +170,7 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
-      </main>
+      </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-[400px]">
@@ -236,6 +225,6 @@ export default function SettingsPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </AppLayout>
   );
 }

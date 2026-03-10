@@ -61,7 +61,7 @@ export function TaskCard({ task, status, onComplete }: TaskCardProps) {
         </div>
         <div className="flex items-center gap-1">
           <SnoozeButton taskId={task.id} onSnooze={onComplete} />
-          <CompleteButton taskId={task.id} onComplete={onComplete} />
+          <CompleteButton taskId={task.id} taskName={task.name} onComplete={onComplete} />
         </div>
       </CardContent>
     </Card>

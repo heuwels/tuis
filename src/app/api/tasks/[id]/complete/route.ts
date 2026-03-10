@@ -49,6 +49,8 @@ export async function POST(
     const body = await request.json();
     const completedDateStr = body.completedDate || format(new Date(), "yyyy-MM-dd");
     const completedDate = parseISO(completedDateStr);
+    const vendorId = body.vendorId || null;
+    const cost = body.cost || null;
 
     // Get the task to find its frequency
     const task = await db
@@ -67,6 +69,8 @@ export async function POST(
     await db.insert(completions).values({
       taskId: parseInt(id),
       completedAt: completedDateStr,
+      vendorId: vendorId,
+      cost: cost,
     });
 
     // Update the task
