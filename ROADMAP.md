@@ -2,6 +2,8 @@
 
 > **Design principle:** Mobile-first, minimal friction. Optimised for quick use on phones - especially for household members like Jules who need things to just work.
 
+> **Platform:** PWA (Progressive Web App) - no native app needed. Add to home screen, offline support, push notifications all handled via web standards. Capacitor available as escape hatch if needed later.
+
 ## User Identity
 
 - [ ] **One-tap user selection** - Tap your name/avatar on first visit, no passwords
