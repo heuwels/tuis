@@ -60,14 +60,14 @@ export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonP
           variant="outline"
           onClick={() => completeTask()}
           disabled={isLoading}
-          className="h-8"
+          className="h-10 md:h-8"
         >
           <Check className="h-4 w-4 mr-1" />
           Done
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="sm" variant="ghost" className="h-8 px-1">
+            <Button size="sm" variant="ghost" className="h-10 md:h-8 px-1">
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

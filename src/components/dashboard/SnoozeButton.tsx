@@ -48,7 +48,7 @@ export function SnoozeButton({ taskId, onSnooze }: SnoozeButtonProps) {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-8 px-2" title="Snooze">
+        <Button size="sm" variant="ghost" className="h-10 md:h-8 px-2" title="Snooze">
           <Clock className="h-4 w-4" />
         </Button>
       </PopoverTrigger>

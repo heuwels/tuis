@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { BottomNav } from "./BottomNav";
 
 interface NavItem {
   href: string;
@@ -214,8 +215,11 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
           </div>
         )}
 
-        <div className="p-4 lg:p-6">{children}</div>
+        <div className="p-4 lg:p-6 pb-20 lg:pb-6">{children}</div>
       </main>
+
+      {/* Mobile bottom navigation */}
+      <BottomNav onMenuClick={() => setIsMobileOpen(true)} />
     </div>
   );
 }

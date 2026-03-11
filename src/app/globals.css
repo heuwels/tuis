@@ -123,3 +123,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* PWA safe area support */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
