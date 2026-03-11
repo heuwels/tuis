@@ -13,12 +13,12 @@
 
 ## Mobile Experience (Priority)
 
-- [ ] **PWA support** - Service worker, offline capability, install prompt
-- [ ] **Mobile-first UI** - Large touch targets, thumb-friendly navigation
-- [ ] Bottom navigation bar for mobile (easier one-handed use)
+- [x] **PWA support** - Service worker, offline capability, install prompt
+- [x] **Mobile-first UI** - Large touch targets (44px minimum), thumb-friendly navigation
+- [x] Bottom navigation bar for mobile (Home, Chores, Shop, Us, More)
+- [x] Add to home screen with app icon
 - [ ] Swipe gestures - swipe right to complete, swipe left to snooze
 - [ ] Pull-to-refresh on task lists
-- [ ] Add to home screen with app icon
 - [ ] Haptic feedback on actions
 
 ## Notifications
