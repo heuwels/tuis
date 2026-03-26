@@ -6,10 +6,10 @@
 
 ## User Identity
 
-- [ ] **One-tap user selection** - Tap your name/avatar on first visit, no passwords
-- [ ] Remember selected user in localStorage (persists across sessions)
-- [ ] Avatar in header showing current user, tap to switch
-- [ ] Auto-assign new completions to current user
+- [x] **One-tap user selection** - Tap your name/avatar on first visit, no passwords
+- [x] Remember selected user in localStorage (persists across sessions)
+- [x] Avatar in header showing current user, tap to switch
+- [x] Auto-assign new completions to current user
 
 ## Mobile Experience (Priority)
 

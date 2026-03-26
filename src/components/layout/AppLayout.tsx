@@ -22,6 +22,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { BottomNav } from "./BottomNav";
+import { UserAvatar } from "@/components/user-identity/UserAvatar";
 
 interface NavItem {
   href: string;
@@ -132,7 +133,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
           {title && (
             <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
           )}
-          <div className="w-10" /> {/* Spacer for centering */}
+          <UserAvatar />
         </div>
       </header>
 
@@ -203,7 +204,10 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
           <header className="hidden lg:block bg-white border-b sticky top-0 z-20">
             <div className="flex items-center justify-between px-6 py-4">
               <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-              {actions && <div className="flex items-center gap-4">{actions}</div>}
+              <div className="flex items-center gap-4">
+                {actions}
+                <UserAvatar />
+              </div>
             </div>
           </header>
         )}

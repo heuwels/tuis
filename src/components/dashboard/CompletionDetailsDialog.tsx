@@ -27,6 +27,7 @@ import { Vendor } from "@/types";
 import { CalendarIcon, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/lib/user-identity";
 
 interface CompletionDetailsDialogProps {
   taskId: number;
@@ -49,6 +50,7 @@ export function CompletionDetailsDialog({
   const [cost, setCost] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const { currentUser } = useCurrentUser();
 
   useEffect(() => {
     if (open) {
@@ -75,6 +77,7 @@ export function CompletionDetailsDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           completedDate: format(date, "yyyy-MM-dd"),
+          completedBy: currentUser?.id || null,
           vendorId: selectedVendorId ? parseInt(selectedVendorId) : null,
           cost: cost || null,
         }),

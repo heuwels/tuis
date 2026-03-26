@@ -18,6 +18,7 @@ import {
 import { Check, CalendarIcon, ChevronDown, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { CompletionDetailsDialog } from "./CompletionDetailsDialog";
+import { useCurrentUser } from "@/lib/user-identity";
 
 interface CompleteButtonProps {
   taskId: number;
@@ -29,6 +30,7 @@ export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonP
   const [isLoading, setIsLoading] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { currentUser } = useCurrentUser();
 
   const completeTask = async (date?: Date) => {
     setIsLoading(true);
@@ -38,6 +40,7 @@ export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           completedDate: date ? format(date, "yyyy-MM-dd") : undefined,
+          completedBy: currentUser?.id || null,
         }),
       });
 
