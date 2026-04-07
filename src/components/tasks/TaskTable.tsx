@@ -54,10 +54,10 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete }: TaskTable
 
   return (
     <div className="rounded-md border">
-      <Table>
+      <Table className="table-fixed">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[250px]">Task</TableHead>
+            <TableHead className="w-[40%]">Task</TableHead>
             <TableHead>Area</TableHead>
             <TableHead>Frequency</TableHead>
             <TableHead>Last Done</TableHead>
@@ -78,10 +78,10 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete }: TaskTable
               return (
                 <TableRow key={task.id}>
                   <TableCell>
-                    <div>
+                    <div className="min-w-0">
                       <span className="font-medium">{task.name}</span>
                       {task.notes && (
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2 break-words">
                           {task.notes}
                         </p>
                       )}
