@@ -35,8 +35,8 @@ export function SnoozeButton({ taskId, onSnooze }: SnoozeButtonProps) {
       });
 
       if (response.ok) {
-        onSnooze();
         setIsOpen(false);
+        onSnooze();
       }
     } catch (error) {
       console.error("Error snoozing task:", error);
