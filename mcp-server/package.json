@@ -1,0 +1,23 @@
+{
+  "name": "chore-calendar-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for the Chore Calendar app",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "chore-calendar-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
