@@ -4,6 +4,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+// Note: This is a standalone copy of the tool registrations from src/lib/mcp/server.ts
+// for use as a stdio MCP server (e.g. via docker exec).
+// The canonical HTTP endpoint is served by the Next.js app at /api/mcp.
+
 const BASE_URL = process.env.CHORE_CALENDAR_URL || "http://localhost:3000";
 
 async function api(path: string, options?: RequestInit) {
