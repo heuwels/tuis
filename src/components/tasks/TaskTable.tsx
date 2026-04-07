@@ -53,16 +53,16 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete }: TaskTable
   };
 
   return (
-    <div className="rounded-md border">
-      <Table className="table-fixed">
+    <div className="rounded-md border overflow-x-auto">
+      <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[40%]">Task</TableHead>
-            <TableHead>Area</TableHead>
-            <TableHead>Frequency</TableHead>
-            <TableHead>Last Done</TableHead>
-            <TableHead>Next Due</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="min-w-[200px] max-w-[300px]">Task</TableHead>
+            <TableHead className="whitespace-nowrap">Area</TableHead>
+            <TableHead className="whitespace-nowrap">Frequency</TableHead>
+            <TableHead className="whitespace-nowrap">Last Done</TableHead>
+            <TableHead className="whitespace-nowrap">Next Due</TableHead>
+            <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -77,11 +77,11 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete }: TaskTable
               const areaColor = areaColors[task.area] || "bg-gray-100 text-gray-800";
               return (
                 <TableRow key={task.id}>
-                  <TableCell>
-                    <div className="min-w-0">
+                  <TableCell className="max-w-[300px]">
+                    <div>
                       <span className="font-medium">{task.name}</span>
                       {task.notes && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2 break-words">
+                        <p className="text-xs text-muted-foreground mt-1 whitespace-normal break-words">
                           {task.notes}
                         </p>
                       )}
