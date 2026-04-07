@@ -17,6 +17,9 @@ COPY . .
 # Build the application
 RUN npm run build
 
+# Build the MCP server
+RUN cd mcp-server && npm ci && npm run build
+
 # Stage 3: Runner
 FROM node:20-alpine AS runner
 RUN apk add --no-cache libc6-compat
@@ -38,6 +41,11 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src/lib/db ./src/lib/db
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/chore-calendar.csv ./
+
+# Copy MCP server
+COPY --from=builder /app/mcp-server/dist ./mcp-server/dist
+COPY --from=builder /app/mcp-server/node_modules ./mcp-server/node_modules
+COPY --from=builder /app/mcp-server/package.json ./mcp-server/package.json
 
 # Create data directory for SQLite and set permissions
 RUN mkdir -p /app/data && chown -R nextjs:nodejs /app
