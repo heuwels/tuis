@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { shoppingLists, shoppingItems } from "@/lib/db/schema";
 import { desc, eq, sql } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     // Get all lists with item counts

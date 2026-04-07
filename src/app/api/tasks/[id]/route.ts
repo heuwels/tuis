@@ -4,6 +4,8 @@ import { tasks, completions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { syncTask, deleteTaskCalendarEvents } from "@/lib/calendar";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

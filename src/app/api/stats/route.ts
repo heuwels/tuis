@@ -4,6 +4,8 @@ import { tasks, completions } from "@/lib/db/schema";
 import { sql, eq, gte, and, count } from "drizzle-orm";
 import { subDays, startOfDay, startOfWeek, startOfMonth, format } from "date-fns";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const now = new Date();

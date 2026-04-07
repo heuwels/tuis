@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { vendors, completions, tasks } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

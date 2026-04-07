@@ -4,6 +4,8 @@ import { tasks } from "@/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { syncTask } from "@/lib/calendar";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const allTasks = await db.select().from(tasks).orderBy(desc(tasks.nextDue));

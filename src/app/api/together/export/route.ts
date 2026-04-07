@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { activities } from "@/lib/db/schema";
 import { desc } from "drizzle-orm";
 
+export const dynamic = "force-dynamic";
+
 const CATEGORY_LABELS: Record<string, string> = {
   location: "Locations",
   activity: "Activities",
