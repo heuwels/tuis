@@ -397,6 +397,16 @@ server.tool(
   async () => text(await api("/api/users"))
 );
 
+server.tool(
+  "create_user",
+  "Create a new household member.",
+  {
+    name: z.string().describe("Person's name"),
+    color: z.string().optional().describe("Hex color for UI display"),
+  },
+  async (params) => text(await api("/api/users", { method: "POST", body: JSON.stringify(params) }))
+);
+
 // ─── Appliances ──────────────────────────────────────────────────────────────
 
 server.tool(
@@ -422,6 +432,49 @@ server.tool(
   async ({ id }) => text(await api(`/api/appliances/${id}`))
 );
 
+server.tool(
+  "create_appliance",
+  "Add a new household appliance.",
+  {
+    name: z.string().describe("Appliance name (e.g. Dishwasher, Oven, Hot Water System)"),
+    location: z.string().optional().describe("Where it is (e.g. Kitchen, Laundry, Garage)"),
+    brand: z.string().optional().describe("Manufacturer"),
+    model: z.string().optional().describe("Model number"),
+    purchaseDate: z.string().optional().describe("Purchase date (ISO format)"),
+    warrantyExpiry: z.string().optional().describe("Warranty expiry date (ISO format)"),
+    manualUrl: z.string().optional().describe("URL to product manual"),
+    warrantyDocUrl: z.string().optional().describe("URL to warranty document"),
+    notes: z.string().optional(),
+  },
+  async (params) => text(await api("/api/appliances", { method: "POST", body: JSON.stringify(params) }))
+);
+
+server.tool(
+  "update_appliance",
+  "Update an existing appliance.",
+  {
+    id: z.number().describe("Appliance ID"),
+    name: z.string().optional(),
+    location: z.string().optional(),
+    brand: z.string().optional(),
+    model: z.string().optional(),
+    purchaseDate: z.string().optional(),
+    warrantyExpiry: z.string().optional(),
+    manualUrl: z.string().optional(),
+    warrantyDocUrl: z.string().optional(),
+    notes: z.string().optional(),
+  },
+  async ({ id, ...body }) =>
+    text(await api(`/api/appliances/${id}`, { method: "PUT", body: JSON.stringify(body) }))
+);
+
+server.tool(
+  "delete_appliance",
+  "Delete an appliance.",
+  { id: z.number().describe("Appliance ID") },
+  async ({ id }) => text(await api(`/api/appliances/${id}`, { method: "DELETE" }))
+);
+
 // ─── Vendors ─────────────────────────────────────────────────────────────────
 
 server.tool(
@@ -445,6 +498,45 @@ server.tool(
   "Get vendor details with job history.",
   { id: z.number().describe("Vendor ID") },
   async ({ id }) => text(await api(`/api/vendors/${id}`))
+);
+
+server.tool(
+  "create_vendor",
+  "Add a new service vendor/contractor.",
+  {
+    name: z.string().describe("Vendor/business name"),
+    category: z.string().optional().describe("Category: Plumber, Electrician, HVAC, Appliance Repair, Landscaping, Cleaning, Chimney, General, Other"),
+    phone: z.string().optional(),
+    email: z.string().optional(),
+    website: z.string().optional(),
+    notes: z.string().optional(),
+    rating: z.number().optional().describe("Rating 1-5"),
+  },
+  async (params) => text(await api("/api/vendors", { method: "POST", body: JSON.stringify(params) }))
+);
+
+server.tool(
+  "update_vendor",
+  "Update an existing vendor.",
+  {
+    id: z.number().describe("Vendor ID"),
+    name: z.string().optional(),
+    category: z.string().optional(),
+    phone: z.string().optional(),
+    email: z.string().optional(),
+    website: z.string().optional(),
+    notes: z.string().optional(),
+    rating: z.number().optional(),
+  },
+  async ({ id, ...body }) =>
+    text(await api(`/api/vendors/${id}`, { method: "PUT", body: JSON.stringify(body) }))
+);
+
+server.tool(
+  "delete_vendor",
+  "Delete a vendor.",
+  { id: z.number().describe("Vendor ID") },
+  async ({ id }) => text(await api(`/api/vendors/${id}`, { method: "DELETE" }))
 );
 
 // ─── Start ───────────────────────────────────────────────────────────────────
