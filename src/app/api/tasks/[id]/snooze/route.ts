@@ -25,10 +25,8 @@ export async function POST(
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // Calculate new due date from current due date or today
-    const baseDate = task[0].nextDue
-      ? parseISO(task[0].nextDue)
-      : new Date();
+    // Always snooze from today
+    const baseDate = new Date();
 
     let newDueDate: Date;
     switch (duration) {
