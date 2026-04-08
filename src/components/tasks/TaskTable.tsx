@@ -54,7 +54,7 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete }: TaskTable
 
   return (
     <div className="rounded-md border overflow-x-auto">
-      <Table>
+      <Table className="table-fixed w-full">
         <TableHeader>
           <TableRow>
             <TableHead className="min-w-[200px] max-w-[300px]">Task</TableHead>
