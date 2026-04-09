@@ -13,13 +13,14 @@ import { Button } from "@/components/ui/button";
 import { CompleteButton, SnoozeButton } from "@/components/dashboard";
 import { Task } from "@/types";
 import { format, parseISO, isBefore, startOfDay } from "date-fns";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, FileText } from "lucide-react";
 
 interface TaskTableProps {
   tasks: Task[];
   onTaskComplete: () => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  onView?: (task: Task) => void;
 }
 
 const areaColors: Record<string, string> = {
@@ -35,7 +36,7 @@ const areaColors: Record<string, string> = {
   Laundry: "bg-cyan-100 text-cyan-800",
 };
 
-export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete }: TaskTableProps) {
+export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete, onView }: TaskTableProps) {
   const today = startOfDay(new Date());
 
   const getStatusBadge = (task: Task) => {
@@ -79,11 +80,25 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete }: TaskTable
                 <TableRow key={task.id}>
                   <TableCell className="max-w-[300px]">
                     <div>
-                      <span className="font-medium">{task.name}</span>
+                      <span
+                        className={`font-medium ${task.extendedNotes && onView ? "cursor-pointer hover:text-blue-600" : ""}`}
+                        onClick={task.extendedNotes && onView ? () => onView(task) : undefined}
+                      >
+                        {task.name}
+                      </span>
                       {task.notes && (
                         <p className="text-xs text-muted-foreground mt-1 whitespace-normal break-words">
                           {task.notes}
                         </p>
+                      )}
+                      {task.extendedNotes && onView && (
+                        <button
+                          className="inline-flex items-center gap-1 text-xs text-blue-500 mt-1 hover:text-blue-700"
+                          onClick={() => onView(task)}
+                        >
+                          <FileText className="h-3 w-3" />
+                          Extended notes
+                        </button>
                       )}
                     </div>
                   </TableCell>

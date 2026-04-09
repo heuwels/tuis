@@ -13,6 +13,7 @@ export interface Task {
   assignedDay: string | null;
   season: string | null;
   notes: string | null;
+  extendedNotes: string | null;
   assignedTo: number | null;
   applianceId: number | null;
   lastCompleted: string | null;

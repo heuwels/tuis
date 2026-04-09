@@ -15,6 +15,7 @@ export const tasks = sqliteTable("tasks", {
   assignedDay: text("assigned_day"),
   season: text("season"),
   notes: text("notes"),
+  extendedNotes: text("extended_notes"),
   assignedTo: integer("assigned_to").references(() => users.id),
   applianceId: integer("appliance_id"),
   lastCompleted: text("last_completed"),

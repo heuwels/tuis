@@ -205,6 +205,11 @@ function initDb(): BetterSQLite3Database<typeof schema> {
     sqlite.exec(`ALTER TABLE completions ADD COLUMN cost TEXT`);
   } catch { /* column already exists */ }
 
+  // Task extended notes
+  try {
+    sqlite.exec(`ALTER TABLE tasks ADD COLUMN extended_notes TEXT`);
+  } catch { /* column already exists */ }
+
   // Meal plan servings multiplier
   try {
     sqlite.exec(`ALTER TABLE meal_plan ADD COLUMN servings_multiplier REAL DEFAULT 1`);

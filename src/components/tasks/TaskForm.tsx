@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -60,6 +61,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
     assignedDay: "",
     season: "",
     notes: "",
+    extendedNotes: "",
     nextDue: "",
     assignedTo: "",
     applianceId: "",
@@ -107,6 +109,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
         assignedDay: task?.assignedDay || "",
         season: task?.season || "",
         notes: task?.notes || "",
+        extendedNotes: task?.extendedNotes || "",
         nextDue: task?.nextDue || "",
         assignedTo: task?.assignedTo?.toString() || "",
         applianceId: task?.applianceId?.toString() || "",
@@ -123,6 +126,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
       assignedDay: "",
       season: "",
       notes: "",
+      extendedNotes: "",
       nextDue: "",
       assignedTo: "",
       applianceId: "",
@@ -171,7 +175,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
       if (!isOpen) resetForm();
       onOpenChange(isOpen);
     }}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Task" : "Add New Task"}</DialogTitle>
         </DialogHeader>
@@ -324,8 +328,22 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Additional instructions or details"
+              placeholder="Brief summary (shown in table)"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="extendedNotes">Extended Notes</Label>
+            <Textarea
+              id="extendedNotes"
+              value={formData.extendedNotes}
+              onChange={(e) => setFormData({ ...formData, extendedNotes: e.target.value })}
+              placeholder="Detailed instructions, links, checklists... (supports Markdown)"
+              rows={6}
+            />
+            <p className="text-xs text-muted-foreground">
+              Supports **bold**, *italic*, - lists, [links](url)
+            </p>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

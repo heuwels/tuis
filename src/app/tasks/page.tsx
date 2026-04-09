@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Task } from "@/types";
-import { TaskTable, TaskFilters, TaskForm, DeleteTaskDialog } from "@/components/tasks";
+import { TaskTable, TaskFilters, TaskForm, TaskDetail, DeleteTaskDialog } from "@/components/tasks";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -19,6 +19,8 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [viewingTask, setViewingTask] = useState<Task | null>(null);
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -56,7 +58,8 @@ export default function TasksPage() {
         const query = searchQuery.toLowerCase();
         const matchesName = task.name.toLowerCase().includes(query);
         const matchesNotes = task.notes?.toLowerCase().includes(query);
-        if (!matchesName && !matchesNotes) return false;
+        const matchesExtended = task.extendedNotes?.toLowerCase().includes(query);
+        if (!matchesName && !matchesNotes && !matchesExtended) return false;
       }
       return true;
     });
@@ -75,6 +78,11 @@ export default function TasksPage() {
   const handleDelete = (task: Task) => {
     setDeletingTask(task);
     setIsDeleteOpen(true);
+  };
+
+  const handleView = (task: Task) => {
+    setViewingTask(task);
+    setIsDetailOpen(true);
   };
 
   const actions = (
@@ -112,6 +120,7 @@ export default function TasksPage() {
             onTaskComplete={fetchTasks}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onView={handleView}
           />
         </div>
       )}
@@ -121,6 +130,16 @@ export default function TasksPage() {
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         onSuccess={fetchTasks}
+      />
+
+      <TaskDetail
+        task={viewingTask}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        onEdit={() => {
+          setIsDetailOpen(false);
+          if (viewingTask) handleEdit(viewingTask);
+        }}
       />
 
       <DeleteTaskDialog
