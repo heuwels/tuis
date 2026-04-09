@@ -95,21 +95,9 @@ function MealsContent() {
   // Handle adding recipe from URL param (coming from recipe library)
   useEffect(() => {
     const addRecipeId = searchParams.get("addRecipe");
-    const scale = searchParams.get("scale");
     if (addRecipeId) {
-      const recipeId = parseInt(addRecipeId);
-      const multiplier = scale ? parseFloat(scale) : 1;
-      // Directly add to today's plan with the scale
-      if (!isNaN(recipeId)) {
-        setSelectedDate(today);
-        const dateKey = formatDateKey(today);
-        fetch(`/api/meals/${dateKey}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ recipeId, servingsMultiplier: multiplier }),
-        }).then(() => fetchMeals());
-      }
-      // Clear the URL param
+      setSelectedDate(today);
+      setIsPickerOpen(true);
       window.history.replaceState({}, "", "/meals");
     }
   }, [searchParams]);
@@ -135,7 +123,7 @@ function MealsContent() {
     setIsPickerOpen(true);
   };
 
-  const handleSelectRecipe = async (recipeId: number, servingsMultiplier?: number) => {
+  const handleSelectRecipe = async (recipeId: number, servingsMultiplier: number = 1) => {
     if (!selectedDate) return;
 
     try {
@@ -143,7 +131,7 @@ function MealsContent() {
       await fetch(`/api/meals/${dateKey}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeId, servingsMultiplier: servingsMultiplier ?? 1 }),
+        body: JSON.stringify({ recipeId, servingsMultiplier }),
       });
       setIsPickerOpen(false);
       fetchMeals();

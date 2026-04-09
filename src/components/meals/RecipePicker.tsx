@@ -11,13 +11,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, ChefHat, Clock, Users } from "lucide-react";
+import { Search, ChefHat, Clock, Users, ArrowLeft } from "lucide-react";
 import { Recipe } from "./RecipeCard";
+
+const SCALE_OPTIONS = [0.5, 1, 1.5, 2];
 
 interface RecipePickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectRecipe: (recipeId: number, servingsMultiplier?: number) => void;
+  onSelectRecipe: (recipeId: number, servingsMultiplier: number) => void;
   onSelectCustom: (meal: string, notes?: string) => void;
   selectedDate: Date | null;
 }
@@ -32,9 +34,12 @@ export function RecipePicker({
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [mode, setMode] = useState<"recipe" | "custom">("recipe");
+  const [mode, setMode] = useState<"recipe" | "custom" | "confirm">("recipe");
   const [customMeal, setCustomMeal] = useState("");
   const [customNotes, setCustomNotes] = useState("");
+  const [selectedRecipeForConfirm, setSelectedRecipeForConfirm] =
+    useState<Recipe | null>(null);
+  const [multiplier, setMultiplier] = useState(1);
 
   const fetchRecipes = async (query?: string) => {
     try {
@@ -61,6 +66,8 @@ export function RecipePicker({
       setCustomMeal("");
       setCustomNotes("");
       setSearchQuery("");
+      setSelectedRecipeForConfirm(null);
+      setMultiplier(1);
     }
   }, [open]);
 
@@ -71,6 +78,18 @@ export function RecipePicker({
     }, 300);
     return () => clearTimeout(debounce);
   }, [searchQuery, open]);
+
+  const handleRecipeClick = (recipe: Recipe) => {
+    setSelectedRecipeForConfirm(recipe);
+    setMultiplier(1);
+    setMode("confirm");
+  };
+
+  const handleConfirm = () => {
+    if (selectedRecipeForConfirm) {
+      onSelectRecipe(selectedRecipeForConfirm.id, multiplier);
+    }
+  };
 
   const handleCustomSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,26 +112,91 @@ export function RecipePicker({
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            {selectedDate ? `Add Meal for ${formatDate(selectedDate)}` : "Add Meal"}
+            {selectedDate
+              ? `Add Meal for ${formatDate(selectedDate)}`
+              : "Add Meal"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-2 border-b pb-4">
-          <Button
-            variant={mode === "recipe" ? "default" : "outline"}
-            onClick={() => setMode("recipe")}
-          >
-            Choose Recipe
-          </Button>
-          <Button
-            variant={mode === "custom" ? "default" : "outline"}
-            onClick={() => setMode("custom")}
-          >
-            Quick Entry
-          </Button>
-        </div>
+        {mode !== "confirm" && (
+          <div className="flex gap-2 border-b pb-4">
+            <Button
+              variant={mode === "recipe" ? "default" : "outline"}
+              onClick={() => setMode("recipe")}
+            >
+              Choose Recipe
+            </Button>
+            <Button
+              variant={mode === "custom" ? "default" : "outline"}
+              onClick={() => setMode("custom")}
+            >
+              Quick Entry
+            </Button>
+          </div>
+        )}
 
-        {mode === "recipe" ? (
+        {mode === "confirm" && selectedRecipeForConfirm ? (
+          <div className="space-y-4">
+            <button
+              onClick={() => setMode("recipe")}
+              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to recipes
+            </button>
+
+            <div className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50">
+              {selectedRecipeForConfirm.imageUrl ? (
+                <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                  <img
+                    src={selectedRecipeForConfirm.imageUrl}
+                    alt={selectedRecipeForConfirm.name}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <ChefHat className="h-6 w-6 text-muted-foreground" />
+                </div>
+              )}
+              <div>
+                <h4 className="font-medium">
+                  {selectedRecipeForConfirm.name}
+                </h4>
+                {selectedRecipeForConfirm.servings && (
+                  <p className="text-sm text-muted-foreground">
+                    {Math.round(
+                      selectedRecipeForConfirm.servings * multiplier * 10
+                    ) / 10}{" "}
+                    servings
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Scale</Label>
+              <div className="flex gap-2">
+                {SCALE_OPTIONS.map((scale) => (
+                  <Button
+                    key={scale}
+                    size="sm"
+                    variant={multiplier === scale ? "default" : "outline"}
+                    onClick={() => setMultiplier(scale)}
+                  >
+                    {scale}x
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button onClick={handleConfirm}>
+                Add to Plan{multiplier !== 1 ? ` (${multiplier}x)` : ""}
+              </Button>
+            </div>
+          </div>
+        ) : mode === "recipe" ? (
           <div className="flex flex-col gap-4 flex-1 overflow-hidden">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -148,7 +232,7 @@ export function RecipePicker({
                       <div
                         key={recipe.id}
                         className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={() => onSelectRecipe(recipe.id)}
+                        onClick={() => handleRecipeClick(recipe)}
                       >
                         {recipe.imageUrl ? (
                           <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex-shrink-0">

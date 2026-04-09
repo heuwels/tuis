@@ -170,9 +170,9 @@ export default function RecipesPage() {
         onOpenChange={setIsDetailOpen}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onAddToPlan={(multiplier) => {
-          // Navigate to meal planner with recipe selected and scale
-          window.location.href = `/meals?addRecipe=${selectedRecipe?.id}${multiplier !== 1 ? `&scale=${multiplier}` : ""}`;
+        onAddToPlan={() => {
+          // Navigate to meal planner with recipe selected
+          window.location.href = `/meals?addRecipe=${selectedRecipe?.id}`;
         }}
       />
     </AppLayout>
