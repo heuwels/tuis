@@ -16,6 +16,7 @@ interface MealEntry {
   id: number;
   date: string;
   recipeId: number | null;
+  servingsMultiplier: number | null;
   customMeal: string | null;
   notes: string | null;
   recipeName: string | null;
@@ -25,7 +26,7 @@ interface MealEntry {
 }
 
 interface RecipeWithIngredients extends Recipe {
-  ingredients?: { id: number; recipeId: number; name: string; quantity: string | null; sortOrder: number }[];
+  ingredients?: { id: number; recipeId: number; name: string; quantity: string | null; amount: number | null; unit: string | null; section: string | null; sortOrder: number }[];
 }
 
 function getWeekDates(startDate: Date): Date[] {
@@ -94,10 +95,20 @@ function MealsContent() {
   // Handle adding recipe from URL param (coming from recipe library)
   useEffect(() => {
     const addRecipeId = searchParams.get("addRecipe");
+    const scale = searchParams.get("scale");
     if (addRecipeId) {
-      // Open picker with today selected
-      setSelectedDate(today);
-      setIsPickerOpen(true);
+      const recipeId = parseInt(addRecipeId);
+      const multiplier = scale ? parseFloat(scale) : 1;
+      // Directly add to today's plan with the scale
+      if (!isNaN(recipeId)) {
+        setSelectedDate(today);
+        const dateKey = formatDateKey(today);
+        fetch(`/api/meals/${dateKey}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipeId, servingsMultiplier: multiplier }),
+        }).then(() => fetchMeals());
+      }
       // Clear the URL param
       window.history.replaceState({}, "", "/meals");
     }
@@ -124,7 +135,7 @@ function MealsContent() {
     setIsPickerOpen(true);
   };
 
-  const handleSelectRecipe = async (recipeId: number) => {
+  const handleSelectRecipe = async (recipeId: number, servingsMultiplier?: number) => {
     if (!selectedDate) return;
 
     try {
@@ -132,7 +143,7 @@ function MealsContent() {
       await fetch(`/api/meals/${dateKey}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeId }),
+        body: JSON.stringify({ recipeId, servingsMultiplier: servingsMultiplier ?? 1 }),
       });
       setIsPickerOpen(false);
       fetchMeals();

@@ -30,10 +30,19 @@ export async function GET(request: Request) {
         )
       );
 
-    // Get recipe IDs that have meals planned
-    const recipeIds = meals
-      .map((m) => m.recipeId)
-      .filter((id): id is number => id !== null);
+    // Build a map of recipeId -> multipliers (a recipe can appear on multiple days)
+    const recipeMultipliers = new Map<number, number[]>();
+    for (const meal of meals) {
+      if (meal.recipeId) {
+        const multiplier = meal.servingsMultiplier ?? 1;
+        if (!recipeMultipliers.has(meal.recipeId)) {
+          recipeMultipliers.set(meal.recipeId, []);
+        }
+        recipeMultipliers.get(meal.recipeId)!.push(multiplier);
+      }
+    }
+
+    const recipeIds = Array.from(recipeMultipliers.keys());
 
     if (recipeIds.length === 0) {
       return NextResponse.json({ ingredients: [], onList: [] });
@@ -46,15 +55,23 @@ export async function GET(request: Request) {
       .where(inArray(recipeIngredients.recipeId, recipeIds))
       .orderBy(recipeIngredients.name);
 
+    // Expand ingredients: for each meal occurrence, apply its multiplier
+    const expandedIngredients: { name: string; amount: number | null; unit: IngredientUnit | null; quantity: string | null }[] = [];
+
+    for (const ing of ingredients) {
+      const multipliers = recipeMultipliers.get(ing.recipeId) || [1];
+      for (const mult of multipliers) {
+        expandedIngredients.push({
+          name: ing.name,
+          amount: ing.amount != null ? ing.amount * mult : ing.amount,
+          unit: ing.unit as IngredientUnit | null,
+          quantity: ing.quantity,
+        });
+      }
+    }
+
     // Aggregate ingredients numerically where possible
-    const uniqueIngredients = aggregateIngredients(
-      ingredients.map((ing) => ({
-        name: ing.name,
-        amount: ing.amount,
-        unit: ing.unit as IngredientUnit | null,
-        quantity: ing.quantity,
-      }))
-    );
+    const uniqueIngredients = aggregateIngredients(expandedIngredients);
 
     // Check which items are already on shopping lists (not checked)
     const allItems = await db

@@ -17,7 +17,7 @@ import { Recipe } from "./RecipeCard";
 interface RecipePickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectRecipe: (recipeId: number) => void;
+  onSelectRecipe: (recipeId: number, servingsMultiplier?: number) => void;
   onSelectCustom: (meal: string, notes?: string) => void;
   selectedDate: Date | null;
 }

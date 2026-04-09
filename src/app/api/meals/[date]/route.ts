@@ -59,7 +59,7 @@ export async function PUT(
   try {
     const { date } = await params;
     const body = await request.json();
-    const { recipeId, customMeal, notes } = body;
+    const { recipeId, customMeal, notes, servingsMultiplier } = body;
 
     // Check if entry exists for this date
     const existing = await db
@@ -74,6 +74,7 @@ export async function PUT(
         .update(mealPlan)
         .set({
           recipeId: recipeId || null,
+          servingsMultiplier: servingsMultiplier ?? 1,
           customMeal: customMeal || null,
           notes: notes || null,
         })
@@ -83,6 +84,7 @@ export async function PUT(
       await db.insert(mealPlan).values({
         date,
         recipeId: recipeId || null,
+        servingsMultiplier: servingsMultiplier ?? 1,
         customMeal: customMeal || null,
         notes: notes || null,
       });

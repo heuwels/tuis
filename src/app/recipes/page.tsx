@@ -12,7 +12,7 @@ import { RecipeDetail } from "@/components/meals/RecipeDetail";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 interface RecipeWithIngredients extends Recipe {
-  ingredients?: { id: number; recipeId: number; name: string; quantity: string | null; sortOrder: number }[];
+  ingredients?: { id: number; recipeId: number; name: string; quantity: string | null; amount: number | null; unit: string | null; section: string | null; sortOrder: number }[];
 }
 
 export default function RecipesPage() {
@@ -170,9 +170,9 @@ export default function RecipesPage() {
         onOpenChange={setIsDetailOpen}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onAddToPlan={() => {
-          // Navigate to meal planner with recipe selected
-          window.location.href = `/meals?addRecipe=${selectedRecipe?.id}`;
+        onAddToPlan={(multiplier) => {
+          // Navigate to meal planner with recipe selected and scale
+          window.location.href = `/meals?addRecipe=${selectedRecipe?.id}${multiplier !== 1 ? `&scale=${multiplier}` : ""}`;
         }}
       />
     </AppLayout>

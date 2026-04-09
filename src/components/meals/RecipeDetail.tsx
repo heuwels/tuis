@@ -43,7 +43,7 @@ interface RecipeDetailProps {
   onOpenChange: (open: boolean) => void;
   onEdit?: () => void;
   onDelete?: () => void;
-  onAddToPlan?: () => void;
+  onAddToPlan?: (multiplier: number) => void;
 }
 
 const SCALE_OPTIONS = [0.25, 0.5, 1, 1.25, 1.5, 2];
@@ -382,9 +382,9 @@ export function RecipeDetail({
             )}
           </div>
           {onAddToPlan && (
-            <Button onClick={onAddToPlan}>
+            <Button onClick={() => onAddToPlan(multiplier)}>
               <CalendarPlus className="h-4 w-4 mr-1" />
-              Add to Meal Plan
+              Add to Meal Plan{multiplier !== 1 ? ` (${multiplier}x)` : ""}
             </Button>
           )}
         </div>

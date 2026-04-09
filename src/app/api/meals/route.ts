@@ -23,6 +23,7 @@ export async function GET(request: Request) {
         id: mealPlan.id,
         date: mealPlan.date,
         recipeId: mealPlan.recipeId,
+        servingsMultiplier: mealPlan.servingsMultiplier,
         customMeal: mealPlan.customMeal,
         notes: mealPlan.notes,
         createdAt: mealPlan.createdAt,

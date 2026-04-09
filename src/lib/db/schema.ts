@@ -116,6 +116,7 @@ export const mealPlan = sqliteTable("meal_plan", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   date: text("date").notNull().unique(),
   recipeId: integer("recipe_id").references(() => recipes.id),
+  servingsMultiplier: real("servings_multiplier").default(1),
   customMeal: text("custom_meal"),
   notes: text("notes"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),

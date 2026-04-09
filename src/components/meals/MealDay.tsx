@@ -8,6 +8,7 @@ interface MealEntry {
   id: number;
   date: string;
   recipeId: number | null;
+  servingsMultiplier?: number | null;
   customMeal: string | null;
   notes: string | null;
   recipeName?: string | null;
@@ -90,6 +91,11 @@ export function MealDay({
             )}
             <p className="font-medium line-clamp-2">
               {meal.recipeName || meal.customMeal}
+              {meal.servingsMultiplier && meal.servingsMultiplier !== 1 && (
+                <span className="ml-1 text-xs font-normal text-blue-600">
+                  ({meal.servingsMultiplier}x)
+                </span>
+              )}
             </p>
             {totalTime && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
