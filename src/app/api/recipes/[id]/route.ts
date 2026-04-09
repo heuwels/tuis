@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { recipes, recipeIngredients } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { formatIngredient, IngredientUnit } from "@/lib/ingredients";
 
 export const dynamic = "force-dynamic";
 
@@ -76,10 +77,20 @@ export async function PUT(
         for (let i = 0; i < ingredients.length; i++) {
           const ing = ingredients[i];
           if (ing.name) {
+            const amount = ing.amount != null ? Number(ing.amount) : null;
+            const unit = ing.unit || null;
+            const quantity =
+              amount != null && unit
+                ? formatIngredient(amount, unit as IngredientUnit)
+                : ing.quantity || null;
+
             await db.insert(recipeIngredients).values({
               recipeId,
               name: ing.name,
-              quantity: ing.quantity || null,
+              quantity,
+              amount: amount != null && !isNaN(amount) ? amount : null,
+              unit,
+              section: ing.section || null,
               sortOrder: i,
             });
           }

@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -106,6 +106,9 @@ export const recipeIngredients = sqliteTable("recipe_ingredients", {
     .references(() => recipes.id),
   name: text("name").notNull(),
   quantity: text("quantity"),
+  amount: real("amount"),
+  unit: text("unit"),
+  section: text("section"),
   sortOrder: integer("sort_order").default(0),
 });
 

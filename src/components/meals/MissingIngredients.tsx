@@ -20,7 +20,10 @@ import { ShoppingCart, Check } from "lucide-react";
 
 interface Ingredient {
   name: string;
-  quantity: string | null;
+  quantity?: string | null;
+  amount?: number | null;
+  unit?: string | null;
+  displayQuantity?: string;
 }
 
 interface ShoppingList {
@@ -122,7 +125,7 @@ export function MissingIngredients({
             body: JSON.stringify({
               listId: parseInt(selectedListId),
               name: ingredient.name,
-              quantity: ingredient.quantity,
+              quantity: ingredient.displayQuantity || ingredient.quantity,
             }),
           });
           count++;
@@ -212,9 +215,9 @@ export function MissingIngredients({
                       <span
                         className={isOnList ? "text-muted-foreground" : ""}
                       >
-                        {ing.quantity && (
+                        {(ing.displayQuantity || ing.quantity) && (
                           <span className="font-medium text-blue-600 mr-2">
-                            {ing.quantity}
+                            {ing.displayQuantity || ing.quantity}
                           </span>
                         )}
                         {ing.name}

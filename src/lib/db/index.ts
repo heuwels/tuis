@@ -3,6 +3,7 @@ import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
 import path from "path";
 import fs from "fs";
+import { parseQuantityString } from "../ingredients";
 
 // Use /app/data in Docker, otherwise current directory
 function getDbPath() {
@@ -204,6 +205,22 @@ function initDb(): BetterSQLite3Database<typeof schema> {
     sqlite.exec(`ALTER TABLE completions ADD COLUMN cost TEXT`);
   } catch { /* column already exists */ }
 
+  // Recipe ingredient structured fields
+  try {
+    sqlite.exec(`ALTER TABLE recipe_ingredients ADD COLUMN amount REAL`);
+  } catch { /* column already exists */ }
+
+  try {
+    sqlite.exec(`ALTER TABLE recipe_ingredients ADD COLUMN unit TEXT`);
+  } catch { /* column already exists */ }
+
+  try {
+    sqlite.exec(`ALTER TABLE recipe_ingredients ADD COLUMN section TEXT`);
+  } catch { /* column already exists */ }
+
+  // Migrate legacy quantity strings to structured amount+unit
+  migrateLegacyQuantities(sqlite);
+
   _db = drizzle(sqlite, { schema });
   return _db;
 }
@@ -215,5 +232,31 @@ export const db = new Proxy({} as BetterSQLite3Database<typeof schema>, {
     return (realDb as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
+
+function migrateLegacyQuantities(sqlite: Database.Database) {
+  // Only migrate rows that have quantity but no amount
+  const rows = sqlite
+    .prepare(
+      `SELECT id, quantity FROM recipe_ingredients WHERE quantity IS NOT NULL AND amount IS NULL`
+    )
+    .all() as { id: number; quantity: string }[];
+
+  if (rows.length === 0) return;
+
+  const update = sqlite.prepare(
+    `UPDATE recipe_ingredients SET amount = ?, unit = ? WHERE id = ?`
+  );
+
+  const tx = sqlite.transaction(() => {
+    for (const row of rows) {
+      const parsed = parseQuantityString(row.quantity);
+      if (parsed) {
+        update.run(parsed.amount, parsed.unit, row.id);
+      }
+    }
+  });
+
+  tx();
+}
 
 export { schema };
