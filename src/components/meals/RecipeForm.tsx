@@ -160,7 +160,7 @@ export function RecipeForm({
     value: string
   ) => {
     const updated = [...ingredients];
-    (updated[index] as Record<string, string>)[field] = value;
+    updated[index] = { ...updated[index], [field]: value };
     setIngredients(updated);
   };
 
