@@ -198,5 +198,22 @@ export type Activity = typeof activities.$inferSelect;
 export type NewActivity = typeof activities.$inferInsert;
 export type Appliance = typeof appliances.$inferSelect;
 export type NewAppliance = typeof appliances.$inferInsert;
+export const quotes = sqliteTable("quotes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  vendorId: integer("vendor_id").references(() => vendors.id),
+  description: text("description").notNull(),
+  total: real("total").notNull(),
+  labour: real("labor"),
+  materials: real("materials"),
+  other: real("other"),
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected
+  receivedDate: text("received_date"),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
 export type Vendor = typeof vendors.$inferSelect;
 export type NewVendor = typeof vendors.$inferInsert;
+export type Quote = typeof quotes.$inferSelect;
+export type NewQuote = typeof quotes.$inferInsert;

@@ -182,6 +182,21 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS quotes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vendor_id INTEGER REFERENCES vendors(id),
+      description TEXT NOT NULL,
+      total REAL NOT NULL,
+      labor REAL,
+      materials REAL,
+      other REAL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      received_date TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Add new columns if they don't exist (migrations for existing databases)

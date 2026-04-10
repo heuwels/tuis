@@ -4,3 +4,7 @@ export { TaskSection } from "./TaskSection";
 export { CompleteButton } from "./CompleteButton";
 export { DailyTasksList } from "./DailyTasksList";
 export { SnoozeButton } from "./SnoozeButton";
+export { StatsRow } from "./StatsRow";
+export { TodaysMealCard } from "./TodaysMealCard";
+export { ShoppingOverview } from "./ShoppingOverview";
+export { RecentCompletions } from "./RecentCompletions";

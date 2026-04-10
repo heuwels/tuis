@@ -72,3 +72,23 @@ export interface TaskWithAppliance extends Task {
 export interface CompletionWithVendor extends Completion {
   vendor?: Vendor | null;
 }
+
+export interface Quote {
+  id: number;
+  vendorId: number | null;
+  description: string;
+  total: number;
+  labour: number | null;
+  materials: number | null;
+  other: number | null;
+  status: string;
+  receivedDate: string | null;
+  notes: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface QuoteWithVendor extends Quote {
+  vendorName?: string | null;
+  vendorCategory?: string | null;
+}
