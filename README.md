@@ -31,6 +31,12 @@ Multiple colour-coded shopping lists with items, quantities, check-off, and auto
 
 ![Shopping](docs/screenshots/03-shopping.png)
 
+<details>
+<summary>Mobile view</summary>
+
+![Shopping Mobile](docs/screenshots/03-shopping-mobile.png)
+</details>
+
 ### Meal Planner
 Weekly meal planning with recipe picker, custom meals, servings multiplier, and ingredient aggregation for shopping.
 

@@ -511,6 +511,96 @@ async function seedDemo() {
     console.log(`  Skipping quotes (${existingQuotes} already exist)`);
   }
 
+  // ── Activities (Together) ──
+  const existingActivities = (
+    sqlite
+      .prepare("SELECT COUNT(*) as count FROM activities")
+      .get() as { count: number }
+  ).count;
+
+  if (existingActivities === 0) {
+    const insertActivity = sqlite.prepare(`
+      INSERT INTO activities (title, category, notes, status, completed_date, rating, url, location, estimated_cost, duration, season, priority, tags, review, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    `);
+
+    const activityTx = sqlite.transaction(() => {
+      // Wishlist items
+      insertActivity.run("Great Ocean Road trip", "location", "Stop at the Twelve Apostles and Apollo Bay", "wishlist", null, null, null, "Victoria", "medium", "full-day", "summer", "high", '["road-trip","nature"]', null);
+      insertActivity.run("Chin Chin Melbourne", "restaurant", "Thai-inspired street food, always busy", "wishlist", null, null, "https://chinchin.com.au", "Melbourne CBD", "medium", "quick", "any", "medium", '["thai","date-night"]', null);
+      insertActivity.run("Pottery class", "activity", "Try wheel throwing at a local studio", "wishlist", null, null, null, "Melbourne", "medium", "half-day", "any", "low", '["creative","class"]', null);
+      insertActivity.run("Wilsons Promontory", "location", "Overnight hike to Sealers Cove", "wishlist", null, null, null, "South Gippsland, VIC", "low", "weekend", "spring", "medium", '["hiking","camping"]', null);
+      insertActivity.run("Homemade pasta night", "dish", "Make fresh fettuccine from scratch", "wishlist", null, null, null, null, "low", "quick", "any", "low", '["cooking","italian"]', null);
+
+      // Planned items
+      insertActivity.run("Wine tasting Yarra Valley", "activity", "Booked for next month - Domaine Chandon and TarraWarra", "planned", null, null, null, "Yarra Valley, VIC", "high", "full-day", "autumn", "high", '["wine","day-trip"]', null);
+      insertActivity.run("Blue Mountains day trip", "location", "Take the train from Central, walk the Three Sisters track", "planned", null, null, null, "Blue Mountains, NSW", "low", "full-day", "any", "medium", '["hiking","nature"]', null);
+      insertActivity.run("Aria Sydney", "restaurant", "Anniversary dinner - need to book 2 weeks ahead", "planned", null, null, "https://ariarestaurant.com.au", "Sydney CBD", "splurge", "quick", "any", "high", '["fine-dining","anniversary"]', null);
+      insertActivity.run("Sourdough bread baking", "dish", "Got a starter from the neighbour, try the Tartine recipe", "planned", null, null, null, null, "low", "half-day", "winter", "medium", '["baking","bread"]', null);
+
+      // Completed items
+      insertActivity.run("Kayaking at Studley Park", "activity", "Rented double kayak, paddled up to Dights Falls", "completed", daysAgo(8), 4, null, "Studley Park, Melbourne", "low", "half-day", "summer", "medium", '["outdoors","water"]', "Great morning out. Water was calm, saw heaps of birds. The double kayak was a bit wobbly at first but we got the hang of it.");
+      insertActivity.run("The local Thai place", "restaurant", "Pad see ew and green curry were amazing as always", "completed", daysAgo(14), 5, null, "Brunswick, Melbourne", "low", "quick", "any", "medium", '["thai","casual"]', "Our go-to. The pad see ew here is honestly the best in Melbourne. Sam had the massaman and loved it too.");
+      insertActivity.run("Dune: Part Two", "film", "Finally saw it on the big screen", "completed", daysAgo(21), 5, null, "IMAX Melbourne", "low", "quick", "any", "high", '["sci-fi","imax"]', "Absolutely incredible on IMAX. The desert scenes were breathtaking. Both of us were blown away.");
+    });
+    activityTx();
+    console.log("✓ 12 activities");
+  } else {
+    console.log(`  Skipping activities (${existingActivities} already exist)`);
+  }
+
+  // ── Extra Completions (spread across last 30 days for stats) ──
+  const existingCompletions = (
+    sqlite.prepare("SELECT COUNT(*) as count FROM completions").get() as {
+      count: number;
+    }
+  ).count;
+
+  // Only add extra completions if we haven't already (the initial seed creates ~19)
+  if (existingCompletions < 25) {
+    const allTasks = sqlite
+      .prepare("SELECT id FROM tasks")
+      .all() as { id: number }[];
+
+    const insertCompletion = sqlite.prepare(
+      `INSERT INTO completions (task_id, completed_at, completed_by) VALUES (?, ?, ?)`
+    );
+
+    const extraCompletionTx = sqlite.transaction(() => {
+      // Days 8-14: moderate activity
+      for (let day = 8; day <= 14; day++) {
+        const count = 2 + Math.floor(Math.random() * 3); // 2-4 per day
+        for (let i = 0; i < count; i++) {
+          const task = allTasks[Math.floor(Math.random() * allTasks.length)];
+          const who = Math.random() > 0.5 ? lukeId : juliaId;
+          insertCompletion.run(task.id, daysAgo(day), who);
+        }
+      }
+      // Days 15-21: lighter activity
+      for (let day = 15; day <= 21; day++) {
+        const count = 1 + Math.floor(Math.random() * 2); // 1-2 per day
+        for (let i = 0; i < count; i++) {
+          const task = allTasks[Math.floor(Math.random() * allTasks.length)];
+          const who = Math.random() > 0.5 ? lukeId : juliaId;
+          insertCompletion.run(task.id, daysAgo(day), who);
+        }
+      }
+      // Days 22-30: building back up
+      for (let day = 22; day <= 30; day++) {
+        const count = 1 + Math.floor(Math.random() * 3); // 1-3 per day
+        for (let i = 0; i < count; i++) {
+          const task = allTasks[Math.floor(Math.random() * allTasks.length)];
+          const who = Math.random() > 0.5 ? lukeId : juliaId;
+          insertCompletion.run(task.id, daysAgo(day), who);
+        }
+      }
+    });
+    extraCompletionTx();
+    console.log("✓ Extra completions (30-day spread)");
+  } else {
+    console.log(`  Skipping extra completions (${existingCompletions} already exist)`);
+  }
+
   sqlite.close();
   console.log("\nDone! Demo data ready.");
 }

@@ -86,20 +86,13 @@ test.describe("Feature Screenshots", () => {
     await screenshot(page, "03-shopping");
   });
 
-  test("Shopping List Detail", async ({ page }) => {
-    await page.setViewportSize({ width: 1280, height: 900 });
+  test("Shopping - mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/shopping");
     await dismissUserPickerIfVisible(page);
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(1000);
-    // Click first shopping list card
-    const firstCard = page.locator("[class*='cursor-pointer']").first();
-    if (await firstCard.isVisible().catch(() => false)) {
-      await firstCard.click();
-      await page.waitForLoadState("networkidle");
-      await page.waitForTimeout(500);
-      await screenshot(page, "03-shopping-detail");
-    }
+    await screenshot(page, "03-shopping-mobile");
   });
 
   test("Meals", async ({ page }) => {
