@@ -1,6 +1,6 @@
 services:
   chore-calendar:
-    image: ${REGISTRY:-ghcr.io/3stacks}/chore-calendar:${CHORE_CALENDAR_VERSION:-latest}
+    image: ghcr.io/3stacks/chore-calendar:${CHORE_CALENDAR_VERSION:-latest}
     container_name: chore-calendar
     restart: unless-stopped
     ports:
