@@ -1,22 +1,18 @@
-# Homeserver Deployment
-
-See [power-monitor/deploy/README.md](../../power-monitor/deploy/README.md) for the full unified deployment pattern.
+# Deployment
 
 ## Quick Reference
 
-**Registry image:** `registry.home.lukeboyle.com/chore-calendar`
 **Default port:** 6969
 
 ### Deploy
 
 ```bash
-# After pushing to master branch:
-cd ~/chore-calendar
+# Set REGISTRY in .env to your container registry
 docker compose pull
 docker compose up -d
 ```
 
-### Files on homeserver (`~/chore-calendar/`)
+### Files
 
-- `docker-compose.yml` - from `deploy/docker-compose.yml`
-- `.env` - from `deploy/.env.example`
+- `docker-compose.yml` - compose config
+- `.env` - from `.env.example` (create with your values)

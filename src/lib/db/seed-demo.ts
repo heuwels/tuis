@@ -128,16 +128,16 @@ async function seedDemo() {
   const insertUser = sqlite.prepare(
     `INSERT OR IGNORE INTO users (name, color) VALUES (?, ?)`
   );
-  insertUser.run("Luke", "#3b82f6");
-  insertUser.run("Julia", "#ec4899");
+  insertUser.run("Alex", "#3b82f6");
+  insertUser.run("Sam", "#ec4899");
   console.log("✓ Users");
 
   const users = sqlite.prepare("SELECT id, name FROM users").all() as {
     id: number;
     name: string;
   }[];
-  const lukeId = users.find((u) => u.name === "Luke")?.id ?? 1;
-  const juliaId = users.find((u) => u.name === "Julia")?.id ?? 2;
+  const lukeId = users.find((u) => u.name === "Alex")?.id ?? 1;
+  const juliaId = users.find((u) => u.name === "Sam")?.id ?? 2;
 
   // ── Tasks ──
   const existingTasks = (

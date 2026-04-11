@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const ACTUAL_API_URL = "https://actual-api.home.lukeboyle.com";
+const ACTUAL_API_URL = process.env.ACTUAL_API_URL || "http://localhost:3100";
 
 export async function GET() {
   try {
