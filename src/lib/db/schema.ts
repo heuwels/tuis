@@ -213,7 +213,70 @@ export const quotes = sqliteTable("quotes", {
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
 });
 
+export const vehicles = sqliteTable("vehicles", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  make: text("make"),
+  model: text("model"),
+  year: integer("year"),
+  colour: text("colour"),
+  regoNumber: text("rego_number"),
+  regoState: text("rego_state"),
+  vin: text("vin"),
+  purchaseDate: text("purchase_date"),
+  purchasePrice: real("purchase_price"),
+  currentOdometer: integer("current_odometer"),
+  imageUrl: text("image_url"),
+  regoExpiry: text("rego_expiry"),
+  insuranceProvider: text("insurance_provider"),
+  insuranceExpiry: text("insurance_expiry"),
+  warrantyExpiryDate: text("warranty_expiry_date"),
+  warrantyExpiryKm: integer("warranty_expiry_km"),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const vehicleServices = sqliteTable("vehicle_services", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  vehicleId: integer("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id),
+  date: text("date").notNull(),
+  odometer: integer("odometer"),
+  vendorId: integer("vendor_id").references(() => vendors.id),
+  cost: real("cost"),
+  description: text("description").notNull(),
+  serviceType: text("service_type"),
+  receiptUrl: text("receipt_url"),
+  isDiy: integer("is_diy").default(0),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const fuelLogs = sqliteTable("fuel_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  vehicleId: integer("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id),
+  date: text("date").notNull(),
+  odometer: integer("odometer").notNull(),
+  litres: real("litres").notNull(),
+  costTotal: real("cost_total").notNull(),
+  costPerLitre: real("cost_per_litre"),
+  station: text("station"),
+  isFullTank: integer("is_full_tank").default(1),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
 export type Vendor = typeof vendors.$inferSelect;
 export type NewVendor = typeof vendors.$inferInsert;
 export type Quote = typeof quotes.$inferSelect;
 export type NewQuote = typeof quotes.$inferInsert;
+export type Vehicle = typeof vehicles.$inferSelect;
+export type NewVehicle = typeof vehicles.$inferInsert;
+export type VehicleService = typeof vehicleServices.$inferSelect;
+export type NewVehicleService = typeof vehicleServices.$inferInsert;
+export type FuelLog = typeof fuelLogs.$inferSelect;
+export type NewFuelLog = typeof fuelLogs.$inferInsert;
