@@ -129,6 +129,15 @@ const STARTER_RECIPES = [
 
 export async function POST(request: Request) {
   try {
+    // Idempotency guard: don't seed if users already exist (setup already done)
+    const existingUsers = await db.select().from(users);
+    if (existingUsers.length > 0) {
+      return NextResponse.json(
+        { error: "Setup has already been completed" },
+        { status: 409 }
+      );
+    }
+
     const body = await request.json();
     const { seedChores, seedShopping, seedRecipes } = body;
     const results: string[] = [];

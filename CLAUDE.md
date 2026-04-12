@@ -56,6 +56,31 @@ src/
 - shadcn/ui components in `src/components/ui/`
 - Color palette for users: blue, red, green, amber, violet, pink, cyan, orange
 
+### Testing
+
+**All new features must include both unit and e2e tests.**
+
+- **Unit tests** (Vitest): `src/app/api/__tests__/*.test.ts`
+  - Use in-memory SQLite via `better-sqlite3` for isolation
+  - Mock `@/lib/db` with `vi.mock()` to inject test DB
+  - Import and call route handlers directly as functions
+  - Create tables with raw SQL in `createTables()`, reset per test via `beforeEach`
+  - Use helper functions for HTTP request construction and test data insertion
+
+- **E2e tests** (Playwright): `e2e/*.spec.ts`
+  - Use `test.describe.serial()` for sequential test groups
+  - Isolate test data with timestamped names: `` `E2E Test Foo ${Date.now()}` ``
+  - Clean up via `cleanupTestData(request, type, pattern)` in `test.afterAll()`
+  - Handle user picker dialog with `dismissUserPickerIfVisible(page)` helper
+  - Wait for `networkidle` and loading states before assertions
+  - Cleanup endpoint: `POST /api/e2e-cleanup` (dev-only)
+
+### Dark Mode
+- Class-based Tailwind v4 dark mode with `@custom-variant dark`
+- Three modes: light, dark, system (stored in localStorage as `"tuis-theme"`)
+- ThemeProvider in layout.tsx applies `.dark` class on `document.documentElement`
+- Use `dark:` variant for all hardcoded color classes (e.g. `bg-gray-50 dark:bg-zinc-800`)
+
 ## Commands
 ```bash
 npm run dev          # Start dev server

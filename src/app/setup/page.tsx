@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,15 +19,15 @@ import {
   Loader2,
 } from "lucide-react";
 
-const COLORS = [
-  "#3b82f6", // blue
-  "#ef4444", // red
-  "#22c55e", // green
-  "#f59e0b", // amber
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#06b6d4", // cyan
-  "#f97316", // orange
+const COLORS: Array<{ hex: string; label: string }> = [
+  { hex: "#3b82f6", label: "Blue" },
+  { hex: "#ef4444", label: "Red" },
+  { hex: "#22c55e", label: "Green" },
+  { hex: "#f59e0b", label: "Amber" },
+  { hex: "#8b5cf6", label: "Violet" },
+  { hex: "#ec4899", label: "Pink" },
+  { hex: "#06b6d4", label: "Cyan" },
+  { hex: "#f97316", label: "Orange" },
 ];
 
 interface Member {
@@ -46,18 +46,33 @@ export default function SetupPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [members, setMembers] = useState<Member[]>([
-    { name: "", color: COLORS[0] },
+    { name: "", color: COLORS[0].hex },
   ]);
   const [seedChores, setSeedChores] = useState(true);
   const [seedShopping, setSeedShopping] = useState(true);
   const [seedRecipes, setSeedRecipes] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCheckingSetup, setIsCheckingSetup] = useState(true);
+
+  // Redirect away if setup is already complete
+  useEffect(() => {
+    fetch("/api/setup")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.needsSetup) {
+          router.replace("/");
+        } else {
+          setIsCheckingSetup(false);
+        }
+      })
+      .catch(() => setIsCheckingSetup(false));
+  }, [router]);
 
   const addMember = () => {
     setMembers([
       ...members,
-      { name: "", color: COLORS[members.length % COLORS.length] },
+      { name: "", color: COLORS[members.length % COLORS.length].hex },
     ]);
   };
 
@@ -123,6 +138,14 @@ export default function SetupPage() {
     router.push("/");
     router.refresh();
   };
+
+  if (isCheckingSetup) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center p-4">
@@ -228,18 +251,19 @@ export default function SetupPage() {
                         Colour
                       </Label>
                       <div className="flex gap-2 flex-wrap">
-                        {COLORS.map((color) => (
+                        {COLORS.map(({ hex, label }) => (
                           <button
-                            key={color}
+                            key={hex}
                             type="button"
+                            aria-label={`Select ${label}`}
                             className={`w-7 h-7 rounded-full transition-transform ${
-                              member.color === color
+                              member.color === hex
                                 ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-zinc-500 dark:ring-offset-zinc-800 scale-110"
                                 : ""
                             }`}
-                            style={{ backgroundColor: color }}
+                            style={{ backgroundColor: hex }}
                             onClick={() =>
-                              updateMember(index, "color", color)
+                              updateMember(index, "color", hex)
                             }
                           />
                         ))}
@@ -272,7 +296,7 @@ export default function SetupPage() {
                   Back
                 </Button>
                 <Button
-                  onClick={() => setStep(2)}
+                  onClick={() => { setError(null); setStep(2); }}
                   disabled={!canProceedFromMembers}
                   className="flex-1 gap-2"
                 >

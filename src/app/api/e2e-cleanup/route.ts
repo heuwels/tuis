@@ -12,6 +12,7 @@ import {
   recipes,
   recipeIngredients,
   mealPlan,
+  users,
 } from "@/lib/db/schema";
 import { like, eq, inArray, sql } from "drizzle-orm";
 
@@ -26,6 +27,7 @@ const VALID_TYPES = [
   "quotes",
   "recipes",
   "meals",
+  "users",
 ] as const;
 
 type CleanupType = (typeof VALID_TYPES)[number];
@@ -180,6 +182,14 @@ export async function POST(request: NextRequest) {
         const result = await db
           .delete(mealPlan)
           .where(like(mealPlan.customMeal, namePattern));
+        deleted = result.changes ?? 0;
+        break;
+      }
+
+      case "users": {
+        const result = await db
+          .delete(users)
+          .where(like(users.name, namePattern));
         deleted = result.changes ?? 0;
         break;
       }
