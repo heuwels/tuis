@@ -1,12 +1,12 @@
 services:
-  chore-calendar:
-    image: ghcr.io/3stacks/chore-calendar:${CHORE_CALENDAR_VERSION:-latest}
-    container_name: chore-calendar
+  tuis:
+    image: ghcr.io/3stacks/tuis:${TUIS_VERSION:-latest}
+    container_name: tuis
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-6969}:3000"
     volumes:
-      - chore-data:/app/data
+      - tuis-data:/app/data
     environment:
       - NODE_ENV=production
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -16,4 +16,4 @@ services:
       - ACTUAL_API_URL=${ACTUAL_API_URL:-http://localhost:3100}
 
 volumes:
-  chore-data:
+  tuis-data:

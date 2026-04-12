@@ -1,7 +1,7 @@
 {
-  "name": "Chore Calendar",
-  "short_name": "Chores",
-  "description": "Household chore management and scheduling",
+  "name": "Tuis",
+  "short_name": "Tuis",
+  "description": "Household management — chores, meals, shopping, appliances, quotes, and more",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f9fafb",

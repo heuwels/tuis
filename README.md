@@ -1,4 +1,6 @@
-# Chore Calendar
+# Tuis
+
+*Afrikaans for "at home"*
 
 A household management app for tracking chores, meal planning, shopping lists, appliances, vendors, and quotes. Built with Next.js, SQLite, and Tailwind CSS.
 

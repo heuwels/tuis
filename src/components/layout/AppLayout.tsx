@@ -155,7 +155,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
         )}
       >
         <div className="flex items-center justify-between p-4 border-b">
-          <span className="text-lg font-bold text-gray-900">Chore Calendar</span>
+          <span className="text-lg font-bold text-gray-900">Tuis</span>
           <Button
             variant="ghost"
             size="icon"
@@ -176,7 +176,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
       >
         <div className="flex items-center justify-between p-4 border-b h-16">
           {!isCollapsed && (
-            <span className="text-lg font-bold text-gray-900">Chore Calendar</span>
+            <span className="text-lg font-bold text-gray-900">Tuis</span>
           )}
           <Button
             variant="ghost"

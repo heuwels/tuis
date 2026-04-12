@@ -16,13 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Chore Calendar",
-  description: "Household chore management and scheduling",
+  title: "Tuis",
+  description: "Household management — chores, meals, shopping, appliances, quotes, and more",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Chores",
+    title: "Tuis",
   },
   icons: {
     icon: "/icons/icon.svg",

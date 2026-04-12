@@ -21,7 +21,7 @@ export function createMcpServer(baseUrl: string) {
   }
 
   const server = new McpServer({
-    name: "chore-calendar",
+    name: "tuis",
     version: "1.0.0",
   });
 
