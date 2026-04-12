@@ -60,7 +60,7 @@ export async function GET(
     let lastFullTankOdo: number | null = null;
 
     for (const log of allFuelLogs) {
-      const isFull = log.isFullTank === 1 || log.isFullTank === true;
+      const isFull = log.isFullTank === 1;
       if (lastFullTankOdo === null) {
         // First fill-up is baseline only — no economy calculated
         if (isFull) {
