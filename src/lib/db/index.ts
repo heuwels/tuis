@@ -197,6 +197,59 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS vehicles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      make TEXT,
+      model TEXT,
+      year INTEGER,
+      colour TEXT,
+      rego_number TEXT,
+      rego_state TEXT,
+      vin TEXT,
+      purchase_date TEXT,
+      purchase_price REAL,
+      current_odometer INTEGER,
+      image_url TEXT,
+      rego_expiry TEXT,
+      insurance_provider TEXT,
+      insurance_expiry TEXT,
+      warranty_expiry_date TEXT,
+      warranty_expiry_km INTEGER,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS vehicle_services (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
+      date TEXT NOT NULL,
+      odometer INTEGER,
+      vendor_id INTEGER REFERENCES vendors(id),
+      cost REAL,
+      description TEXT NOT NULL,
+      service_type TEXT,
+      receipt_url TEXT,
+      is_diy INTEGER DEFAULT 0,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS fuel_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
+      date TEXT NOT NULL,
+      odometer INTEGER NOT NULL,
+      litres REAL NOT NULL,
+      cost_total REAL NOT NULL,
+      cost_per_litre REAL,
+      station TEXT,
+      is_full_tank INTEGER DEFAULT 1,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Add new columns if they don't exist (migrations for existing databases)

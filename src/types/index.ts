@@ -92,3 +92,75 @@ export interface QuoteWithVendor extends Quote {
   vendorName?: string | null;
   vendorCategory?: string | null;
 }
+
+export interface Vehicle {
+  id: number;
+  name: string;
+  make: string | null;
+  model: string | null;
+  year: number | null;
+  colour: string | null;
+  regoNumber: string | null;
+  regoState: string | null;
+  vin: string | null;
+  purchaseDate: string | null;
+  purchasePrice: number | null;
+  currentOdometer: number | null;
+  imageUrl: string | null;
+  regoExpiry: string | null;
+  insuranceProvider: string | null;
+  insuranceExpiry: string | null;
+  warrantyExpiryDate: string | null;
+  warrantyExpiryKm: number | null;
+  notes: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface VehicleService {
+  id: number;
+  vehicleId: number;
+  date: string;
+  odometer: number | null;
+  vendorId: number | null;
+  cost: number | null;
+  description: string;
+  serviceType: string | null;
+  receiptUrl: string | null;
+  isDiy: number | null;
+  notes: string | null;
+  createdAt: string | null;
+}
+
+export interface VehicleServiceWithVendor extends VehicleService {
+  vendorName?: string | null;
+}
+
+export interface FuelLog {
+  id: number;
+  vehicleId: number;
+  date: string;
+  odometer: number;
+  litres: number;
+  costTotal: number;
+  costPerLitre: number | null;
+  station: string | null;
+  isFullTank: number | null;
+  notes: string | null;
+  createdAt: string | null;
+}
+
+export interface VehicleWithDetails extends Vehicle {
+  services?: VehicleServiceWithVendor[];
+  fuelLogs?: FuelLog[];
+}
+
+export interface VehicleCostSummary {
+  totalFuelCost: number;
+  totalServiceCost: number;
+  totalCost: number;
+  totalFuelLitres: number;
+  totalKmTracked: number;
+  costPerKm: number | null;
+  avgFuelConsumption: number | null;
+}

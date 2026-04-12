@@ -114,6 +114,34 @@ function initTables(sqlite: InstanceType<typeof Database>) {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
     );
+    CREATE TABLE IF NOT EXISTS vehicles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
+      make TEXT, model TEXT, year INTEGER, colour TEXT,
+      rego_number TEXT, rego_state TEXT, vin TEXT,
+      purchase_date TEXT, purchase_price REAL, current_odometer INTEGER,
+      image_url TEXT, rego_expiry TEXT, insurance_provider TEXT,
+      insurance_expiry TEXT, warranty_expiry_date TEXT, warranty_expiry_km INTEGER,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS vehicle_services (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
+      date TEXT NOT NULL, odometer INTEGER,
+      vendor_id INTEGER REFERENCES vendors(id),
+      cost REAL, description TEXT NOT NULL, service_type TEXT,
+      receipt_url TEXT, is_diy INTEGER DEFAULT 0, notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS fuel_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
+      date TEXT NOT NULL, odometer INTEGER NOT NULL,
+      litres REAL NOT NULL, cost_total REAL NOT NULL,
+      cost_per_litre REAL, station TEXT,
+      is_full_tank INTEGER DEFAULT 1, notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 }
 
@@ -547,6 +575,83 @@ async function seedDemo() {
     console.log("✓ 12 activities");
   } else {
     console.log(`  Skipping activities (${existingActivities} already exist)`);
+  }
+
+  // ── Vehicles ──
+  const existingVehicles = (
+    sqlite
+      .prepare("SELECT COUNT(*) as count FROM vehicles")
+      .get() as { count: number }
+  ).count;
+
+  if (existingVehicles === 0) {
+    const insertVehicle = sqlite.prepare(`
+      INSERT INTO vehicles (name, make, model, year, colour, rego_number, rego_state, vin, purchase_date, purchase_price, current_odometer, rego_expiry, insurance_provider, insurance_expiry, warranty_expiry_date, warranty_expiry_km, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    const v1 = insertVehicle.run(
+      "Family Car", "Toyota", "RAV4", 2022, "White", "ABC123", "VIC",
+      "JTMW43FV50D123456", "2022-03-15", 42000, 58320,
+      daysFromNow(45), "RACV", daysFromNow(120),
+      "2027-03-15", 100000, "Hybrid AWD. Service every 15,000 km or 12 months."
+    );
+    const v1id = Number(v1.lastInsertRowid);
+
+    const v2 = insertVehicle.run(
+      "City Runabout", "Mazda", "2", 2018, "Soul Red", "XYZ789", "VIC",
+      "JMZDE14L291234567", "2018-11-01", 18500, 87450,
+      daysFromNow(190), "Bingle", daysFromNow(60),
+      null, null, "Rego due soon-ish. Good on fuel. Needs new tyres before summer."
+    );
+    const v2id = Number(v2.lastInsertRowid);
+
+    console.log("✓ 2 vehicles");
+
+    // Vehicle Services
+    const insertService = sqlite.prepare(`
+      INSERT INTO vehicle_services (vehicle_id, date, odometer, vendor_id, cost, description, service_type, is_diy, notes)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    // Find a mechanic vendor if one exists (use General or first vendor)
+    const allVendors = sqlite
+      .prepare("SELECT id, name, category FROM vendors")
+      .all() as { id: number; name: string; category: string | null }[];
+    const mechanicVendor = allVendors.find((v) => v.category === "General") || allVendors[0];
+    const mechanicId = mechanicVendor?.id || null;
+
+    // RAV4 services
+    insertService.run(v1id, daysAgo(180), 45000, mechanicId, 450, "45,000 km scheduled service", "Scheduled Service", 0, "Oil, filters, brake check. All good.");
+    insertService.run(v1id, daysAgo(90), 52000, null, 85, "Wiper blades replaced", "Other", 1, "Bought Bosch Aerotwin from Supercheap Auto");
+    insertService.run(v1id, daysAgo(30), 56800, mechanicId, 680, "New front brake pads + rotor resurface", "Brakes", 0, "Rears still have plenty of life.");
+
+    // Mazda 2 services
+    insertService.run(v2id, daysAgo(120), 82000, mechanicId, 380, "80,000 km service", "Scheduled Service", 0, "Needed new spark plugs too.");
+    insertService.run(v2id, daysAgo(14), 87200, null, 720, "4 x Michelin Energy Saver tyres", "Tyres", 0, "Fitted at Bob Jane. Alignment included.");
+
+    console.log("✓ 5 vehicle services");
+
+    // Fuel Logs
+    const insertFuel = sqlite.prepare(`
+      INSERT INTO fuel_logs (vehicle_id, date, odometer, litres, cost_total, cost_per_litre, station, is_full_tank)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    // RAV4 fuel logs (hybrid, ~5.5 L/100km)
+    insertFuel.run(v1id, daysAgo(42), 54500, 38.2, 72.58, 1.899, "Shell Heidelberg", 1);
+    insertFuel.run(v1id, daysAgo(28), 55800, 35.6, 66.97, 1.881, "BP Ivanhoe", 1);
+    insertFuel.run(v1id, daysAgo(14), 57100, 37.1, 70.12, 1.889, "Shell Heidelberg", 1);
+    insertFuel.run(v1id, daysAgo(3), 58320, 34.8, 68.21, 1.960, "Costco Docklands", 1);
+
+    // Mazda 2 fuel logs (~6.2 L/100km)
+    insertFuel.run(v2id, daysAgo(35), 85200, 32.5, 61.75, 1.900, "7-Eleven Brunswick", 1);
+    insertFuel.run(v2id, daysAgo(21), 86100, 28.4, 54.72, 1.926, "United Preston", 1);
+    insertFuel.run(v2id, daysAgo(7), 87450, 35.1, 68.45, 1.950, "Shell Heidelberg", 1);
+
+    console.log("✓ 7 fuel logs");
+  } else {
+    console.log(`  Skipping vehicles (${existingVehicles} already exist)`);
   }
 
   // ── Extra Completions (spread across last 30 days for stats) ──
