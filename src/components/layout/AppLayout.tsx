@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { BottomNav } from "./BottomNav";
 import { UserAvatar } from "@/components/user-identity/UserAvatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavItem {
   href: string;
@@ -87,7 +88,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
       {navigation.map((group) => (
         <div key={group.title} className="mb-4">
           {!isCollapsed && (
-            <h3 className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <h3 className="px-4 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               {group.title}
             </h3>
           )}
@@ -103,8 +104,8 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
                     className={cn(
                       "flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg mx-2 transition-colors",
                       isActive
-                        ? "bg-blue-50 text-blue-700"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                     )}
                     title={isCollapsed ? item.label : undefined}
                   >
@@ -121,9 +122,9 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Mobile header */}
-      <header className="lg:hidden bg-white border-b sticky top-0 z-40">
+      <header className="lg:hidden bg-card border-b border-border sticky top-0 z-40">
         <div className="flex items-center justify-between px-4 py-3">
           <Button
             variant="ghost"
@@ -133,7 +134,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
             <Menu className="h-5 w-5" />
           </Button>
           {title && (
-            <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+            <h1 className="text-lg font-semibold text-foreground">{title}</h1>
           )}
           <UserAvatar />
         </div>
@@ -150,12 +151,12 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
       {/* Mobile sidebar drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:hidden",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transform transition-transform duration-200 ease-in-out lg:hidden",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between p-4 border-b">
-          <span className="text-lg font-bold text-gray-900">Tuis</span>
+        <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+          <span className="text-lg font-bold text-sidebar-foreground">Tuis</span>
           <Button
             variant="ghost"
             size="icon"
@@ -165,18 +166,21 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
           </Button>
         </div>
         <NavContent />
+        <div className="p-3 border-t border-sidebar-border">
+          <ThemeToggle />
+        </div>
       </aside>
 
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 bg-white border-r transition-all duration-200",
+          "hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 bg-sidebar border-r border-sidebar-border transition-all duration-200",
           isCollapsed ? "lg:w-16" : "lg:w-56"
         )}
       >
-        <div className="flex items-center justify-between p-4 border-b h-16">
+        <div className="flex items-center justify-between p-4 border-b border-sidebar-border h-16">
           {!isCollapsed && (
-            <span className="text-lg font-bold text-gray-900">Tuis</span>
+            <span className="text-lg font-bold text-sidebar-foreground">Tuis</span>
           )}
           <Button
             variant="ghost"
@@ -192,6 +196,9 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
           </Button>
         </div>
         <NavContent />
+        <div className={cn("p-3 border-t border-sidebar-border", isCollapsed ? "px-1" : "")}>
+          <ThemeToggle collapsed={isCollapsed} />
+        </div>
       </aside>
 
       {/* Main content */}
@@ -203,9 +210,9 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
       >
         {/* Desktop header */}
         {(title || actions) && (
-          <header className="hidden lg:block bg-white border-b sticky top-0 z-20">
+          <header className="hidden lg:block bg-card border-b border-border sticky top-0 z-20">
             <div className="flex items-center justify-between px-6 py-4">
-              <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{title}</h1>
               <div className="flex items-center gap-4">
                 {actions}
                 <UserAvatar />
@@ -216,7 +223,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
 
         {/* Mobile actions bar (if actions exist but no header shown) */}
         {actions && (
-          <div className="lg:hidden bg-white border-b px-4 py-2">
+          <div className="lg:hidden bg-card border-b border-border px-4 py-2">
             <div className="flex items-center justify-end gap-2">{actions}</div>
           </div>
         )}

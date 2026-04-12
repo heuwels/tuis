@@ -145,9 +145,9 @@ export function RecipePicker({
               Back to recipes
             </button>
 
-            <div className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50">
+            <div className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50 dark:bg-zinc-900">
               {selectedRecipeForConfirm.imageUrl ? (
-                <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                   <img
                     src={selectedRecipeForConfirm.imageUrl}
                     alt={selectedRecipeForConfirm.name}
@@ -155,7 +155,7 @@ export function RecipePicker({
                   />
                 </div>
               ) : (
-                <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <div className="w-16 h-16 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
                   <ChefHat className="h-6 w-6 text-muted-foreground" />
                 </div>
               )}
@@ -231,11 +231,11 @@ export function RecipePicker({
                     return (
                       <div
                         key={recipe.id}
-                        className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
                         onClick={() => handleRecipeClick(recipe)}
                       >
                         {recipe.imageUrl ? (
-                          <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                          <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                             <img
                               src={recipe.imageUrl}
                               alt={recipe.name}
@@ -243,7 +243,7 @@ export function RecipePicker({
                             />
                           </div>
                         ) : (
-                          <div className="w-16 h-16 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
+                          <div className="w-16 h-16 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
                             <ChefHat className="h-6 w-6 text-muted-foreground" />
                           </div>
                         )}

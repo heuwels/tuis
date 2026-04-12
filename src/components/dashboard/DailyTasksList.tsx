@@ -4,19 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Task } from "@/types";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { areaColors, areaColorFallback } from "@/lib/area-colors";
 import { useState } from "react";
 
 interface DailyTasksListProps {
   tasks: Task[];
 }
 
-const areaColors: Record<string, string> = {
-  Kitchen: "bg-orange-100 text-orange-800",
-  Bathroom: "bg-blue-100 text-blue-800",
-  "Whole house": "bg-purple-100 text-purple-800",
-  Bedrooms: "bg-pink-100 text-pink-800",
-  Lounge: "bg-yellow-100 text-yellow-800",
-};
 
 export function DailyTasksList({ tasks }: DailyTasksListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -33,13 +27,13 @@ export function DailyTasksList({ tasks }: DailyTasksListProps) {
   }, {} as Record<string, Task[]>);
 
   return (
-    <Card className="bg-gray-50 border-dashed">
+    <Card className="bg-gray-50 dark:bg-zinc-900 border-dashed">
       <CardHeader
         className="cursor-pointer py-3"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium text-gray-600">
+          <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">
             Daily Routine
             <span className="ml-2 text-sm font-normal text-muted-foreground">
               ({tasks.length} tasks)
@@ -59,7 +53,7 @@ export function DailyTasksList({ tasks }: DailyTasksListProps) {
               <div key={area}>
                 <Badge
                   variant="secondary"
-                  className={`mb-2 ${areaColors[area] || "bg-gray-100 text-gray-800"}`}
+                  className={`mb-2 ${areaColors[area] || areaColorFallback}`}
                 >
                   {area}
                 </Badge>
@@ -67,13 +61,13 @@ export function DailyTasksList({ tasks }: DailyTasksListProps) {
                   {areaTasks.map((task) => (
                     <li
                       key={task.id}
-                      className="text-sm text-gray-600 flex items-start gap-2"
+                      className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2"
                     >
                       <span className="text-gray-400 mt-0.5">•</span>
                       <span>
                         {task.name}
                         {task.notes && (
-                          <span className="text-xs text-gray-400 ml-1">
+                          <span className="text-xs text-gray-400 dark:text-gray-500 ml-1">
                             ({task.notes})
                           </span>
                         )}

@@ -12,10 +12,10 @@ interface QuoteCardProps {
 }
 
 const statusStyles: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800",
-  accepted: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-800",
-  archived: "bg-gray-100 text-gray-600",
+  pending: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  accepted: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
+  rejected: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+  archived: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
 };
 
 function formatCurrency(amount: number): string {
@@ -38,7 +38,7 @@ export function QuoteCard({ quote, onClick }: QuoteCardProps) {
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 mb-1">{quote.description}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">{quote.description}</h3>
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary" className={statusColor}>
                 {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
@@ -52,7 +52,7 @@ export function QuoteCard({ quote, onClick }: QuoteCardProps) {
             </div>
           </div>
           <div className="text-right shrink-0 ml-4">
-            <p className="text-xl font-bold text-gray-900">
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
               {formatCurrency(quote.total)}
             </p>
           </div>

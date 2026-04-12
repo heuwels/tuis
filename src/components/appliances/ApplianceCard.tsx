@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Appliance } from "@/types";
 import { Refrigerator, FileText, Shield, MapPin } from "lucide-react";
+import { locationColors as sharedLocationColors, areaColorFallback } from "@/lib/area-colors";
 import { format, parseISO, isPast, isFuture, addMonths } from "date-fns";
 
 interface ApplianceCardProps {
@@ -11,17 +12,6 @@ interface ApplianceCardProps {
   onClick?: () => void;
 }
 
-const locationColors: Record<string, string> = {
-  Kitchen: "bg-orange-100 text-orange-800",
-  Bathroom: "bg-blue-100 text-blue-800",
-  Laundry: "bg-cyan-100 text-cyan-800",
-  Garage: "bg-stone-100 text-stone-800",
-  Bedroom: "bg-pink-100 text-pink-800",
-  "Living Room": "bg-yellow-100 text-yellow-800",
-  Office: "bg-indigo-100 text-indigo-800",
-  Basement: "bg-gray-100 text-gray-800",
-  Outdoor: "bg-green-100 text-green-800",
-};
 
 function getWarrantyStatus(warrantyExpiry: string | null) {
   if (!warrantyExpiry) return null;
@@ -31,17 +21,17 @@ function getWarrantyStatus(warrantyExpiry: string | null) {
   const threeMonthsFromNow = addMonths(now, 3);
 
   if (isPast(expiryDate)) {
-    return { label: "Expired", color: "bg-gray-100 text-gray-600" };
+    return { label: "Expired", color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" };
   } else if (isFuture(threeMonthsFromNow) && expiryDate <= threeMonthsFromNow) {
-    return { label: "Expiring Soon", color: "bg-amber-100 text-amber-800" };
+    return { label: "Expiring Soon", color: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" };
   } else {
-    return { label: "Active", color: "bg-green-100 text-green-800" };
+    return { label: "Active", color: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300" };
   }
 }
 
 export function ApplianceCard({ appliance, onClick }: ApplianceCardProps) {
   const locationColor =
-    locationColors[appliance.location || ""] || "bg-gray-100 text-gray-800";
+    sharedLocationColors[appliance.location || ""] || areaColorFallback;
   const warrantyStatus = getWarrantyStatus(appliance.warrantyExpiry);
 
   return (
@@ -52,11 +42,11 @@ export function ApplianceCard({ appliance, onClick }: ApplianceCardProps) {
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-100 rounded-lg">
+            <div className="p-2 bg-blue-100 dark:bg-blue-950 rounded-lg">
               <Refrigerator className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{appliance.name}</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{appliance.name}</h3>
               {(appliance.brand || appliance.model) && (
                 <p className="text-sm text-muted-foreground">
                   {[appliance.brand, appliance.model].filter(Boolean).join(" - ")}

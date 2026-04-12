@@ -190,7 +190,7 @@ export function VendorForm({
                     className={`h-6 w-6 ${
                       rating && star <= rating
                         ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300 hover:text-yellow-400"
+                        : "text-gray-300 dark:text-gray-600 hover:text-yellow-400"
                     }`}
                   />
                 </button>

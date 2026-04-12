@@ -173,7 +173,7 @@ export function MissingIngredients({
         ) : (
           <>
             {addedCount > 0 && (
-              <div className="bg-green-50 text-green-700 px-4 py-2 rounded-lg flex items-center gap-2">
+              <div className="bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-400 px-4 py-2 rounded-lg flex items-center gap-2">
                 <Check className="h-4 w-4" />
                 Added {addedCount} item{addedCount !== 1 ? "s" : ""} to your
                 list!
@@ -203,7 +203,7 @@ export function MissingIngredients({
                   <div
                     key={ing.name}
                     className={`flex items-center gap-3 p-2 rounded-lg ${
-                      isOnList ? "bg-gray-50 opacity-60" : "hover:bg-gray-50"
+                      isOnList ? "bg-gray-50 dark:bg-zinc-900 opacity-60" : "hover:bg-gray-50 dark:hover:bg-zinc-800"
                     }`}
                   >
                     <Checkbox

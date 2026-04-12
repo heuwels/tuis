@@ -4,22 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Vendor } from "@/types";
 import { Wrench, Phone, Mail, Globe, Star } from "lucide-react";
+import { vendorCategoryColors, areaColorFallback } from "@/lib/area-colors";
 
 interface VendorCardProps {
   vendor: Vendor;
   onClick?: () => void;
 }
 
-const categoryColors: Record<string, string> = {
-  Plumber: "bg-blue-100 text-blue-800",
-  Electrician: "bg-yellow-100 text-yellow-800",
-  HVAC: "bg-cyan-100 text-cyan-800",
-  "Appliance Repair": "bg-orange-100 text-orange-800",
-  Landscaping: "bg-green-100 text-green-800",
-  Cleaning: "bg-purple-100 text-purple-800",
-  General: "bg-gray-100 text-gray-800",
-  Other: "bg-stone-100 text-stone-800",
-};
 
 function StarRating({ rating }: { rating: number | null }) {
   if (!rating) return null;
@@ -32,7 +23,7 @@ function StarRating({ rating }: { rating: number | null }) {
           className={`h-4 w-4 ${
             star <= rating
               ? "fill-yellow-400 text-yellow-400"
-              : "text-gray-300"
+              : "text-gray-300 dark:text-gray-600"
           }`}
         />
       ))}
@@ -42,7 +33,7 @@ function StarRating({ rating }: { rating: number | null }) {
 
 export function VendorCard({ vendor, onClick }: VendorCardProps) {
   const categoryColor =
-    categoryColors[vendor.category || ""] || "bg-gray-100 text-gray-800";
+    vendorCategoryColors[vendor.category || ""] || areaColorFallback;
 
   return (
     <Card
@@ -52,11 +43,11 @@ export function VendorCard({ vendor, onClick }: VendorCardProps) {
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-emerald-100 rounded-lg">
+            <div className="p-2 bg-emerald-100 dark:bg-emerald-950 rounded-lg">
               <Wrench className="h-5 w-5 text-emerald-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{vendor.name}</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{vendor.name}</h3>
               <StarRating rating={vendor.rating} />
             </div>
           </div>

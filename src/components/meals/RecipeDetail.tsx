@@ -238,7 +238,7 @@ export function RecipeDetail({
         </DialogHeader>
 
         {recipe.imageUrl && (
-          <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden -mx-6">
+          <div className="aspect-video relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden -mx-6">
             <img
               src={recipe.imageUrl}
               alt={recipe.name}

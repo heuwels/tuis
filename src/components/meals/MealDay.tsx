@@ -77,11 +77,11 @@ export function MealDay({
 
         {meal ? (
           <div
-            className="cursor-pointer hover:bg-gray-50 rounded p-2 -mx-2"
+            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800 rounded p-2 -mx-2"
             onClick={meal.recipeId ? onViewRecipe : undefined}
           >
             {meal.recipeImageUrl && (
-              <div className="aspect-video relative bg-gray-100 rounded overflow-hidden mb-2">
+              <div className="aspect-video relative bg-gray-100 dark:bg-gray-800 rounded overflow-hidden mb-2">
                 <img
                   src={meal.recipeImageUrl}
                   alt={meal.recipeName || ""}

@@ -25,6 +25,7 @@ import {
   Flag,
 } from "lucide-react";
 import { Activity } from "./ActivityCard";
+import { activityCategoryColors, activityStatusColors } from "@/lib/area-colors";
 
 interface ActivityDetailProps {
   activity: Activity | null;
@@ -125,7 +126,7 @@ export function ActivityDetail({
         </DialogHeader>
 
         {activity.imageUrl && (
-          <div className="aspect-video relative bg-gray-100 rounded-lg overflow-hidden -mx-6">
+          <div className="aspect-video relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden -mx-6">
             <img
               src={activity.imageUrl}
               alt={activity.title}
@@ -135,11 +136,11 @@ export function ActivityDetail({
         )}
 
         <div className="flex flex-wrap gap-2">
-          <Badge className={categoryConfig.color} variant="secondary">
+          <Badge className={activityCategoryColors[activity.category] || "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"} variant="secondary">
             <CategoryIcon className="h-3 w-3" />
             {categoryConfig.label}
           </Badge>
-          <Badge className={statusConfig.color} variant="secondary">
+          <Badge className={activityStatusColors[activity.status] || activityStatusColors.wishlist} variant="secondary">
             {statusConfig.label}
           </Badge>
           {activity.priority && activity.priority !== "medium" && (

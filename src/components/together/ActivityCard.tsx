@@ -12,6 +12,7 @@ import {
   DollarSign,
   Clock,
 } from "lucide-react";
+import { activityCategoryColors, activityStatusColors } from "@/lib/area-colors";
 
 export interface Activity {
   id: number;
@@ -106,7 +107,7 @@ export function ActivityCard({ activity, onClick }: ActivityCardProps) {
       onClick={onClick}
     >
       {activity.imageUrl && (
-        <div className="aspect-video relative bg-gray-100">
+        <div className="aspect-video relative bg-gray-100 dark:bg-gray-800">
           <img
             src={activity.imageUrl}
             alt={activity.title}
@@ -127,11 +128,11 @@ export function ActivityCard({ activity, onClick }: ActivityCardProps) {
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-3">
-          <Badge className={categoryConfig.color} variant="secondary">
+          <Badge className={activityCategoryColors[activity.category] || "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"} variant="secondary">
             <CategoryIcon className="h-3 w-3" />
             {categoryConfig.label}
           </Badge>
-          <Badge className={statusConfig.color} variant="secondary">
+          <Badge className={activityStatusColors[activity.status] || activityStatusColors.wishlist} variant="secondary">
             {statusConfig.label}
           </Badge>
         </div>

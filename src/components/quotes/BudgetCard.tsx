@@ -39,10 +39,10 @@ export function BudgetCard({ quotesTotal }: { quotesTotal: number }) {
   const pendingQuotesExceed = quotesTotal > 0 && afterQuotes < 0;
 
   return (
-    <Card className={isOverBudget ? "border-red-200 bg-red-50/50" : "bg-green-50/50 border-green-200"}>
+    <Card className={isOverBudget ? "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/30" : "bg-green-50/50 dark:bg-green-950/30 border-green-200 dark:border-green-800"}>
       <CardContent className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${isOverBudget ? "bg-red-100" : "bg-green-100"}`}>
+          <div className={`p-2 rounded-lg ${isOverBudget ? "bg-red-100 dark:bg-red-950" : "bg-green-100 dark:bg-green-950"}`}>
             <Wallet className={`h-5 w-5 ${isOverBudget ? "text-red-600" : "text-green-600"}`} />
           </div>
           <div>

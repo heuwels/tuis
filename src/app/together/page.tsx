@@ -184,21 +184,21 @@ export default function TogetherPage() {
           <div className="space-y-1">
             <button
               onClick={() => handleExport("json")}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800"
             >
               <FileJson className="h-4 w-4" />
               JSON (for import)
             </button>
             <button
               onClick={() => handleExport("csv")}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800"
             >
               <FileSpreadsheet className="h-4 w-4" />
               CSV (spreadsheet)
             </button>
             <button
               onClick={() => handleExport("markdown")}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800"
             >
               <FileText className="h-4 w-4" />
               Markdown (document)
@@ -258,7 +258,7 @@ export default function TogetherPage() {
       </div>
 
       {importError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm whitespace-pre-wrap">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded-md text-red-700 dark:text-red-400 text-sm whitespace-pre-wrap">
           {importError}
           <button
             onClick={() => setImportError(null)}

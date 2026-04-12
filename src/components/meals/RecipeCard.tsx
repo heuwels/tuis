@@ -31,7 +31,7 @@ export function RecipeCard({ recipe, onClick }: RecipeCardProps) {
       onClick={onClick}
     >
       {recipe.imageUrl && (
-        <div className="aspect-video relative bg-gray-100">
+        <div className="aspect-video relative bg-gray-100 dark:bg-gray-800">
           <img
             src={recipe.imageUrl}
             alt={recipe.name}

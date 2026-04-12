@@ -6,6 +6,7 @@ import { CompleteButton } from "./CompleteButton";
 import { SnoozeButton } from "./SnoozeButton";
 import { Task, TaskStatus } from "@/types";
 import { format, parseISO } from "date-fns";
+import { areaColors, areaColorFallback } from "@/lib/area-colors";
 
 interface TaskCardProps {
   task: Task;
@@ -13,29 +14,17 @@ interface TaskCardProps {
   onComplete: () => void;
 }
 
-const areaColors: Record<string, string> = {
-  Kitchen: "bg-orange-100 text-orange-800",
-  Bathroom: "bg-blue-100 text-blue-800",
-  "Whole house": "bg-purple-100 text-purple-800",
-  Garden: "bg-green-100 text-green-800",
-  Exterior: "bg-stone-100 text-stone-800",
-  Bedrooms: "bg-pink-100 text-pink-800",
-  Lounge: "bg-yellow-100 text-yellow-800",
-  "Living room": "bg-yellow-100 text-yellow-800",
-  Interior: "bg-indigo-100 text-indigo-800",
-  Laundry: "bg-cyan-100 text-cyan-800",
-};
 
 const statusStyles: Record<TaskStatus, string> = {
   overdue: "border-l-4 border-l-red-500",
   today: "border-l-4 border-l-amber-500",
   upcoming: "border-l-4 border-l-blue-500",
-  future: "border-l-4 border-l-gray-300",
-  adhoc: "border-l-4 border-l-gray-400 border-dashed",
+  future: "border-l-4 border-l-gray-300 dark:border-l-gray-600",
+  adhoc: "border-l-4 border-l-gray-400 dark:border-l-gray-500 border-dashed",
 };
 
 export function TaskCard({ task, status, onComplete }: TaskCardProps) {
-  const areaColor = areaColors[task.area] || "bg-gray-100 text-gray-800";
+  const areaColor = areaColors[task.area] || areaColorFallback;
 
   return (
     <Card className={`${statusStyles[status]} py-2`}>
