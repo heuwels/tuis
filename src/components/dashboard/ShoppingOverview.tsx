@@ -42,13 +42,13 @@ export function ShoppingOverview() {
 
   return (
     <Link href="/shopping" className="block group">
-      <Card className="h-full transition-colors group-hover:border-blue-200">
+      <Card className="h-full transition-colors group-hover:border-blue-200 dark:group-hover:border-blue-800">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />
             Shopping
             {totalRemaining > 0 && (
-              <span className="ml-auto text-xs bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-medium">
+              <span className="ml-auto text-xs bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded-full px-2 py-0.5 font-medium">
                 {totalRemaining} to buy
               </span>
             )}
@@ -77,7 +77,7 @@ export function ShoppingOverview() {
                         {remaining} left
                       </span>
                     </div>
-                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-300"
                         style={{
@@ -96,7 +96,7 @@ export function ShoppingOverview() {
               )}
             </div>
           ) : lists.length > 0 ? (
-            <p className="text-sm text-green-600 font-medium">All done!</p>
+            <p className="text-sm text-green-600 dark:text-green-400 font-medium">All done!</p>
           ) : (
             <p className="text-sm text-muted-foreground italic">No shopping lists</p>
           )}

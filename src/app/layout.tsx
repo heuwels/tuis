@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { UserIdentityProvider } from "@/lib/user-identity";
 import { UserPicker } from "@/components/user-identity/UserPicker";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,20 +39,37 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+// Inline script to prevent flash of wrong theme on page load.
+// Runs before React hydration so the correct class is applied immediately.
+const themeScript = `
+(function(){
+  try {
+    var t = localStorage.getItem('tuis-theme');
+    var d = (t === 'dark') || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (d) document.documentElement.classList.add('dark');
+  } catch(e) {}
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <UserIdentityProvider>
-          {children}
-          <UserPicker />
-        </UserIdentityProvider>
+        <ThemeProvider>
+          <UserIdentityProvider>
+            {children}
+            <UserPicker />
+          </UserIdentityProvider>
+        </ThemeProvider>
         <ServiceWorkerRegistration />
       </body>
     </html>

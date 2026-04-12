@@ -42,7 +42,7 @@ export function TodaysMealCard() {
 
   return (
     <Link href="/meals" className="block group">
-      <Card className="h-full transition-colors group-hover:border-orange-200">
+      <Card className="h-full transition-colors group-hover:border-orange-200 dark:group-hover:border-orange-800">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <UtensilsCrossed className="h-4 w-4" />
