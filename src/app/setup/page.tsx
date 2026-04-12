@@ -125,7 +125,7 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         {/* Progress indicator */}
         <div className="flex items-center justify-center gap-2 mb-8">
@@ -137,7 +137,7 @@ export default function SetupPage() {
                   className={`flex items-center justify-center w-9 h-9 rounded-full transition-colors ${
                     i <= step
                       ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-400"
+                      : "bg-gray-200 dark:bg-zinc-700 text-gray-400 dark:text-zinc-500"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -145,7 +145,7 @@ export default function SetupPage() {
                 {i < STEPS.length - 1 && (
                   <div
                     className={`w-8 h-0.5 transition-colors ${
-                      i < step ? "bg-blue-600" : "bg-gray-200"
+                      i < step ? "bg-blue-600" : "bg-gray-200 dark:bg-zinc-700"
                     }`}
                   />
                 )}
@@ -159,15 +159,15 @@ export default function SetupPage() {
           <Card>
             <CardContent className="pt-8 pb-8 text-center space-y-6">
               <div className="flex justify-center">
-                <div className="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                   <Home className="h-8 w-8 text-blue-600" />
                 </div>
               </div>
               <div className="space-y-2">
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
                   Welcome to Tuis
                 </h1>
-                <p className="text-gray-500 max-w-sm mx-auto">
+                <p className="text-gray-500 dark:text-zinc-400 max-w-sm mx-auto">
                   Your household companion for managing chores, meals, shopping,
                   and more. Let&apos;s get you set up in a few quick steps.
                 </p>
@@ -185,10 +185,10 @@ export default function SetupPage() {
           <Card>
             <CardContent className="pt-6 pb-6 space-y-6">
               <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100">
                   Who lives here?
                 </h2>
-                <p className="text-gray-500 text-sm">
+                <p className="text-gray-500 dark:text-zinc-400 text-sm">
                   Add the people in your household. You can always add more
                   later in Settings.
                 </p>
@@ -196,7 +196,7 @@ export default function SetupPage() {
 
               <div className="space-y-4">
                 {members.map((member, index) => (
-                  <div key={index} className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                  <div key={index} className="space-y-3 p-4 bg-gray-50 dark:bg-zinc-800 rounded-lg">
                     <div className="flex items-center gap-2">
                       <div className="flex-1">
                         <Label htmlFor={`name-${index}`} className="sr-only">
@@ -216,7 +216,7 @@ export default function SetupPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0"
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 shrink-0"
                           onClick={() => removeMember(index)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -224,7 +224,7 @@ export default function SetupPage() {
                       )}
                     </div>
                     <div>
-                      <Label className="text-xs text-gray-500 mb-1.5 block">
+                      <Label className="text-xs text-gray-500 dark:text-zinc-400 mb-1.5 block">
                         Colour
                       </Label>
                       <div className="flex gap-2 flex-wrap">
@@ -234,7 +234,7 @@ export default function SetupPage() {
                             type="button"
                             className={`w-7 h-7 rounded-full transition-transform ${
                               member.color === color
-                                ? "ring-2 ring-offset-2 ring-gray-400 scale-110"
+                                ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-zinc-500 dark:ring-offset-zinc-800 scale-110"
                                 : ""
                             }`}
                             style={{ backgroundColor: color }}
@@ -289,17 +289,17 @@ export default function SetupPage() {
           <Card>
             <CardContent className="pt-6 pb-6 space-y-6">
               <div className="text-center space-y-2">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100">
                   Quick Start
                 </h2>
-                <p className="text-gray-500 text-sm">
+                <p className="text-gray-500 dark:text-zinc-400 text-sm">
                   Want some starter data to get going? You can skip this and
                   add everything yourself.
                 </p>
               </div>
 
               <div className="space-y-3">
-                <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                <label className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-zinc-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
                   <Checkbox
                     checked={seedChores}
                     onCheckedChange={(checked) =>
@@ -308,17 +308,17 @@ export default function SetupPage() {
                     className="mt-0.5"
                   />
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-900 dark:text-zinc-100">
                       Common household chores
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-zinc-400">
                       Kitchen, bathroom, bedroom, living room, outdoor, and
                       laundry tasks with suggested frequencies
                     </div>
                   </div>
                 </label>
 
-                <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                <label className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-zinc-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
                   <Checkbox
                     checked={seedShopping}
                     onCheckedChange={(checked) =>
@@ -327,16 +327,16 @@ export default function SetupPage() {
                     className="mt-0.5"
                   />
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-900 dark:text-zinc-100">
                       Sample shopping list
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-zinc-400">
                       A &quot;Groceries&quot; list with common pantry staples
                     </div>
                   </div>
                 </label>
 
-                <label className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                <label className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-zinc-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
                   <Checkbox
                     checked={seedRecipes}
                     onCheckedChange={(checked) =>
@@ -345,10 +345,10 @@ export default function SetupPage() {
                     className="mt-0.5"
                   />
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-900 dark:text-zinc-100">
                       Sample recipes
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-gray-500 dark:text-zinc-400">
                       A few simple recipes to get your meal planning started
                     </div>
                   </div>
@@ -396,15 +396,15 @@ export default function SetupPage() {
           <Card>
             <CardContent className="pt-8 pb-8 text-center space-y-6">
               <div className="flex justify-center">
-                <div className="w-16 h-16 rounded-2xl bg-green-100 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                   <PartyPopper className="h-8 w-8 text-green-600" />
                 </div>
               </div>
               <div className="space-y-2">
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100">
                   You&apos;re all set!
                 </h1>
-                <p className="text-gray-500 max-w-sm mx-auto">
+                <p className="text-gray-500 dark:text-zinc-400 max-w-sm mx-auto">
                   Your household is ready to go. Head to the dashboard to start
                   managing your home.
                 </p>
