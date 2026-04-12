@@ -15,8 +15,8 @@ const titleColors: Record<TaskStatus, string> = {
   overdue: "text-red-600",
   today: "text-amber-600",
   upcoming: "text-blue-600",
-  future: "text-gray-600",
-  adhoc: "text-gray-500",
+  future: "text-gray-600 dark:text-gray-400",
+  adhoc: "text-gray-500 dark:text-gray-400",
 };
 
 export function TaskSection({

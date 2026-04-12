@@ -136,7 +136,7 @@ export default function SettingsPage() {
                 {users.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-900 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
                       <div
@@ -158,7 +158,7 @@ export default function SettingsPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                         onClick={() => handleDelete(user)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -201,7 +201,7 @@ export default function SettingsPage() {
                     type="button"
                     className={`w-8 h-8 rounded-full transition-transform ${
                       formData.color === color
-                        ? "ring-2 ring-offset-2 ring-gray-400 scale-110"
+                        ? "ring-2 ring-offset-2 ring-gray-400 dark:ring-offset-zinc-900 scale-110"
                         : ""
                     }`}
                     style={{ backgroundColor: color }}

@@ -10,17 +10,13 @@ test.describe("Theme toggle", () => {
   test("switching to dark mode adds dark class", async ({ page }) => {
     await page.evaluate(() => localStorage.setItem("tuis-theme", "dark"));
     await page.reload();
-    const hasDark = await page.evaluate(() =>
-      document.documentElement.classList.contains("dark")
-    );
-    expect(hasDark).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
   });
 
   test("switching to light mode removes dark class", async ({ page }) => {
     await page.evaluate(() => localStorage.setItem("tuis-theme", "dark"));
     await page.reload();
     expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
-
     await page.evaluate(() => localStorage.setItem("tuis-theme", "light"));
     await page.reload();
     expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(false);
@@ -30,7 +26,6 @@ test.describe("Theme toggle", () => {
     await page.evaluate(() => localStorage.setItem("tuis-theme", "dark"));
     await page.goto("/");
     expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
-
     await page.goto("/settings");
     expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
   });
@@ -39,7 +34,6 @@ test.describe("Theme toggle", () => {
     await page.evaluate(() => localStorage.setItem("tuis-theme", "dark"));
     await page.goto("/");
     expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
-
     await page.reload();
     expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(true);
     expect(await page.evaluate(() => localStorage.getItem("tuis-theme"))).toBe("dark");

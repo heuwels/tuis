@@ -14,6 +14,7 @@ import { CompleteButton, SnoozeButton } from "@/components/dashboard";
 import { Task } from "@/types";
 import { format, parseISO, isBefore, startOfDay } from "date-fns";
 import { Pencil, Trash2, FileText } from "lucide-react";
+import { areaColors, areaColorFallback } from "@/lib/area-colors";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -23,18 +24,6 @@ interface TaskTableProps {
   onView?: (task: Task) => void;
 }
 
-const areaColors: Record<string, string> = {
-  Kitchen: "bg-orange-100 text-orange-800",
-  Bathroom: "bg-blue-100 text-blue-800",
-  "Whole house": "bg-purple-100 text-purple-800",
-  Garden: "bg-green-100 text-green-800",
-  Exterior: "bg-stone-100 text-stone-800",
-  Bedrooms: "bg-pink-100 text-pink-800",
-  Lounge: "bg-yellow-100 text-yellow-800",
-  "Living room": "bg-yellow-100 text-yellow-800",
-  Interior: "bg-indigo-100 text-indigo-800",
-  Laundry: "bg-cyan-100 text-cyan-800",
-};
 
 export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete, onView }: TaskTableProps) {
   const today = startOfDay(new Date());
@@ -75,7 +64,7 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete, onView }: T
             </TableRow>
           ) : (
             tasks.map((task) => {
-              const areaColor = areaColors[task.area] || "bg-gray-100 text-gray-800";
+              const areaColor = areaColors[task.area] || areaColorFallback;
               return (
                 <TableRow key={task.id}>
                   <TableCell className="max-w-[300px]">
@@ -138,7 +127,7 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete, onView }: T
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                         onClick={() => onDelete(task)}
                       >
                         <Trash2 className="h-4 w-4" />

@@ -31,7 +31,7 @@ export function ShoppingItem({
 
   return (
     <div
-      className={`flex items-center gap-3 p-3 bg-white rounded-lg border ${
+      className={`flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 rounded-lg border ${
         checked ? "opacity-60" : ""
       }`}
     >
@@ -50,7 +50,7 @@ export function ShoppingItem({
       <Button
         size="sm"
         variant="ghost"
-        className="text-red-500 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={handleDelete}
         disabled={isDeleting}
       >

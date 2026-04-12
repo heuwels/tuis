@@ -174,17 +174,17 @@ export function GoogleCalendarCard() {
       <CardContent className="space-y-4">
         {status?.connected ? (
           <>
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/50 rounded-lg">
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-green-600" />
-                <span className="text-sm text-green-700">
+                <span className="text-sm text-green-700 dark:text-green-400">
                   Connected as <strong>{status.email}</strong>
                 </span>
               </div>
               <Button
                 size="sm"
                 variant="ghost"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                 onClick={handleDisconnect}
                 disabled={isDisconnecting}
               >
@@ -267,7 +267,7 @@ export function GoogleCalendarCard() {
             </div>
 
             {syncResult && (
-              <div className="p-3 bg-gray-50 rounded-lg text-sm">
+              <div className="p-3 bg-gray-50 dark:bg-zinc-900 rounded-lg text-sm">
                 <p className="font-medium mb-1">Sync complete</p>
                 <ul className="text-muted-foreground space-y-1">
                   {syncResult.created > 0 && (

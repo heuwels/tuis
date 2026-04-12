@@ -230,7 +230,7 @@ export function RecipeForm({
                 onChange={(e) =>
                   handleSectionRename(ing.section, e.target.value)
                 }
-                className="font-semibold text-sm bg-gray-50 border-dashed"
+                className="font-semibold text-sm bg-gray-50 dark:bg-zinc-900 border-dashed"
                 placeholder="Section name"
               />
             </div>

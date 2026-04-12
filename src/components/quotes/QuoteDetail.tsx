@@ -29,10 +29,10 @@ interface QuoteDetailProps {
 }
 
 const statusStyles: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800",
-  accepted: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-800",
-  archived: "bg-gray-100 text-gray-600",
+  pending: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  accepted: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
+  rejected: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+  archived: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
 };
 
 function formatCurrency(amount: number): string {
@@ -62,7 +62,7 @@ export function QuoteDetail({
       <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
+            <div className="p-2 bg-blue-100 dark:bg-blue-950 rounded-lg">
               <FileText className="h-6 w-6 text-blue-600" />
             </div>
             <div>
@@ -84,7 +84,7 @@ export function QuoteDetail({
 
         <div className="space-y-6">
           {/* Total */}
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-zinc-900 rounded-lg p-4">
             <p className="text-sm text-muted-foreground mb-1">Total Amount</p>
             <p className="text-3xl font-bold">{formatCurrency(quote.total)}</p>
           </div>
@@ -95,19 +95,19 @@ export function QuoteDetail({
               <h4 className="font-medium mb-2">Cost Breakdown</h4>
               <div className="grid grid-cols-3 gap-3">
                 {quote.labour != null && (
-                  <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="bg-blue-50 dark:bg-blue-950/50 rounded-lg p-3">
                     <p className="text-xs text-muted-foreground">Labour</p>
                     <p className="text-lg font-semibold">{formatCurrency(quote.labour)}</p>
                   </div>
                 )}
                 {quote.materials != null && (
-                  <div className="bg-orange-50 rounded-lg p-3">
+                  <div className="bg-orange-50 dark:bg-orange-950/50 rounded-lg p-3">
                     <p className="text-xs text-muted-foreground">Materials</p>
                     <p className="text-lg font-semibold">{formatCurrency(quote.materials)}</p>
                   </div>
                 )}
                 {quote.other != null && (
-                  <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="bg-gray-50 dark:bg-zinc-900 rounded-lg p-3">
                     <p className="text-xs text-muted-foreground">Other</p>
                     <p className="text-lg font-semibold">{formatCurrency(quote.other)}</p>
                   </div>
@@ -128,7 +128,7 @@ export function QuoteDetail({
           {quote.notes && (
             <div>
               <p className="text-sm text-muted-foreground mb-1">Notes</p>
-              <p className="text-sm bg-gray-50 rounded-lg p-3">{quote.notes}</p>
+              <p className="text-sm bg-gray-50 dark:bg-zinc-900 rounded-lg p-3">{quote.notes}</p>
             </div>
           )}
 

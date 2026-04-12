@@ -12,6 +12,7 @@ import {
   ListTodo,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { areaBarColors } from "@/lib/area-colors";
 
 interface Stats {
   totalTasks: number;
@@ -29,18 +30,6 @@ interface Stats {
   }[];
 }
 
-const areaColors: Record<string, string> = {
-  Kitchen: "bg-orange-500",
-  Bathroom: "bg-blue-500",
-  "Whole house": "bg-purple-500",
-  Garden: "bg-green-500",
-  Exterior: "bg-stone-500",
-  Bedrooms: "bg-pink-500",
-  Lounge: "bg-yellow-500",
-  "Living room": "bg-yellow-500",
-  Interior: "bg-indigo-500",
-  Laundry: "bg-cyan-500",
-};
 
 export default function StatsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -96,7 +85,7 @@ export default function StatsPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
+                <div className="p-2 bg-blue-100 dark:bg-blue-950 rounded-lg">
                   <ListTodo className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
@@ -110,7 +99,7 @@ export default function StatsPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 rounded-lg">
+                <div className="p-2 bg-red-100 dark:bg-red-950 rounded-lg">
                   <AlertCircle className="h-5 w-5 text-red-600" />
                 </div>
                 <div>
@@ -124,7 +113,7 @@ export default function StatsPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 rounded-lg">
+                <div className="p-2 bg-amber-100 dark:bg-amber-950 rounded-lg">
                   <Clock className="h-5 w-5 text-amber-600" />
                 </div>
                 <div>
@@ -138,7 +127,7 @@ export default function StatsPage() {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
+                <div className="p-2 bg-green-100 dark:bg-green-950 rounded-lg">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
@@ -214,10 +203,10 @@ export default function StatsPage() {
                               {item.count}
                             </span>
                           </div>
-                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full ${
-                                areaColors[item.area] || "bg-gray-500"
+                                areaBarColors[item.area] || "bg-gray-500"
                               }`}
                               style={{ width: `${percentage}%` }}
                             />

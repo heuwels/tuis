@@ -13,10 +13,10 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { QuoteWithVendor } from "@/types";
 
 const statusStyles: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800",
-  accepted: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-800",
-  archived: "bg-gray-100 text-gray-600",
+  pending: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  accepted: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300",
+  rejected: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
+  archived: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
 };
 
 function formatCurrency(amount: number): string {
@@ -216,9 +216,9 @@ function QuotesTable({
   onRowClick: (quote: QuoteWithVendor) => void;
 }) {
   return (
-    <div className="border rounded-lg overflow-hidden bg-white">
+    <div className="border rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
       {/* Desktop header */}
-      <div className="hidden md:grid md:grid-cols-[1fr_140px_120px_100px_100px] gap-2 px-4 py-2 bg-gray-50 border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+      <div className="hidden md:grid md:grid-cols-[1fr_140px_120px_100px_100px] gap-2 px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
         <span>Description</span>
         <span>Vendor</span>
         <span className="text-right">Total</span>
@@ -230,13 +230,13 @@ function QuotesTable({
         {quotes.map((quote) => (
           <div
             key={quote.id}
-            className="cursor-pointer hover:bg-gray-50 transition-colors"
+            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
             onClick={() => onRowClick(quote)}
           >
             {/* Desktop row */}
             <div className="hidden md:grid md:grid-cols-[1fr_140px_120px_100px_100px] gap-2 px-4 py-3 items-center">
               <div>
-                <span className="font-medium text-gray-900">{quote.description}</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">{quote.description}</span>
                 {(quote.labour != null || quote.materials != null) && (
                   <span className="text-xs text-muted-foreground ml-2">
                     {[

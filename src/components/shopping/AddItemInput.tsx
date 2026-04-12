@@ -120,13 +120,13 @@ export function AddItemInput({ onAdd, disabled }: AddItemInputProps) {
       {showSuggestions && suggestions.length > 0 && (
         <div
           ref={suggestionsRef}
-          className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-auto"
+          className="absolute z-10 w-full mt-1 bg-white dark:bg-zinc-900 border rounded-md shadow-lg max-h-48 overflow-auto"
         >
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion}
-              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
-                index === selectedIndex ? "bg-gray-100" : ""
+              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-800 ${
+                index === selectedIndex ? "bg-gray-100 dark:bg-zinc-800" : ""
               }`}
               onClick={() => handleSubmit(suggestion)}
             >

@@ -297,7 +297,7 @@ export default function ShoppingPage() {
                     {uncheckedItems.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center gap-3 p-3 bg-white rounded-lg border group"
+                        className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 rounded-lg border group"
                       >
                         <Checkbox
                           checked={item.checked}
@@ -316,7 +316,7 @@ export default function ShoppingPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => handleDeleteItem(item.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -328,7 +328,7 @@ export default function ShoppingPage() {
                     {checkedItems.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border opacity-60 group"
+                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg border opacity-60 group"
                       >
                         <Checkbox
                           checked={item.checked}
@@ -345,7 +345,7 @@ export default function ShoppingPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => handleDeleteItem(item.id)}
                         >
                           <Trash2 className="h-4 w-4" />

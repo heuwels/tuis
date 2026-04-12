@@ -45,7 +45,7 @@ export function TaskFilters({
         )}
       </div>
       <div>
-        <label className="text-sm font-medium text-gray-700 mb-2 block">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
           Area
         </label>
         <div className="flex flex-wrap gap-2">
@@ -69,7 +69,7 @@ export function TaskFilters({
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium text-gray-700 mb-2 block">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
           Frequency
         </label>
         <div className="flex flex-wrap gap-2">
