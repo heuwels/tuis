@@ -224,7 +224,7 @@ function initDb(): BetterSQLite3Database<typeof schema> {
 
     CREATE TABLE IF NOT EXISTS vehicle_services (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
+      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
       date TEXT NOT NULL,
       odometer INTEGER,
       vendor_id INTEGER REFERENCES vendors(id),
@@ -239,7 +239,7 @@ function initDb(): BetterSQLite3Database<typeof schema> {
 
     CREATE TABLE IF NOT EXISTS fuel_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
+      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
       date TEXT NOT NULL,
       odometer INTEGER NOT NULL,
       litres REAL NOT NULL,

@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Car,
 } from "lucide-react";
 import { BottomNav } from "./BottomNav";
 import { UserAvatar } from "@/components/user-identity/UserAvatar";
@@ -48,6 +49,7 @@ const navigation: NavGroup[] = [
       { href: "/appliances", label: "Appliances", icon: Refrigerator },
       { href: "/vendors", label: "Vendors", icon: Wrench },
       { href: "/quotes", label: "Quotes", icon: FileText },
+      { href: "/vehicles", label: "Cars", icon: Car },
     ],
   },
   {

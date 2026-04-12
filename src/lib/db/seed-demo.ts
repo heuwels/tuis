@@ -126,7 +126,7 @@ function initTables(sqlite: InstanceType<typeof Database>) {
     );
     CREATE TABLE IF NOT EXISTS vehicle_services (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
+      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
       date TEXT NOT NULL, odometer INTEGER,
       vendor_id INTEGER REFERENCES vendors(id),
       cost REAL, description TEXT NOT NULL, service_type TEXT,
@@ -135,7 +135,7 @@ function initTables(sqlite: InstanceType<typeof Database>) {
     );
     CREATE TABLE IF NOT EXISTS fuel_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
+      vehicle_id INTEGER NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
       date TEXT NOT NULL, odometer INTEGER NOT NULL,
       litres REAL NOT NULL, cost_total REAL NOT NULL,
       cost_per_litre REAL, station TEXT,
@@ -592,7 +592,7 @@ async function seedDemo() {
 
     const v1 = insertVehicle.run(
       "Family Car", "Toyota", "RAV4", 2022, "White", "ABC123", "VIC",
-      "JTMW43FV50D123456", "2022-03-15", 42000, 58320,
+      "JTMW43FV50D123456", "2022-03-15", 42000, 56510,
       daysFromNow(45), "RACV", daysFromNow(120),
       "2027-03-15", 100000, "Hybrid AWD. Service every 15,000 km or 12 months."
     );
@@ -600,7 +600,7 @@ async function seedDemo() {
 
     const v2 = insertVehicle.run(
       "City Runabout", "Mazda", "2", 2018, "Soul Red", "XYZ789", "VIC",
-      "JMZDE14L291234567", "2018-11-01", 18500, 87450,
+      "JMZDE14L291234567", "2018-11-01", 18500, 86730,
       daysFromNow(190), "Bingle", daysFromNow(60),
       null, null, "Rego due soon-ish. Good on fuel. Needs new tyres before summer."
     );
@@ -624,11 +624,11 @@ async function seedDemo() {
     // RAV4 services
     insertService.run(v1id, daysAgo(180), 45000, mechanicId, 450, "45,000 km scheduled service", "Scheduled Service", 0, "Oil, filters, brake check. All good.");
     insertService.run(v1id, daysAgo(90), 52000, null, 85, "Wiper blades replaced", "Other", 1, "Bought Bosch Aerotwin from Supercheap Auto");
-    insertService.run(v1id, daysAgo(30), 56800, mechanicId, 680, "New front brake pads + rotor resurface", "Brakes", 0, "Rears still have plenty of life.");
+    insertService.run(v1id, daysAgo(30), 55500, mechanicId, 680, "New front brake pads + rotor resurface", "Brakes", 0, "Rears still have plenty of life.");
 
     // Mazda 2 services
     insertService.run(v2id, daysAgo(120), 82000, mechanicId, 380, "80,000 km service", "Scheduled Service", 0, "Needed new spark plugs too.");
-    insertService.run(v2id, daysAgo(14), 87200, null, 720, "4 x Michelin Energy Saver tyres", "Tyres", 0, "Fitted at Bob Jane. Alignment included.");
+    insertService.run(v2id, daysAgo(14), 86100, null, 720, "4 x Michelin Energy Saver tyres", "Tyres", 0, "Fitted at Bob Jane. Alignment included.");
 
     console.log("✓ 5 vehicle services");
 
@@ -640,14 +640,14 @@ async function seedDemo() {
 
     // RAV4 fuel logs (hybrid, ~5.5 L/100km)
     insertFuel.run(v1id, daysAgo(42), 54500, 38.2, 72.58, 1.899, "Shell Heidelberg", 1);
-    insertFuel.run(v1id, daysAgo(28), 55800, 35.6, 66.97, 1.881, "BP Ivanhoe", 1);
-    insertFuel.run(v1id, daysAgo(14), 57100, 37.1, 70.12, 1.889, "Shell Heidelberg", 1);
-    insertFuel.run(v1id, daysAgo(3), 58320, 34.8, 68.21, 1.960, "Costco Docklands", 1);
+    insertFuel.run(v1id, daysAgo(28), 55190, 37.8, 71.12, 1.881, "BP Ivanhoe", 1);
+    insertFuel.run(v1id, daysAgo(14), 55870, 38.5, 72.74, 1.889, "Shell Heidelberg", 1);
+    insertFuel.run(v1id, daysAgo(3), 56510, 34.9, 68.40, 1.960, "Costco Docklands", 1);
 
-    // Mazda 2 fuel logs (~6.2 L/100km)
-    insertFuel.run(v2id, daysAgo(35), 85200, 32.5, 61.75, 1.900, "7-Eleven Brunswick", 1);
-    insertFuel.run(v2id, daysAgo(21), 86100, 28.4, 54.72, 1.926, "United Preston", 1);
-    insertFuel.run(v2id, daysAgo(7), 87450, 35.1, 68.45, 1.950, "Shell Heidelberg", 1);
+    // Mazda 2 fuel logs (~6.5 L/100km)
+    insertFuel.run(v2id, daysAgo(35), 85700, 32.5, 61.75, 1.900, "7-Eleven Brunswick", 1);
+    insertFuel.run(v2id, daysAgo(21), 86200, 32.5, 62.60, 1.926, "United Preston", 1);
+    insertFuel.run(v2id, daysAgo(7), 86730, 34.4, 67.08, 1.950, "Shell Heidelberg", 1);
 
     console.log("✓ 7 fuel logs");
   } else {

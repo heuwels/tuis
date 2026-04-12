@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { vehicles, vehicleServices, fuelLogs } from "@/lib/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, asc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +44,41 @@ export async function GET(
       .from(vehicleServices)
       .where(eq(vehicleServices.vehicleId, vehicleId));
 
+    // Calculate fuel economy from consecutive full-tank fill-ups
+    const allFuelLogs = await db
+      .select({
+        odometer: fuelLogs.odometer,
+        litres: fuelLogs.litres,
+        isFullTank: fuelLogs.isFullTank,
+      })
+      .from(fuelLogs)
+      .where(eq(fuelLogs.vehicleId, vehicleId))
+      .orderBy(asc(fuelLogs.odometer));
+
+    let totalEconomyLitres = 0;
+    let totalEconomyKm = 0;
+    let lastFullTankOdo: number | null = null;
+
+    for (const log of allFuelLogs) {
+      const isFull = log.isFullTank === 1 || log.isFullTank === true;
+      if (lastFullTankOdo === null) {
+        // First fill-up is baseline only — no economy calculated
+        if (isFull) {
+          lastFullTankOdo = log.odometer;
+        }
+        continue;
+      }
+      if (isFull) {
+        const distance = log.odometer - lastFullTankOdo;
+        if (distance > 0) {
+          totalEconomyLitres += log.litres;
+          totalEconomyKm += distance;
+        }
+        lastFullTankOdo = log.odometer;
+      }
+      // Skip partial fills — they don't give a reliable consumption figure
+    }
+
     const totalFuelCost = fuelSummary?.totalCost ?? 0;
     const totalServiceCost = serviceSummary?.totalCost ?? 0;
     const totalFuelLitres = fuelSummary?.totalLitres ?? 0;
@@ -53,8 +88,8 @@ export async function GET(
 
     const totalCost = totalFuelCost + totalServiceCost;
     const costPerKm = totalKmTracked > 0 ? totalCost / totalKmTracked : null;
-    const avgFuelConsumption = totalKmTracked > 0
-      ? (totalFuelLitres / totalKmTracked) * 100
+    const avgFuelConsumption = totalEconomyKm > 0
+      ? (totalEconomyLitres / totalEconomyKm) * 100
       : null;
 
     return NextResponse.json({

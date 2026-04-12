@@ -127,17 +127,17 @@ export async function DELETE(
     const { id } = await params;
     const vehicleId = parseInt(id);
 
-    // Delete related records first
-    await db
-      .delete(vehicleServices)
-      .where(eq(vehicleServices.vehicleId, vehicleId));
-    await db
-      .delete(fuelLogs)
-      .where(eq(fuelLogs.vehicleId, vehicleId));
-
-    const result = await db
-      .delete(vehicles)
-      .where(eq(vehicles.id, vehicleId));
+    const result = db.transaction((tx) => {
+      tx.delete(fuelLogs)
+        .where(eq(fuelLogs.vehicleId, vehicleId))
+        .run();
+      tx.delete(vehicleServices)
+        .where(eq(vehicleServices.vehicleId, vehicleId))
+        .run();
+      return tx.delete(vehicles)
+        .where(eq(vehicles.id, vehicleId))
+        .run();
+    });
 
     if (result.changes === 0) {
       return NextResponse.json(

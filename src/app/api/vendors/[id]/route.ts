@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { vendors, completions, tasks } from "@/lib/db/schema";
+import { vendors, completions, tasks, vehicleServices } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -102,11 +102,17 @@ export async function DELETE(
     const { id } = await params;
     const vendorId = parseInt(id);
 
-    // First, unlink any completions that reference this vendor
+    // Unlink any completions that reference this vendor
     await db
       .update(completions)
       .set({ vendorId: null })
       .where(eq(completions.vendorId, vendorId));
+
+    // Unlink any vehicle services that reference this vendor
+    await db
+      .update(vehicleServices)
+      .set({ vendorId: null })
+      .where(eq(vehicleServices.vendorId, vendorId));
 
     // Then delete the vendor
     const result = await db
