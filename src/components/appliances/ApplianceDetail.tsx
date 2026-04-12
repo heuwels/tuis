@@ -60,11 +60,11 @@ function getWarrantyStatus(warrantyExpiry: string | null) {
   const threeMonthsFromNow = addMonths(now, 3);
 
   if (isPast(expiryDate)) {
-    return { label: "Expired", color: "bg-gray-100 text-gray-600" };
+    return { label: "Expired", color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" };
   } else if (isFuture(threeMonthsFromNow) && expiryDate <= threeMonthsFromNow) {
-    return { label: "Expiring Soon", color: "bg-amber-100 text-amber-800" };
+    return { label: "Expiring Soon", color: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" };
   } else {
-    return { label: "Active", color: "bg-green-100 text-green-800" };
+    return { label: "Active", color: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300" };
   }
 }
 
@@ -85,7 +85,7 @@ export function ApplianceDetail({
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
+              <div className="p-2 bg-blue-100 dark:bg-blue-950 rounded-lg">
                 <Refrigerator className="h-6 w-6 text-blue-600" />
               </div>
               <div>
@@ -104,7 +104,7 @@ export function ApplianceDetail({
           {/* Badges */}
           <div className="flex flex-wrap gap-2">
             {appliance.location && (
-              <Badge variant="secondary" className="bg-gray-100">
+              <Badge variant="secondary" className="bg-gray-100 dark:bg-gray-800">
                 <MapPin className="h-3 w-3 mr-1" />
                 {appliance.location}
               </Badge>
@@ -173,7 +173,7 @@ export function ApplianceDetail({
           {appliance.notes && (
             <div>
               <p className="text-sm text-muted-foreground mb-1">Notes</p>
-              <p className="text-sm bg-gray-50 rounded-lg p-3">{appliance.notes}</p>
+              <p className="text-sm bg-gray-50 dark:bg-zinc-900 rounded-lg p-3">{appliance.notes}</p>
             </div>
           )}
 
@@ -188,7 +188,7 @@ export function ApplianceDetail({
                 {appliance.tasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm"
+                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-zinc-900 rounded-lg text-sm"
                   >
                     <span className="font-medium">{task.name}</span>
                     <span className="text-muted-foreground">{task.frequency}</span>
@@ -206,7 +206,7 @@ export function ApplianceDetail({
                 {appliance.serviceHistory.map((entry) => (
                   <div
                     key={entry.id}
-                    className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm"
+                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-zinc-900 rounded-lg text-sm"
                   >
                     <div>
                       <p className="font-medium">{entry.taskName}</p>
@@ -215,7 +215,7 @@ export function ApplianceDetail({
                       </p>
                     </div>
                     {entry.cost && (
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300">
                         <DollarSign className="h-3 w-3" />
                         {entry.cost}
                       </Badge>

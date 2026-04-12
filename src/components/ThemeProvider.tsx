@@ -39,7 +39,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    let stored: Theme | null = null;
+    try {
+      stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    } catch (e) {
+      // localStorage may be unavailable (SSR, private browsing, etc.)
+    }
     const initial = stored || "system";
     setThemeState(initial);
     setResolvedTheme(applyTheme(initial));

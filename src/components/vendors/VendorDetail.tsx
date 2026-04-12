@@ -21,6 +21,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { vendorCategoryColors, areaColorFallback } from "@/lib/area-colors";
 
 interface JobHistoryItem {
   id: number;
@@ -42,16 +43,6 @@ interface VendorDetailProps {
   onDelete?: () => void;
 }
 
-const categoryColors: Record<string, string> = {
-  Plumber: "bg-blue-100 text-blue-800",
-  Electrician: "bg-yellow-100 text-yellow-800",
-  HVAC: "bg-cyan-100 text-cyan-800",
-  "Appliance Repair": "bg-orange-100 text-orange-800",
-  Landscaping: "bg-green-100 text-green-800",
-  Cleaning: "bg-purple-100 text-purple-800",
-  General: "bg-gray-100 text-gray-800",
-  Other: "bg-stone-100 text-stone-800",
-};
 
 function StarRating({ rating }: { rating: number | null }) {
   if (!rating) return null;
@@ -64,7 +55,7 @@ function StarRating({ rating }: { rating: number | null }) {
           className={`h-5 w-5 ${
             star <= rating
               ? "fill-yellow-400 text-yellow-400"
-              : "text-gray-300"
+              : "text-gray-300 dark:text-gray-600"
           }`}
         />
       ))}
@@ -83,7 +74,7 @@ export function VendorDetail({
   if (!vendor) return null;
 
   const categoryColor =
-    categoryColors[vendor.category || ""] || "bg-gray-100 text-gray-800";
+    vendorCategoryColors[vendor.category || ""] || areaColorFallback;
 
   // Calculate total spent
   const totalSpent = vendor.jobHistory?.reduce((sum, job) => {
@@ -100,7 +91,7 @@ export function VendorDetail({
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-100 rounded-lg">
+              <div className="p-2 bg-emerald-100 dark:bg-emerald-950 rounded-lg">
                 <Wrench className="h-6 w-6 text-emerald-600" />
               </div>
               <div>
@@ -157,7 +148,7 @@ export function VendorDetail({
           {vendor.notes && (
             <div>
               <p className="text-sm text-muted-foreground mb-1">Notes</p>
-              <p className="text-sm bg-gray-50 rounded-lg p-3">{vendor.notes}</p>
+              <p className="text-sm bg-gray-50 dark:bg-zinc-900 rounded-lg p-3">{vendor.notes}</p>
             </div>
           )}
 
@@ -167,7 +158,7 @@ export function VendorDetail({
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-medium">Job History</h4>
                 {totalSpent !== undefined && totalSpent > 0 && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300">
                     <DollarSign className="h-3 w-3" />
                     Total: ${totalSpent.toFixed(2)}
                   </Badge>
@@ -177,7 +168,7 @@ export function VendorDetail({
                 {vendor.jobHistory.map((job) => (
                   <div
                     key={job.id}
-                    className="flex items-center justify-between p-2 bg-gray-50 rounded-lg text-sm"
+                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-zinc-900 rounded-lg text-sm"
                   >
                     <div>
                       <p className="font-medium">{job.taskName}</p>
@@ -186,7 +177,7 @@ export function VendorDetail({
                       </p>
                     </div>
                     {job.cost && (
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300">
                         <DollarSign className="h-3 w-3" />
                         {job.cost}
                       </Badge>

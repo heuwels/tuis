@@ -49,7 +49,7 @@ export function UserPicker() {
               <button
                 key={user.id}
                 onClick={() => selectUser(user.id)}
-                className="flex flex-col items-center gap-2 p-4 rounded-xl border hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                className="flex flex-col items-center gap-2 p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-zinc-800 active:bg-gray-100 dark:active:bg-zinc-700 transition-colors"
               >
                 <div
                   className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-semibold"
@@ -57,7 +57,7 @@ export function UserPicker() {
                 >
                   {user.name.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {user.name}
                 </span>
               </button>
