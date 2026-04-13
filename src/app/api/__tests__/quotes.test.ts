@@ -609,14 +609,18 @@ describe("Recent Completions API", () => {
         startOfWeek(new Date(), { weekStartsOn: 1 }),
         "yyyy-MM-dd"
       );
-      const today = format(new Date(), "yyyy-MM-dd");
+      // Ensure a later date even if today is Monday (when weekStart === today)
+      const laterDate = format(
+        new Date(startOfWeek(new Date(), { weekStartsOn: 1 }).getTime() + 86400000),
+        "yyyy-MM-dd"
+      );
 
       const task1 = insertTask("Task A", "Kitchen", "Daily");
       const task2 = insertTask("Task B", "Bathroom", "Daily");
 
       // Insert in ascending order
       insertCompletion(Number(task1.lastInsertRowid), weekStart);
-      insertCompletion(Number(task2.lastInsertRowid), today);
+      insertCompletion(Number(task2.lastInsertRowid), laterDate);
 
       const res = await recentRoute.GET();
       const data = await res.json();

@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const category = searchParams.get("category");
     const query = searchParams.get("q");
 
-    let conditions = [];
+    const conditions = [];
 
     if (status) {
       conditions.push(eq(activities.status, status));

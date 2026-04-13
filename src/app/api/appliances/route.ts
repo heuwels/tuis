@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search");
     const location = searchParams.get("location");
 
-    let query = db.select().from(appliances);
+    const query = db.select().from(appliances);
 
     const conditions = [];
 

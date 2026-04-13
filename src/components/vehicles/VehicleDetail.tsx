@@ -428,12 +428,13 @@ export function VehicleDetail({
     }
   }, [vehicle, activeTab]);
 
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
       setActiveTab("overview");
       setCostSummary(null);
     }
-  }, [open]);
+    onOpenChange(isOpen);
+  };
 
   if (!vehicle) return null;
 
@@ -449,7 +450,7 @@ export function VehicleDetail({
   ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-start justify-between">
