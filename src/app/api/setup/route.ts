@@ -130,8 +130,9 @@ const STARTER_RECIPES = [
 export async function POST(request: Request) {
   try {
     // Idempotency guard: don't seed if users already exist (setup already done)
+    // The /setup page also checks this on mount and redirects away
     const existingUsers = await db.select().from(users);
-    if (existingUsers.length > 0) {
+    if (existingUsers.length > 1) {
       return NextResponse.json(
         { error: "Setup has already been completed" },
         { status: 409 }

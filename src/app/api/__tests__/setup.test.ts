@@ -247,8 +247,10 @@ describe("Setup API", () => {
       expect(countRows("recipes")).toBe(3);
     });
 
-    it("returns 409 if users already exist (idempotency guard)", async () => {
-      insertUser("Existing User");
+    it("returns 409 if multiple users already exist (idempotency guard)", async () => {
+      // Simulate a household that already completed setup
+      insertUser("Alice");
+      insertUser("Bob");
 
       const req = makeRequest(
         "/api/setup",
@@ -264,6 +266,19 @@ describe("Setup API", () => {
       expect(countRows("tasks")).toBe(0);
       expect(countRows("shopping_lists")).toBe(0);
       expect(countRows("recipes")).toBe(0);
+    });
+
+    it("allows seeding when only one user exists (mid-setup)", async () => {
+      // During setup flow: one user just created, now seeding
+      insertUser("Alice");
+
+      const req = makeRequest(
+        "/api/setup",
+        jsonBody({ seedChores: true, seedShopping: false, seedRecipes: false })
+      );
+      const res = await setupRoute.POST(req);
+      expect(res.status).toBe(200);
+      expect(countRows("tasks")).toBe(21);
     });
 
     it("creates chores with correct areas and frequencies", async () => {

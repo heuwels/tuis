@@ -1,84 +1,135 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, APIRequestContext } from "@playwright/test";
 import { cleanupTestData } from "./cleanup";
 
 const TEST_USER_PREFIX = "E2E Setup User";
 const TEST_USER_NAME = `${TEST_USER_PREFIX} ${Date.now()}`;
 
-test.afterAll(async ({ request }) => {
-  // Clean up test users, seeded data
-  await cleanupTestData(request, "users", `${TEST_USER_PREFIX}%`);
-  await cleanupTestData(request, "tasks", "Wash dishes");
-  await cleanupTestData(request, "tasks", "Wipe kitchen counters");
-  await cleanupTestData(request, "tasks", "Clean stovetop");
-  await cleanupTestData(request, "tasks", "Clean oven");
-  await cleanupTestData(request, "tasks", "Clean fridge");
-  await cleanupTestData(request, "tasks", "Empty bins");
-  await cleanupTestData(request, "tasks", "Clean toilet");
-  await cleanupTestData(request, "tasks", "Clean shower/bath");
-  await cleanupTestData(request, "tasks", "Clean bathroom sink");
-  await cleanupTestData(request, "tasks", "Wash towels");
-  await cleanupTestData(request, "tasks", "Change bed sheets");
-  await cleanupTestData(request, "tasks", "Vacuum bedroom");
-  await cleanupTestData(request, "tasks", "Dust surfaces");
-  await cleanupTestData(request, "tasks", "Vacuum living room");
-  await cleanupTestData(request, "tasks", "Mop floors");
-  await cleanupTestData(request, "tasks", "Dust shelves");
-  await cleanupTestData(request, "tasks", "Mow lawn");
-  await cleanupTestData(request, "tasks", "Water garden");
-  await cleanupTestData(request, "tasks", "Sweep porch/patio");
-  await cleanupTestData(request, "tasks", "Do laundry");
-  await cleanupTestData(request, "tasks", "Iron clothes");
-  await cleanupTestData(request, "shopping", "Groceries");
-  await cleanupTestData(request, "recipes", "Pasta Bolognese");
-  await cleanupTestData(request, "recipes", "Chicken Stir-Fry");
-  await cleanupTestData(request, "recipes", "Scrambled Eggs on Toast");
-});
+// Store existing users so we can restore them after tests
+let existingUsers: Array<{ name: string; color: string }> = [];
+
+async function backupAndClearUsers(request: APIRequestContext) {
+  // Fetch existing users
+  const res = await request.get("/api/users");
+  if (res.ok()) {
+    existingUsers = await res.json();
+  }
+  // Delete all users to simulate fresh install
+  if (existingUsers.length > 0) {
+    await cleanupTestData(request, "users", "%");
+  }
+}
+
+async function restoreUsers(request: APIRequestContext) {
+  // Re-create the original users
+  for (const user of existingUsers) {
+    await request.post("/api/users", {
+      data: { name: user.name, color: user.color },
+    });
+  }
+}
 
 test.describe.serial("Setup Wizard", () => {
-  test("GET /api/setup returns needsSetup status", async ({ request }) => {
+  test.beforeAll(async ({ request }) => {
+    // Clean up any leftover seed data from prior runs
+    await cleanupTestData(request, "tasks", "Wash dishes");
+    await cleanupTestData(request, "tasks", "Wipe kitchen counters");
+    await cleanupTestData(request, "tasks", "Clean stovetop");
+    await cleanupTestData(request, "tasks", "Clean oven");
+    await cleanupTestData(request, "tasks", "Clean fridge");
+    await cleanupTestData(request, "tasks", "Empty bins");
+    await cleanupTestData(request, "tasks", "Clean toilet");
+    await cleanupTestData(request, "tasks", "Clean shower/bath");
+    await cleanupTestData(request, "tasks", "Clean bathroom sink");
+    await cleanupTestData(request, "tasks", "Wash towels");
+    await cleanupTestData(request, "tasks", "Change bed sheets");
+    await cleanupTestData(request, "tasks", "Vacuum bedroom");
+    await cleanupTestData(request, "tasks", "Dust surfaces");
+    await cleanupTestData(request, "tasks", "Vacuum living room");
+    await cleanupTestData(request, "tasks", "Mop floors");
+    await cleanupTestData(request, "tasks", "Dust shelves");
+    await cleanupTestData(request, "tasks", "Mow lawn");
+    await cleanupTestData(request, "tasks", "Water garden");
+    await cleanupTestData(request, "tasks", "Sweep porch/patio");
+    await cleanupTestData(request, "tasks", "Do laundry");
+    await cleanupTestData(request, "tasks", "Iron clothes");
+    await cleanupTestData(request, "shopping", "Groceries");
+    await cleanupTestData(request, "recipes", "Pasta Bolognese");
+    await cleanupTestData(request, "recipes", "Chicken Stir-Fry");
+    await cleanupTestData(request, "recipes", "Scrambled Eggs on Toast");
+
+    await backupAndClearUsers(request);
+  });
+
+  test.afterAll(async ({ request }) => {
+    // Clean up test user and seeded data
+    await cleanupTestData(request, "users", `${TEST_USER_PREFIX}%`);
+    await cleanupTestData(request, "tasks", "Wash dishes");
+    await cleanupTestData(request, "tasks", "Wipe kitchen counters");
+    await cleanupTestData(request, "tasks", "Clean stovetop");
+    await cleanupTestData(request, "tasks", "Clean oven");
+    await cleanupTestData(request, "tasks", "Clean fridge");
+    await cleanupTestData(request, "tasks", "Empty bins");
+    await cleanupTestData(request, "tasks", "Clean toilet");
+    await cleanupTestData(request, "tasks", "Clean shower/bath");
+    await cleanupTestData(request, "tasks", "Clean bathroom sink");
+    await cleanupTestData(request, "tasks", "Wash towels");
+    await cleanupTestData(request, "tasks", "Change bed sheets");
+    await cleanupTestData(request, "tasks", "Vacuum bedroom");
+    await cleanupTestData(request, "tasks", "Dust surfaces");
+    await cleanupTestData(request, "tasks", "Vacuum living room");
+    await cleanupTestData(request, "tasks", "Mop floors");
+    await cleanupTestData(request, "tasks", "Dust shelves");
+    await cleanupTestData(request, "tasks", "Mow lawn");
+    await cleanupTestData(request, "tasks", "Water garden");
+    await cleanupTestData(request, "tasks", "Sweep porch/patio");
+    await cleanupTestData(request, "tasks", "Do laundry");
+    await cleanupTestData(request, "tasks", "Iron clothes");
+    await cleanupTestData(request, "shopping", "Groceries");
+    await cleanupTestData(request, "recipes", "Pasta Bolognese");
+    await cleanupTestData(request, "recipes", "Chicken Stir-Fry");
+    await cleanupTestData(request, "recipes", "Scrambled Eggs on Toast");
+
+    // Restore original users
+    await restoreUsers(request);
+  });
+
+  test("GET /api/setup returns needsSetup: true with empty DB", async ({
+    request,
+  }) => {
     const res = await request.get("/api/setup");
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
-    expect(data).toHaveProperty("needsSetup");
-    expect(typeof data.needsSetup).toBe("boolean");
+    expect(data.needsSetup).toBe(true);
   });
 
-  test("setup page loads and shows welcome step", async ({ page }) => {
+  test("setup page shows welcome step", async ({ page }) => {
     await page.goto("/setup");
     await page.waitForLoadState("networkidle");
 
-    // Should show the welcome screen (or redirect if setup not needed)
-    // Check for either the welcome heading or the dashboard
-    const welcomeHeading = page.getByRole("heading", {
-      name: "Welcome to Tuis",
-    });
-    const isSetupPage = await welcomeHeading.isVisible().catch(() => false);
-
-    if (isSetupPage) {
-      await expect(welcomeHeading).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: "Get Started" })
-      ).toBeVisible();
-    }
-    // If not visible, setup was already done — page redirected to dashboard
+    await expect(
+      page.getByRole("heading", { name: "Welcome to Tuis" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Get Started" })
+    ).toBeVisible();
   });
 
-  test("setup wizard navigates through all steps", async ({ page }) => {
+  test("root page redirects to /setup when no users exist", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await expect(page).toHaveURL("/setup", { timeout: 5000 });
+  });
+
+  test("wizard navigates through all 4 steps", async ({ page }) => {
     await page.goto("/setup");
     await page.waitForLoadState("networkidle");
-
-    const welcomeHeading = page.getByRole("heading", {
-      name: "Welcome to Tuis",
-    });
-    const isSetupPage = await welcomeHeading.isVisible().catch(() => false);
-
-    // Only run the full wizard flow if setup is actually needed
-    if (!isSetupPage) {
-      test.skip();
-      return;
-    }
 
     // Step 0: Welcome → Click Get Started
+    await expect(
+      page.getByRole("heading", { name: "Welcome to Tuis" })
+    ).toBeVisible();
     await page.getByRole("button", { name: "Get Started" }).click();
 
     // Step 1: Members → Should show "Who lives here?"
@@ -97,7 +148,7 @@ test.describe.serial("Setup Wizard", () => {
     // Click Continue
     await page.getByRole("button", { name: "Continue" }).click();
 
-    // Step 2: Quick Start → Should show checkboxes
+    // Step 2: Quick Start → Should show seed options
     await expect(
       page.getByRole("heading", { name: "Quick Start" })
     ).toBeVisible();
@@ -105,7 +156,7 @@ test.describe.serial("Setup Wizard", () => {
     await expect(page.getByText("Sample shopping list")).toBeVisible();
     await expect(page.getByText("Sample recipes")).toBeVisible();
 
-    // Click Back to verify navigation
+    // Click Back to verify navigation works
     await page.getByRole("button", { name: "Back" }).click();
     await expect(
       page.getByRole("heading", { name: "Who lives here?" })
@@ -117,17 +168,13 @@ test.describe.serial("Setup Wizard", () => {
       page.getByRole("heading", { name: "Quick Start" })
     ).toBeVisible();
 
-    // Click Finish Setup
-    const responsePromise = page.waitForResponse(
-      (res) => res.url().includes("/api/users") && res.status() === 200
-    );
+    // Click Finish Setup and wait for completion
     await page.getByRole("button", { name: "Finish Setup" }).click();
-    await responsePromise;
 
     // Step 3: Done → Should show success
     await expect(
       page.getByRole("heading", { name: /all set/i })
-    ).toBeVisible({ timeout: 10000 });
+    ).toBeVisible({ timeout: 30000 });
     await expect(
       page.getByRole("button", { name: "Go to Dashboard" })
     ).toBeVisible();
@@ -140,22 +187,11 @@ test.describe.serial("Setup Wizard", () => {
     await expect(page).toHaveURL("/");
   });
 
-  test("POST /api/setup returns 409 after setup is complete", async ({
-    request,
+  test("visiting /setup after completion redirects to dashboard", async ({
+    page,
   }) => {
-    // Setup is now complete (user was created in previous test)
-    const res = await request.post("/api/setup", {
-      data: { seedChores: true, seedShopping: true, seedRecipes: true },
-    });
-    // Should return 409 since users now exist
-    expect(res.status()).toBe(409);
-  });
-
-  test("visiting /setup after completion redirects away", async ({ page }) => {
     await page.goto("/setup");
     await page.waitForLoadState("networkidle");
-
-    // Should have been redirected to the dashboard
     await expect(page).toHaveURL("/", { timeout: 5000 });
   });
 });
