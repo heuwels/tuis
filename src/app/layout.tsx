@@ -46,7 +46,7 @@ const themeScript = `
   try {
     var t = localStorage.getItem('tuis-theme');
     var d = (t === 'dark') || (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    if (d) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); else document.documentElement.classList.remove('dark');
+    if (d) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark');
   } catch(e) {}
 })();
 `;
