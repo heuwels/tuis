@@ -12,6 +12,7 @@ import {
   recipes,
   recipeIngredients,
   mealPlan,
+  users,
 } from "@/lib/db/schema";
 import { like, eq, inArray, sql } from "drizzle-orm";
 
@@ -26,6 +27,7 @@ const VALID_TYPES = [
   "quotes",
   "recipes",
   "meals",
+  "users",
 ] as const;
 
 type CleanupType = (typeof VALID_TYPES)[number];
@@ -181,6 +183,35 @@ export async function POST(request: NextRequest) {
           .delete(mealPlan)
           .where(like(mealPlan.customMeal, namePattern));
         deleted = result.changes ?? 0;
+        break;
+      }
+
+      case "users": {
+        // Find matching users
+        const matchingUsers = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(like(users.name, namePattern));
+        if (matchingUsers.length > 0) {
+          const userIds = matchingUsers.map((u) => u.id);
+          // Nullify FK references in other tables
+          for (const uid of userIds) {
+            await db.run(
+              sql`UPDATE completions SET completed_by = NULL WHERE completed_by = ${uid}`
+            );
+            await db.run(
+              sql`UPDATE tasks SET assigned_to = NULL WHERE assigned_to = ${uid}`
+            );
+            await db.run(
+              sql`UPDATE shopping_items SET added_by = NULL WHERE added_by = ${uid}`
+            );
+          }
+          // Delete users
+          await db
+            .delete(users)
+            .where(inArray(users.id, userIds));
+          deleted = matchingUsers.length;
+        }
         break;
       }
     }
