@@ -14,9 +14,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # TODO: fix 6 pre-existing lint errors then remove continue-on-error
       - run: npm run lint
-        continue-on-error: true
 
   unit-tests:
     runs-on: ubuntu-latest

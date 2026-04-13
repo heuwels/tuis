@@ -33,22 +33,21 @@ function applyTheme(theme: Theme) {
   return resolved;
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+function getStoredTheme(): Theme {
+  if (typeof window === "undefined") return "system";
+  try {
+    return (localStorage.getItem(STORAGE_KEY) as Theme) || "system";
+  } catch {
+    return "system";
+  }
+}
 
-  // Initialize from localStorage on mount
-  useEffect(() => {
-    let stored: Theme | null = null;
-    try {
-      stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    } catch (e) {
-      // localStorage may be unavailable (SSR, private browsing, etc.)
-    }
-    const initial = stored || "system";
-    setThemeState(initial);
-    setResolvedTheme(applyTheme(initial));
-  }, []);
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(getStoredTheme);
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() => {
+    if (typeof window === "undefined") return "light";
+    return applyTheme(getStoredTheme());
+  });
 
   // Listen for system theme changes
   useEffect(() => {

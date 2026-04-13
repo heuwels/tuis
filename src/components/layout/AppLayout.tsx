@@ -85,7 +85,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const NavContent = () => (
+  const navContent = (
     <nav className="flex-1 overflow-y-auto py-4">
       {navigation.map((group) => (
         <div key={group.title} className="mb-4">
@@ -167,7 +167,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
             <X className="h-5 w-5" />
           </Button>
         </div>
-        <NavContent />
+        {navContent}
         <div className="p-3 border-t border-sidebar-border">
           <ThemeToggle />
         </div>
@@ -197,7 +197,7 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
             )}
           </Button>
         </div>
-        <NavContent />
+        {navContent}
         <div className={cn("p-3 border-t border-sidebar-border", isCollapsed ? "px-1" : "")}>
           <ThemeToggle collapsed={isCollapsed} />
         </div>
