@@ -8,6 +8,7 @@ export async function GET() {
   try {
     const response = await fetch(`${ACTUAL_API_URL}/api/budget/summary`, {
       next: { revalidate: 300 }, // Cache for 5 minutes
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!response.ok) {
