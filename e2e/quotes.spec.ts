@@ -89,7 +89,7 @@ test.describe("Quote Management", () => {
       await page.waitForLoadState("networkidle");
 
       // Quote should appear in the list
-      await expect(page.getByText(TEST_QUOTE_DESC)).toBeVisible({
+      await expect(page.getByText(TEST_QUOTE_DESC).first()).toBeVisible({
         timeout: 10000,
       });
     });
