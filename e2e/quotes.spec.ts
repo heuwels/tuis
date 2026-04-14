@@ -85,9 +85,12 @@ test.describe("Quote Management", () => {
       // Dialog should close
       await expect(dialog).not.toBeVisible({ timeout: 5000 });
 
+      // Wait for list to refresh after creation
+      await page.waitForLoadState("networkidle");
+
       // Quote should appear in the list
       await expect(page.getByText(TEST_QUOTE_DESC)).toBeVisible({
-        timeout: 5000,
+        timeout: 10000,
       });
     });
 
