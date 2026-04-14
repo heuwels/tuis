@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { fuelLogs } from "@/lib/db/schema";
 import { eq, asc } from "drizzle-orm";
-import { format, parseISO, subMonths } from "date-fns";
+import { format, subMonths } from "date-fns";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +72,6 @@ export async function GET(
 
     // Calculate per-fill economy (consecutive full-tank fills)
     let lastFullTankOdo: number | null = null;
-    let lastFullTankMonth: string | null = null;
 
     for (const log of logs) {
       const isFull = log.isFullTank === 1;
@@ -81,7 +80,6 @@ export async function GET(
       if (lastFullTankOdo === null) {
         if (isFull) {
           lastFullTankOdo = log.odometer;
-          lastFullTankMonth = month;
         }
         continue;
       }
@@ -96,7 +94,6 @@ export async function GET(
           }
         }
         lastFullTankOdo = log.odometer;
-        lastFullTankMonth = month;
       }
     }
 

@@ -99,7 +99,7 @@ function BarChart({
     <div>
       <p className="text-sm font-medium mb-2">{label}</p>
       <div className="flex items-end gap-1 h-28">
-        {data.map((d, i) => {
+        {data.map((d) => {
           const val = getValue(d);
           const height = val ? (val / maxVal) * 100 : 0;
           return (
@@ -282,12 +282,17 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsLoading(true);
+    let cancelled = false;
     fetch(`/api/vehicles/${vehicleId}/fuel-analytics`)
       .then((r) => r.json())
-      .then(setAnalytics)
+      .then((data) => {
+        if (!cancelled) setAnalytics(data);
+      })
       .catch(console.error)
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => { cancelled = true; };
   }, [vehicleId]);
 
   if (isLoading) {
