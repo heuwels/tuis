@@ -40,11 +40,13 @@ import {
   Plus,
   Info,
   TrendingUp,
+  BarChart3,
 } from "lucide-react";
 import { format, parseISO, isPast, isBefore, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { FuelAnalytics } from "./FuelAnalytics";
 
-type TabId = "overview" | "services" | "fuel" | "costs";
+type TabId = "overview" | "services" | "fuel" | "costs" | "analytics";
 
 interface VehicleDetailProps {
   vehicle: VehicleWithDetails | null;
@@ -447,6 +449,7 @@ export function VehicleDetail({
     { id: "services", label: "Services", icon: Wrench },
     { id: "fuel", label: "Fuel", icon: Fuel },
     { id: "costs", label: "Costs", icon: DollarSign },
+    { id: "analytics", label: "Analytics", icon: BarChart3 },
   ];
 
   return (
@@ -787,6 +790,11 @@ export function VehicleDetail({
                 </p>
               )}
             </div>
+          )}
+
+          {/* Analytics Tab */}
+          {activeTab === "analytics" && (
+            <FuelAnalytics vehicleId={vehicle.id} />
           )}
 
           {/* Actions */}

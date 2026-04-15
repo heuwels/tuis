@@ -87,6 +87,9 @@ export const itemHistory = sqliteTable("item_history", {
   lastUsed: text("last_used").default("CURRENT_TIMESTAMP"),
 });
 
+export const MEAL_SLOTS = ["side", "main", "dessert"] as const;
+export type MealSlot = (typeof MEAL_SLOTS)[number];
+
 export const recipes = sqliteTable("recipes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -95,6 +98,7 @@ export const recipes = sqliteTable("recipes", {
   prepTime: integer("prep_time"),
   cookTime: integer("cook_time"),
   servings: integer("servings"),
+  category: text("category").default("main"),
   imageUrl: text("image_url"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
@@ -115,7 +119,8 @@ export const recipeIngredients = sqliteTable("recipe_ingredients", {
 
 export const mealPlan = sqliteTable("meal_plan", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  date: text("date").notNull().unique(),
+  date: text("date").notNull(),
+  slot: text("slot").notNull().default("main"),
   recipeId: integer("recipe_id").references(() => recipes.id),
   servingsMultiplier: real("servings_multiplier").default(1),
   customMeal: text("custom_meal"),

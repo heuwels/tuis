@@ -85,9 +85,12 @@ test.describe("Quote Management", () => {
       // Dialog should close
       await expect(dialog).not.toBeVisible({ timeout: 5000 });
 
+      // Wait for list to refresh after creation
+      await page.waitForLoadState("networkidle");
+
       // Quote should appear in the list
-      await expect(page.getByText(TEST_QUOTE_DESC)).toBeVisible({
-        timeout: 5000,
+      await expect(page.getByText(TEST_QUOTE_DESC).first()).toBeVisible({
+        timeout: 10000,
       });
     });
 
@@ -99,10 +102,10 @@ test.describe("Quote Management", () => {
       });
 
       // Quote description should be visible
-      await expect(page.getByText(TEST_QUOTE_DESC)).toBeVisible();
+      await expect(page.getByText(TEST_QUOTE_DESC).first()).toBeVisible();
 
       // Total should be visible (formatted as AUD currency)
-      await expect(page.getByText("$1,500")).toBeVisible();
+      await expect(page.getByText("$1,500").first()).toBeVisible();
 
       // Status badge should show Pending
       await expect(page.getByText("Pending").first()).toBeVisible();

@@ -203,9 +203,10 @@ export function createMcpServer(baseUrl: string) {
 
   server.tool(
     "set_meal",
-    "Set or update the meal for a specific date.",
+    "Set or update the meal for a specific date and slot.",
     {
       date: z.string().describe("Date (ISO format, e.g. 2026-04-07)"),
+      slot: z.enum(["side", "main", "dessert"]).default("main").describe("Meal slot"),
       recipeId: z.number().optional().describe("Recipe ID (use this OR customMeal)"),
       customMeal: z.string().optional().describe("Custom meal name (use this OR recipeId)"),
       notes: z.string().optional(),
@@ -216,9 +217,13 @@ export function createMcpServer(baseUrl: string) {
 
   server.tool(
     "delete_meal",
-    "Remove the meal plan entry for a specific date.",
-    { date: z.string().describe("Date (ISO format)") },
-    async ({ date }) => text(await api(`/api/meals/${date}`, { method: "DELETE" }))
+    "Remove a meal plan entry. Specify slot to delete one slot, or omit to clear the whole day.",
+    {
+      date: z.string().describe("Date (ISO format)"),
+      slot: z.enum(["side", "main", "dessert"]).optional().describe("Meal slot to delete (omit to clear all)"),
+    },
+    async ({ date, slot }) =>
+      text(await api(`/api/meals/${date}${slot ? `?slot=${slot}` : ""}`, { method: "DELETE" }))
   );
 
   server.tool(

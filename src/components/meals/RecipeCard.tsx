@@ -11,6 +11,7 @@ export interface Recipe {
   prepTime: number | null;
   cookTime: number | null;
   servings: number | null;
+  category: string | null;
   imageUrl: string | null;
   createdAt: string | null;
   updatedAt: string | null;

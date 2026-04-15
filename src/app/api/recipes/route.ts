@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, description, instructions, prepTime, cookTime, servings, imageUrl, ingredients } = body;
+    const { name, description, instructions, prepTime, cookTime, servings, imageUrl, category, ingredients } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -55,6 +55,7 @@ export async function POST(request: Request) {
       prepTime: prepTime || null,
       cookTime: cookTime || null,
       servings: servings || null,
+      category: category || "main",
       imageUrl: imageUrl || null,
     });
 
