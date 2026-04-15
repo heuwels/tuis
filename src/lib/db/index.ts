@@ -127,11 +127,13 @@ function initDb(): BetterSQLite3Database<typeof schema> {
 
     CREATE TABLE IF NOT EXISTS meal_plan (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT NOT NULL UNIQUE,
+      date TEXT NOT NULL,
+      slot TEXT NOT NULL DEFAULT 'main',
       recipe_id INTEGER REFERENCES recipes(id),
       custom_meal TEXT,
       notes TEXT,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(date, slot)
     );
 
     CREATE TABLE IF NOT EXISTS activities (
@@ -283,6 +285,14 @@ function initDb(): BetterSQLite3Database<typeof schema> {
     sqlite.exec(`ALTER TABLE meal_plan ADD COLUMN servings_multiplier REAL DEFAULT 1`);
   } catch { /* column already exists */ }
 
+  // Recipe category (side/main/dessert)
+  try {
+    sqlite.exec(`ALTER TABLE recipes ADD COLUMN category TEXT DEFAULT 'main'`);
+  } catch { /* column already exists */ }
+
+  // Meal plan slot column + unique constraint migration
+  migrateMealPlanSlots(sqlite);
+
   // Recipe ingredient structured fields
   try {
     sqlite.exec(`ALTER TABLE recipe_ingredients ADD COLUMN amount REAL`);
@@ -310,6 +320,33 @@ export const db = new Proxy({} as BetterSQLite3Database<typeof schema>, {
     return (realDb as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
+
+function migrateMealPlanSlots(sqlite: Database.Database) {
+  // Check if the slot column already exists
+  const columns = sqlite
+    .prepare(`PRAGMA table_info(meal_plan)`)
+    .all() as { name: string }[];
+  if (columns.some((c) => c.name === "slot")) return;
+
+  // Table-swap migration: add slot column, change unique from (date) to (date, slot)
+  sqlite.exec(`
+    CREATE TABLE meal_plan_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      slot TEXT NOT NULL DEFAULT 'main',
+      recipe_id INTEGER REFERENCES recipes(id),
+      servings_multiplier REAL DEFAULT 1,
+      custom_meal TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(date, slot)
+    );
+    INSERT INTO meal_plan_new (id, date, slot, recipe_id, servings_multiplier, custom_meal, notes, created_at)
+      SELECT id, date, 'main', recipe_id, servings_multiplier, custom_meal, notes, created_at FROM meal_plan;
+    DROP TABLE meal_plan;
+    ALTER TABLE meal_plan_new RENAME TO meal_plan;
+  `);
+}
 
 function migrateLegacyQuantities(sqlite: Database.Database) {
   // Only migrate rows that have quantity but no amount

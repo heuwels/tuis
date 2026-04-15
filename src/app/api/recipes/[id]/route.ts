@@ -48,7 +48,7 @@ export async function PUT(
     const { id } = await params;
     const recipeId = parseInt(id);
     const body = await request.json();
-    const { name, description, instructions, prepTime, cookTime, servings, imageUrl, ingredients } = body;
+    const { name, description, instructions, prepTime, cookTime, servings, imageUrl, category, ingredients } = body;
 
     // Update recipe
     const result = await db
@@ -60,6 +60,7 @@ export async function PUT(
         prepTime: prepTime || null,
         cookTime: cookTime || null,
         servings: servings || null,
+        category: category || "main",
         imageUrl: imageUrl || null,
         updatedAt: new Date().toISOString(),
       })

@@ -63,6 +63,7 @@ export function RecipeForm({
   const [prepTime, setPrepTime] = useState("");
   const [cookTime, setCookTime] = useState("");
   const [servings, setServings] = useState("");
+  const [category, setCategory] = useState("main");
   const [imageUrl, setImageUrl] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { name: "", amount: "", unit: "", section: "" },
@@ -77,6 +78,7 @@ export function RecipeForm({
       setPrepTime(recipe.prepTime?.toString() || "");
       setCookTime(recipe.cookTime?.toString() || "");
       setServings(recipe.servings?.toString() || "");
+      setCategory(recipe.category || "main");
       setImageUrl(recipe.imageUrl || "");
       setIngredients(
         recipe.ingredients?.map((i) => {
@@ -118,6 +120,7 @@ export function RecipeForm({
       setPrepTime("");
       setCookTime("");
       setServings("");
+      setCategory("main");
       setImageUrl("");
       setIngredients([{ name: "", amount: "", unit: "", section: "" }]);
     }
@@ -178,6 +181,7 @@ export function RecipeForm({
         prepTime: prepTime ? parseInt(prepTime) : null,
         cookTime: cookTime ? parseInt(cookTime) : null,
         servings: servings ? parseInt(servings) : null,
+        category,
         imageUrl: imageUrl.trim() || null,
         ingredients: ingredients
           .filter((i) => i.name.trim())
@@ -344,7 +348,7 @@ export function RecipeForm({
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="prepTime">Prep Time (min)</Label>
               <Input
@@ -374,6 +378,19 @@ export function RecipeForm({
                 onChange={(e) => setServings(e.target.value)}
                 placeholder="4"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="main">Main</SelectItem>
+                  <SelectItem value="side">Side</SelectItem>
+                  <SelectItem value="dessert">Dessert</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
