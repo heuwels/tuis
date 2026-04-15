@@ -105,7 +105,7 @@ test.describe("Quote Management", () => {
       await expect(page.getByText(TEST_QUOTE_DESC).first()).toBeVisible();
 
       // Total should be visible (formatted as AUD currency)
-      await expect(page.getByText("$1,500")).toBeVisible();
+      await expect(page.getByText("$1,500").first()).toBeVisible();
 
       // Status badge should show Pending
       await expect(page.getByText("Pending").first()).toBeVisible();
