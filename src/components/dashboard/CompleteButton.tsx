@@ -4,10 +4,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,20 +89,20 @@ export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonP
         </DropdownMenu>
       </div>
 
-      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <PopoverTrigger asChild>
-          <span className="hidden" />
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
+      <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+        <DialogContent className="w-auto p-0 sm:max-w-fit">
+          <DialogHeader className="px-4 pt-4 pb-0">
+            <DialogTitle className="text-sm font-medium">Complete on date</DialogTitle>
+          </DialogHeader>
           <Calendar
             mode="single"
             selected={new Date()}
             onSelect={(date) => date && completeTask(date)}
             disabled={(date) => date > new Date()}
-            initialFocus
+            autoFocus
           />
-        </PopoverContent>
-      </Popover>
+        </DialogContent>
+      </Dialog>
 
       <CompletionDetailsDialog
         taskId={taskId}
