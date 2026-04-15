@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UtensilsCrossed, Clock, ChefHat } from "lucide-react";
-import { format } from "date-fns";
+import { UtensilsCrossed, Clock } from "lucide-react";
 import Link from "next/link";
 
 interface MealEntry {
@@ -31,7 +30,8 @@ export function TodaysMealCard() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const today = format(new Date(), "yyyy-MM-dd");
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     fetch(`/api/meals?start=${today}&end=${today}`)
       .then((r) => r.ok ? r.json() : [])
       .then((data: MealEntry[]) => {
