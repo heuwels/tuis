@@ -220,8 +220,9 @@ test.describe.serial("Recipe Multiplier", () => {
       await page.waitForLoadState("networkidle");
     }
 
-    // Click an "Add Meal" button
-    const addMealBtn = page.getByRole("button", { name: "Add Meal" }).first();
+    // Click an "Add" button in a Main slot
+    const mainAddBtns = page.locator("div").filter({ hasText: /^Main$/ }).locator(".. >> button:has-text('Add')");
+    const addMealBtn = mainAddBtns.first();
     await expect(addMealBtn).toBeVisible({ timeout: 5000 });
     await addMealBtn.click();
 

@@ -5,28 +5,22 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ShoppingCart, BookOpen } from "lucide-react";
-import { MealDay } from "@/components/meals/MealDay";
+import { MealDay, MealEntry } from "@/components/meals/MealDay";
 import { RecipePicker } from "@/components/meals/RecipePicker";
 import { RecipeDetail } from "@/components/meals/RecipeDetail";
 import { MissingIngredients } from "@/components/meals/MissingIngredients";
 import { Recipe } from "@/components/meals/RecipeCard";
 import { AppLayout } from "@/components/layout/AppLayout";
-
-interface MealEntry {
-  id: number;
-  date: string;
-  recipeId: number | null;
-  servingsMultiplier: number | null;
-  customMeal: string | null;
-  notes: string | null;
-  recipeName: string | null;
-  recipePrepTime: number | null;
-  recipeCookTime: number | null;
-  recipeImageUrl: string | null;
-}
+import { MealSlot, MEAL_SLOTS } from "@/lib/db/schema";
 
 interface RecipeWithIngredients extends Recipe {
   ingredients?: { id: number; recipeId: number; name: string; quantity: string | null; amount: number | null; unit: string | null; section: string | null; sortOrder: number }[];
+}
+
+type DayMeals = Record<MealSlot, MealEntry | null>;
+
+function emptyDayMeals(): DayMeals {
+  return { side: null, main: null, dessert: null };
 }
 
 function getWeekDates(startDate: Date): Date[] {
@@ -52,10 +46,11 @@ function getStartOfWeek(date: Date): Date {
 function MealsContent() {
   const searchParams = useSearchParams();
   const [weekStart, setWeekStart] = useState(() => getStartOfWeek(new Date()));
-  const [meals, setMeals] = useState<Map<string, MealEntry>>(new Map());
+  const [meals, setMeals] = useState<Map<string, DayMeals>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<MealSlot>("main");
   const [isIngredientsOpen, setIsIngredientsOpen] = useState(false);
   const [viewingRecipe, setViewingRecipe] = useState<RecipeWithIngredients | null>(null);
   const [isRecipeDetailOpen, setIsRecipeDetailOpen] = useState(false);
@@ -74,9 +69,14 @@ function MealsContent() {
       );
       if (response.ok) {
         const data: MealEntry[] = await response.json();
-        const mealMap = new Map<string, MealEntry>();
+        const mealMap = new Map<string, DayMeals>();
         data.forEach((meal) => {
-          mealMap.set(meal.date, meal);
+          if (!mealMap.has(meal.date)) {
+            mealMap.set(meal.date, emptyDayMeals());
+          }
+          const day = mealMap.get(meal.date)!;
+          const slot = (MEAL_SLOTS.includes(meal.slot as MealSlot) ? meal.slot : "main") as MealSlot;
+          day[slot] = meal;
         });
         setMeals(mealMap);
       }
@@ -97,6 +97,7 @@ function MealsContent() {
     const addRecipeId = searchParams.get("addRecipe");
     if (addRecipeId) {
       setSelectedDate(today);
+      setSelectedSlot("main");
       setIsPickerOpen(true);
       window.history.replaceState({}, "", "/meals");
     }
@@ -118,8 +119,9 @@ function MealsContent() {
     setWeekStart(getStartOfWeek(new Date()));
   };
 
-  const handleAddMeal = (date: Date) => {
+  const handleAddMeal = (date: Date, slot: MealSlot) => {
     setSelectedDate(date);
+    setSelectedSlot(slot);
     setIsPickerOpen(true);
   };
 
@@ -131,7 +133,7 @@ function MealsContent() {
       await fetch(`/api/meals/${dateKey}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeId, servingsMultiplier }),
+        body: JSON.stringify({ recipeId, servingsMultiplier, slot: selectedSlot }),
       });
       setIsPickerOpen(false);
       fetchMeals();
@@ -148,7 +150,7 @@ function MealsContent() {
       await fetch(`/api/meals/${dateKey}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customMeal: meal, notes }),
+        body: JSON.stringify({ customMeal: meal, notes, slot: selectedSlot }),
       });
       setIsPickerOpen(false);
       fetchMeals();
@@ -157,10 +159,10 @@ function MealsContent() {
     }
   };
 
-  const handleClearMeal = async (date: Date) => {
+  const handleClearMeal = async (date: Date, slot: MealSlot) => {
     const dateKey = formatDateKey(date);
     try {
-      await fetch(`/api/meals/${dateKey}`, {
+      await fetch(`/api/meals/${dateKey}?slot=${slot}`, {
         method: "DELETE",
       });
       fetchMeals();
@@ -238,22 +240,18 @@ function MealsContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
           {weekDates.map((date) => {
             const dateKey = formatDateKey(date);
-            const meal = meals.get(dateKey) || null;
+            const dayMeals = meals.get(dateKey) || emptyDayMeals();
             const isToday = formatDateKey(date) === formatDateKey(today);
 
             return (
               <MealDay
                 key={dateKey}
                 date={date}
-                meal={meal}
+                meals={dayMeals}
                 isToday={isToday}
-                onAddMeal={() => handleAddMeal(date)}
-                onClearMeal={() => handleClearMeal(date)}
-                onViewRecipe={
-                  meal?.recipeId
-                    ? () => handleViewRecipe(meal.recipeId!)
-                    : undefined
-                }
+                onAddMeal={(slot) => handleAddMeal(date, slot)}
+                onClearMeal={(slot) => handleClearMeal(date, slot)}
+                onViewRecipe={handleViewRecipe}
               />
             );
           })}
@@ -266,6 +264,7 @@ function MealsContent() {
         onSelectRecipe={handleSelectRecipe}
         onSelectCustom={handleSelectCustom}
         selectedDate={selectedDate}
+        selectedSlot={selectedSlot}
       />
 
       <RecipeDetail

@@ -65,6 +65,7 @@ function createTables() {
       prep_time INTEGER,
       cook_time INTEGER,
       servings INTEGER,
+      category TEXT DEFAULT 'main',
       image_url TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP

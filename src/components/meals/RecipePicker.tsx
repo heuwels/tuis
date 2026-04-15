@@ -22,6 +22,7 @@ interface RecipePickerProps {
   onSelectRecipe: (recipeId: number, servingsMultiplier: number) => void;
   onSelectCustom: (meal: string, notes?: string) => void;
   selectedDate: Date | null;
+  selectedSlot?: string;
 }
 
 export function RecipePicker({
@@ -30,6 +31,7 @@ export function RecipePicker({
   onSelectRecipe,
   onSelectCustom,
   selectedDate,
+  selectedSlot,
 }: RecipePickerProps) {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -113,7 +115,7 @@ export function RecipePicker({
         <DialogHeader>
           <DialogTitle>
             {selectedDate
-              ? `Add Meal for ${formatDate(selectedDate)}`
+              ? `Add ${selectedSlot ? selectedSlot.charAt(0).toUpperCase() + selectedSlot.slice(1) : "Meal"} for ${formatDate(selectedDate)}`
               : "Add Meal"}
           </DialogTitle>
         </DialogHeader>

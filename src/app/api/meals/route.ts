@@ -22,6 +22,7 @@ export async function GET(request: Request) {
       .select({
         id: mealPlan.id,
         date: mealPlan.date,
+        slot: mealPlan.slot,
         recipeId: mealPlan.recipeId,
         servingsMultiplier: mealPlan.servingsMultiplier,
         customMeal: mealPlan.customMeal,
