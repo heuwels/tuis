@@ -102,7 +102,7 @@ test.describe("Quote Management", () => {
       });
 
       // Quote description should be visible
-      await expect(page.getByText(TEST_QUOTE_DESC)).toBeVisible();
+      await expect(page.getByText(TEST_QUOTE_DESC).first()).toBeVisible();
 
       // Total should be visible (formatted as AUD currency)
       await expect(page.getByText("$1,500")).toBeVisible();
