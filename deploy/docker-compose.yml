@@ -1,6 +1,6 @@
 services:
   tuis:
-    image: ghcr.io/3stacks/tuis:${TUIS_VERSION:-latest}
+    image: ghcr.io/heuwels/tuis:${TUIS_VERSION:-latest}
     container_name: tuis
     restart: unless-stopped
     ports:
