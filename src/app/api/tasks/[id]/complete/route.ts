@@ -64,7 +64,8 @@ export async function POST(
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    const nextDue = calculateNextDue(task[0].frequency, completedDate);
+    // Always calculate next due from today, even if backdating the completion
+    const nextDue = calculateNextDue(task[0].frequency, new Date());
 
     // Record the completion
     await db.insert(completions).values({
