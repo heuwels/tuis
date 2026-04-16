@@ -18,7 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, GripVertical, SeparatorHorizontal } from "lucide-react";
+import { Plus, Trash2, GripVertical, SeparatorHorizontal, Upload, X, Link as LinkIcon } from "lucide-react";
+import { resolveFileUrl } from "@/lib/file-url";
 import { Recipe } from "./RecipeCard";
 import {
   UNITS,
@@ -65,6 +66,8 @@ export function RecipeForm({
   const [servings, setServings] = useState("");
   const [category, setCategory] = useState("main");
   const [imageUrl, setImageUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [useUrlMode, setUseUrlMode] = useState(false);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { name: "", amount: "", unit: "", section: "" },
   ]);
@@ -80,6 +83,7 @@ export function RecipeForm({
       setServings(recipe.servings?.toString() || "");
       setCategory(recipe.category || "main");
       setImageUrl(recipe.imageUrl || "");
+      setUseUrlMode(recipe.imageUrl?.startsWith("http") || false);
       setIngredients(
         recipe.ingredients?.map((i) => {
           // If structured data exists, use it
@@ -122,6 +126,7 @@ export function RecipeForm({
       setServings("");
       setCategory("main");
       setImageUrl("");
+      setUseUrlMode(false);
       setIngredients([{ name: "", amount: "", unit: "", section: "" }]);
     }
   }, [recipe, open]);
@@ -395,13 +400,89 @@ export function RecipeForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input
-              id="imageUrl"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://..."
-            />
+            <div className="flex items-center justify-between">
+              <Label>Photo</Label>
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                onClick={() => {
+                  setUseUrlMode(!useUrlMode);
+                  if (!useUrlMode) setImageUrl("");
+                }}
+              >
+                {useUrlMode ? (
+                  <><Upload className="h-3 w-3" /> Upload instead</>
+                ) : (
+                  <><LinkIcon className="h-3 w-3" /> Use URL instead</>
+                )}
+              </button>
+            </div>
+            {useUrlMode ? (
+              <Input
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            ) : (
+              <div>
+                {imageUrl && !imageUrl.startsWith("http") ? (
+                  <div className="relative rounded-lg overflow-hidden border bg-gray-50 dark:bg-zinc-900">
+                    <img
+                      src={resolveFileUrl(imageUrl) || ""}
+                      alt="Recipe"
+                      className="w-full h-32 object-cover"
+                    />
+                    <button
+                      type="button"
+                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
+                      onClick={() => setImageUrl("")}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-zinc-500 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={isUploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setIsUploading(true);
+                        try {
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          formData.append("category", "recipes");
+                          const res = await fetch("/api/uploads", {
+                            method: "POST",
+                            body: formData,
+                          });
+                          if (res.ok) {
+                            const { key } = await res.json();
+                            setImageUrl(key);
+                          }
+                        } catch (err) {
+                          console.error("Upload failed:", err);
+                        } finally {
+                          setIsUploading(false);
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                    {isUploading ? (
+                      <span className="text-sm text-muted-foreground">Uploading...</span>
+                    ) : (
+                      <>
+                        <Upload className="h-5 w-5 text-muted-foreground mb-1" />
+                        <span className="text-sm text-muted-foreground">Click to upload photo</span>
+                      </>
+                    )}
+                  </label>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
