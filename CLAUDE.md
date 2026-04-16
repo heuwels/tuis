@@ -1,5 +1,7 @@
 # Tuis - Household Management App
 
+**IMPORTANT: Before making any changes, read `CONTRIBUTING.md` for test requirements. All unit tests, lint, and e2e tests must pass locally before raising a PR.**
+
 ## Overview
 Tuis (Afrikaans for "at home") is a self-hosted household management web app built with Next.js. It handles chores, meal planning, shopping lists, recipes, appliance tracking, vendor management, quotes, and couple activities.
 

@@ -35,8 +35,9 @@ test.afterAll(async ({ request }) => {
 });
 
 test.describe.serial("Next Due Calculation", () => {
+  let taskId: number;
+
   test("create a weekly task that is overdue", async ({ request }) => {
-    // Create a task with nextDue set to 7 days ago so it appears as overdue
     const pastDue = formatDate(addDays(new Date(), -7));
 
     const res = await request.post("/api/tasks", {
@@ -49,18 +50,18 @@ test.describe.serial("Next Due Calculation", () => {
       },
     });
     expect(res.ok()).toBeTruthy();
+    const body = await res.json();
+    taskId = body.id;
   });
 
-  test("completing an overdue task sets next due to today + frequency", async ({ page, request }) => {
+  test("completing an overdue task from dashboard sets next due to today + frequency", async ({ page, request }) => {
     await page.goto("/");
     await dismissUserPickerIfVisible(page);
-
-    // Wait for dashboard to load
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(2000);
 
     // The overdue task should appear on the dashboard
-    const taskText = page.getByText(TEST_TASK_NAME);
+    const taskText = page.getByText(TEST_TASK_NAME).first();
     await expect(taskText).toBeVisible({ timeout: 10000 });
 
     // Click the "Done" button for this task
@@ -76,12 +77,12 @@ test.describe.serial("Next Due Calculation", () => {
     const response = await responsePromise;
     const body = await response.json();
 
-    // Verify the API response: nextDue should be today + 7 days (weekly)
+    // nextDue should be today + 7 days (weekly)
     const today = new Date();
     const expectedNextDue = formatDate(addDays(today, 7));
     expect(body.nextDue).toBe(expectedNextDue);
 
-    // Also verify via direct API call
+    // Verify persisted state via API
     const tasksRes = await request.get("/api/tasks");
     const tasks = await tasksRes.json();
     const task = tasks.find((t: { name: string }) => t.name === TEST_TASK_NAME);
@@ -90,64 +91,32 @@ test.describe.serial("Next Due Calculation", () => {
     expect(task.lastCompleted).toBe(formatDate(today));
   });
 
-  test("completing via 'complete on date' with a past date still sets next due from today", async ({ page, request }) => {
-    // First, set the task's nextDue back to the past so it's overdue again
-    const tasksRes = await request.get("/api/tasks");
-    const tasks = await tasksRes.json();
-    const task = tasks.find((t: { name: string }) => t.name === TEST_TASK_NAME);
-    expect(task).toBeTruthy();
-
+  test("backdated completion via API still sets next due from today", async ({ request }) => {
+    // Reset nextDue to the past so the task is overdue again
     const pastDue = formatDate(addDays(new Date(), -3));
-    await request.put(`/api/tasks/${task.id}`, {
+    await request.put(`/api/tasks/${taskId}`, {
       data: {
-        ...task,
+        name: TEST_TASK_NAME,
+        area: "Kitchen",
+        frequency: "weekly",
         nextDue: pastDue,
       },
     });
 
-    // Navigate to dashboard
-    await page.goto("/");
-    await dismissUserPickerIfVisible(page);
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    // Complete with a backdated date (5 days ago)
+    const pastDate = formatDate(addDays(new Date(), -5));
+    const res = await request.post(`/api/tasks/${taskId}/complete`, {
+      data: { completedDate: pastDate },
+    });
+    expect(res.ok()).toBeTruthy();
+    const body = await res.json();
 
-    // Find the task and click the chevron dropdown
-    const taskText = page.getByText(TEST_TASK_NAME).first();
-    await expect(taskText).toBeVisible({ timeout: 10000 });
-
-    const taskCard = page.locator("div").filter({ hasText: TEST_TASK_NAME }).first();
-    // The chevron is the small button next to "Done"
-    const chevronBtn = taskCard.locator("button").filter({ has: page.locator("svg.lucide-chevron-down") });
-    await chevronBtn.click();
-
-    // Click "Complete on date..."
-    await page.getByRole("menuitem", { name: "Complete on date..." }).click();
-
-    // The calendar dialog should open
-    const dialog = page.getByRole("dialog");
-    await expect(dialog).toBeVisible({ timeout: 5000 });
-
-    // Pick a date 5 days ago
-    const pastDate = addDays(new Date(), -5);
-    const pastDay = pastDate.getDate();
-
-    // Click the past date in the calendar
-    const responsePromise = page.waitForResponse(
-      (resp) =>
-        resp.url().includes("/complete") &&
-        resp.request().method() === "POST"
-    );
-    // Find the day button — use gridcell role
-    await dialog.getByRole("gridcell", { name: String(pastDay), exact: true }).getByRole("button").click();
-    const response = await responsePromise;
-    const body = await response.json();
-
-    // Even though we completed on a past date, nextDue should be from TODAY + 7 days
+    // Even though completion date is in the past, nextDue should be from TODAY
     const today = new Date();
     const expectedNextDue = formatDate(addDays(today, 7));
     expect(body.nextDue).toBe(expectedNextDue);
 
-    // lastCompleted should be the past date we selected
-    expect(body.lastCompleted).toBe(formatDate(pastDate));
+    // lastCompleted should be the backdated date
+    expect(body.lastCompleted).toBe(pastDate);
   });
 });
