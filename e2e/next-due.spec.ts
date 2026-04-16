@@ -112,7 +112,7 @@ test.describe.serial("Next Due Calculation", () => {
     await page.waitForTimeout(2000);
 
     // Find the task and click the chevron dropdown
-    const taskText = page.getByText(TEST_TASK_NAME);
+    const taskText = page.getByText(TEST_TASK_NAME).first();
     await expect(taskText).toBeVisible({ timeout: 10000 });
 
     const taskCard = page.locator("div").filter({ hasText: TEST_TASK_NAME }).first();
