@@ -90,8 +90,9 @@ afterEach(() => {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function makeRequest(url: string, init?: RequestInit): Request {
-  return new Request(`http://localhost${url}`, init);
+// Route handlers expect NextRequest but Request works at runtime
+function makeRequest(url: string, init?: RequestInit) {
+  return new Request(`http://localhost${url}`, init) as unknown as import("next/server").NextRequest;
 }
 
 function jsonBody(data: Record<string, unknown>): RequestInit {
