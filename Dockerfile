@@ -47,8 +47,8 @@ COPY --from=builder /app/mcp-server/dist ./mcp-server/dist
 COPY --from=builder /app/mcp-server/node_modules ./mcp-server/node_modules
 COPY --from=builder /app/mcp-server/package.json ./mcp-server/package.json
 
-# Create data directory for SQLite and set permissions
-RUN mkdir -p /app/data && chown -R nextjs:nodejs /app
+# Create data directory for SQLite and uploads, set permissions
+RUN mkdir -p /app/data/uploads && chown -R nextjs:nodejs /app
 
 USER nextjs
 

@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Users } from "lucide-react";
+import { resolveFileUrl } from "@/lib/file-url";
 
 export interface Recipe {
   id: number;
@@ -34,7 +35,7 @@ export function RecipeCard({ recipe, onClick }: RecipeCardProps) {
       {recipe.imageUrl && (
         <div className="aspect-video relative bg-gray-100 dark:bg-gray-800">
           <img
-            src={recipe.imageUrl}
+            src={resolveFileUrl(recipe.imageUrl) || ""}
             alt={recipe.name}
             className="object-cover w-full h-full"
           />

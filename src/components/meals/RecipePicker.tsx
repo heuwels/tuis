@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, ChefHat, Clock, Users, ArrowLeft } from "lucide-react";
 import { Recipe } from "./RecipeCard";
+import { resolveFileUrl } from "@/lib/file-url";
 
 const SCALE_OPTIONS = [0.5, 1, 1.5, 2];
 
@@ -151,7 +152,7 @@ export function RecipePicker({
               {selectedRecipeForConfirm.imageUrl ? (
                 <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                   <img
-                    src={selectedRecipeForConfirm.imageUrl}
+                    src={resolveFileUrl(selectedRecipeForConfirm.imageUrl) || ""}
                     alt={selectedRecipeForConfirm.name}
                     className="object-cover w-full h-full"
                   />
@@ -239,7 +240,7 @@ export function RecipePicker({
                         {recipe.imageUrl ? (
                           <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
                             <img
-                              src={recipe.imageUrl}
+                              src={resolveFileUrl(recipe.imageUrl) || ""}
                               alt={recipe.name}
                               className="object-cover w-full h-full"
                             />

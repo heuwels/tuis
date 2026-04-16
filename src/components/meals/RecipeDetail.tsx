@@ -19,6 +19,7 @@ import {
   Check,
 } from "lucide-react";
 import { Recipe } from "./RecipeCard";
+import { resolveFileUrl } from "@/lib/file-url";
 import {
   IngredientUnit,
   scaleAmount,
@@ -240,7 +241,7 @@ export function RecipeDetail({
         {recipe.imageUrl && (
           <div className="aspect-video relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden -mx-6">
             <img
-              src={recipe.imageUrl}
+              src={resolveFileUrl(recipe.imageUrl) || ""}
               alt={recipe.name}
               className="object-cover w-full h-full"
             />
