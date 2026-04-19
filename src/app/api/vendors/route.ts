@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { vendors } from "@/lib/db/schema";
 import { eq, like, or, desc, and } from "drizzle-orm";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const category = searchParams.get("category");
@@ -52,6 +56,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const body = await request.json();
     const { name, category, phone, email, website, notes, rating } = body;
 

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { fuelLogs } from "@/lib/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { format, subMonths } from "date-fns";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const vehicleId = parseInt(id);
 

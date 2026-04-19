@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { shoppingLists, shoppingItems } from "@/lib/db/schema";
 import { desc, eq, sql } from "drizzle-orm";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     // Get all lists with item counts
     const lists = await db
       .select({
@@ -36,6 +40,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const body = await request.json();
     const { name, color } = body;
 

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { tasks, completions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { syncTask, deleteTaskCalendarEvents } from "@/lib/calendar";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const task = await db.select().from(tasks).where(eq(tasks.id, parseInt(id))).limit(1);
 
@@ -30,6 +34,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -67,6 +74,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const taskId = parseInt(id);
 

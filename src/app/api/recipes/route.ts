@@ -3,11 +3,15 @@ import { db } from "@/lib/db";
 import { recipes, recipeIngredients } from "@/lib/db/schema";
 import { desc, like } from "drizzle-orm";
 import { formatIngredient, IngredientUnit } from "@/lib/ingredients";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q");
 
@@ -37,6 +41,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const body = await request.json();
     const { name, description, instructions, prepTime, cookTime, servings, imageUrl, category, ingredients } = body;
 

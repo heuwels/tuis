@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { shoppingItems, itemHistory } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export async function POST(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const body = await request.json();
     const { listId, name, quantity, addedBy } = body;
 

@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
 const ACTUAL_API_URL = process.env.ACTUAL_API_URL || "http://localhost:3100";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const response = await fetch(`${ACTUAL_API_URL}/api/budget/summary`, {
       next: { revalidate: 300 }, // Cache for 5 minutes
       signal: AbortSignal.timeout(5000),

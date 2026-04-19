@@ -4,12 +4,16 @@ import { tasks } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { addDays, addWeeks, format, parseISO } from "date-fns";
 import { syncTask } from "@/lib/calendar";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const body = await request.json();
     const { duration } = body; // "1day", "3days", "1week", "2weeks"

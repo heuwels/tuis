@@ -1,0 +1,23 @@
+{
+  "name": "tuis-cli",
+  "version": "1.0.0",
+  "description": "CLI for the Tuis household management app",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "tuis": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}

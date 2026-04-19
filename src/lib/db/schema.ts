@@ -283,5 +283,17 @@ export type Vehicle = typeof vehicles.$inferSelect;
 export type NewVehicle = typeof vehicles.$inferInsert;
 export type VehicleService = typeof vehicleServices.$inferSelect;
 export type NewVehicleService = typeof vehicleServices.$inferInsert;
+export const personalAccessTokens = sqliteTable("personal_access_tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  scopes: text("scopes").notNull(), // JSON string array
+  lastUsedAt: text("last_used_at"),
+  expiresAt: text("expires_at"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
 export type FuelLog = typeof fuelLogs.$inferSelect;
 export type NewFuelLog = typeof fuelLogs.$inferInsert;
+export type PersonalAccessToken = typeof personalAccessTokens.$inferSelect;
+export type NewPersonalAccessToken = typeof personalAccessTokens.$inferInsert;
