@@ -3,11 +3,15 @@ import { db } from "@/lib/db";
 import { mealPlan, recipeIngredients, shoppingItems } from "@/lib/db/schema";
 import { eq, and, gte, lte, inArray } from "drizzle-orm";
 import { aggregateIngredients, IngredientUnit } from "@/lib/ingredients";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
     const start = searchParams.get("start");
     const end = searchParams.get("end");

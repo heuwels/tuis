@@ -558,7 +558,7 @@ describe("Recent Completions API", () => {
 
   describe("GET /api/stats/recent-completions", () => {
     it("returns empty array when no completions exist", async () => {
-      const res = await recentRoute.GET();
+      const res = await recentRoute.GET(makeRequest("/api/stats/recent-completions"));
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual([]);
     });
@@ -577,7 +577,7 @@ describe("Recent Completions API", () => {
 
       insertCompletion(taskId, today, { completed_by: userId });
 
-      const res = await recentRoute.GET();
+      const res = await recentRoute.GET(makeRequest("/api/stats/recent-completions"));
       const data = await res.json();
 
       expect(data).toHaveLength(1);
@@ -599,7 +599,7 @@ describe("Recent Completions API", () => {
       // Insert completion well before this week
       insertCompletion(taskId, "2020-01-01");
 
-      const res = await recentRoute.GET();
+      const res = await recentRoute.GET(makeRequest("/api/stats/recent-completions"));
       const data = await res.json();
 
       expect(data).toEqual([]);
@@ -623,7 +623,7 @@ describe("Recent Completions API", () => {
       insertCompletion(Number(task1.lastInsertRowid), weekStart);
       insertCompletion(Number(task2.lastInsertRowid), laterDate);
 
-      const res = await recentRoute.GET();
+      const res = await recentRoute.GET(makeRequest("/api/stats/recent-completions"));
       const data = await res.json();
 
       expect(data).toHaveLength(2);
@@ -639,7 +639,7 @@ describe("Recent Completions API", () => {
 
       insertCompletion(taskId, today);
 
-      const res = await recentRoute.GET();
+      const res = await recentRoute.GET(makeRequest("/api/stats/recent-completions"));
       const data = await res.json();
 
       expect(data).toHaveLength(1);
@@ -656,7 +656,7 @@ describe("Recent Completions API", () => {
         insertCompletion(taskId, today);
       }
 
-      const res = await recentRoute.GET();
+      const res = await recentRoute.GET(makeRequest("/api/stats/recent-completions"));
       const data = await res.json();
 
       expect(data).toHaveLength(30);

@@ -3,11 +3,15 @@ import { db } from "@/lib/db";
 import { tasks } from "@/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { syncTask } from "@/lib/calendar";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const allTasks = await db.select().from(tasks).orderBy(desc(tasks.nextDue));
     return NextResponse.json(allTasks);
   } catch (error) {
@@ -18,6 +22,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const body = await request.json();
     const { name, area, frequency, assignedDay, season, notes, nextDue, applianceId } = body;
 

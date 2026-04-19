@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/cli/node_modules
+/mcp-server/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -22,6 +24,8 @@
 
 # production
 /build
+/cli/dist
+/mcp-server/dist
 
 # misc
 .DS_Store

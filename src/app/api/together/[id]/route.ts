@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { activities } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const activityId = parseInt(id);
 
@@ -38,6 +42,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const activityId = parseInt(id);
     const body = await request.json();
@@ -100,6 +107,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const activityId = parseInt(id);
 

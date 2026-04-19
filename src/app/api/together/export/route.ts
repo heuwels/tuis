@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { activities } from "@/lib/db/schema";
 import { desc } from "drizzle-orm";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,9 @@ const PRIORITY_LABELS: Record<string, string> = {
 
 export async function GET(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { searchParams } = new URL(request.url);
     const format = searchParams.get("format") || "json";
 

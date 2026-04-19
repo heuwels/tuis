@@ -10,6 +10,7 @@ import {
   parseISO,
 } from "date-fns";
 import { syncTask } from "@/lib/calendar";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 function calculateNextDue(frequency: string, completedDate: Date): string | null {
   const freq = frequency.toLowerCase();
@@ -45,6 +46,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const { id } = await params;
     const body = await request.json();
     const completedDateStr = body.completedDate || format(new Date(), "yyyy-MM-dd");

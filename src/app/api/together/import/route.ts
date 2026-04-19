@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { activities } from "@/lib/db/schema";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 const VALID_CATEGORIES = ["location", "activity", "restaurant", "dish", "film"];
 const VALID_STATUSES = ["wishlist", "planned", "completed"];
@@ -87,6 +88,9 @@ function validateActivity(item: ImportActivity, index: number): string[] {
 
 export async function POST(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const body = await request.json();
 
     // Validate structure

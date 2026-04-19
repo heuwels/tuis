@@ -3,11 +3,15 @@ import { db } from "@/lib/db";
 import { completions, tasks, users } from "@/lib/db/schema";
 import { eq, gte, desc } from "drizzle-orm";
 import { subDays, format, startOfWeek } from "date-fns";
+import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
     const weekStart = format(
       startOfWeek(new Date(), { weekStartsOn: 1 }),
       "yyyy-MM-dd"

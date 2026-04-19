@@ -14,6 +14,7 @@ import {
 import { User } from "@/types";
 import { Plus, Pencil, Trash2, Users } from "lucide-react";
 import { GoogleCalendarCard } from "@/components/settings/GoogleCalendarCard";
+import { PersonalAccessTokensCard } from "@/components/settings/PersonalAccessTokensCard";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 const COLORS = [
@@ -112,6 +113,7 @@ export default function SettingsPage() {
     <AppLayout title="Settings">
       <div className="space-y-6 max-w-2xl">
         <GoogleCalendarCard />
+        <PersonalAccessTokensCard />
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
