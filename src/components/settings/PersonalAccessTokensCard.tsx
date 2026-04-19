@@ -147,7 +147,9 @@ export function PersonalAccessTokensCard() {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "Never";
-    return new Date(dateStr).toLocaleDateString();
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "Just now";
+    return d.toLocaleDateString();
   };
 
   const parsedScopes = (scopesJson: string): string[] => {
