@@ -40,5 +40,5 @@ export const ROUTE_SCOPE_MAP: Record<string, { read: string; write: string }> =
     },
     "/api/together": { read: "activities:read", write: "activities:write" },
     "/api/users": { read: "users:read", write: "users:write" },
-    "/api/stats": { read: "stats:read", write: "stats:read" },
+    "/api/stats": { read: "stats:read", write: "stats:read" },  // read-only resource
   };

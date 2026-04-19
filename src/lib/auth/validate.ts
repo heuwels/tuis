@@ -13,6 +13,13 @@ export { hashToken };
 
 /**
  * Validate a request against PAT auth.
+ *
+ * Security model: Tuis is a self-hosted household app with no user auth.
+ * PATs are a **restriction mechanism** for programmatic/CLI clients, not an
+ * access-control boundary. Requests without an Authorization header get full
+ * access (same as the web UI). Only requests that present a Bearer token are
+ * validated against scopes and expiry.
+ *
  * - No Authorization header → allow (web UI, backward compat)
  * - Bearer token present → validate hash, expiry, scope
  * Returns null if allowed, or a NextResponse error.
@@ -52,16 +59,27 @@ export async function validateRequest(
 
   const pat = results[0];
 
-  // Check expiry
-  if (pat.expiresAt && new Date(pat.expiresAt) < new Date()) {
-    return NextResponse.json({ error: "Token expired" }, { status: 401 });
+  // Check expiry — reject if expiresAt is set and is a valid past date
+  if (pat.expiresAt) {
+    const expiry = new Date(pat.expiresAt);
+    if (isNaN(expiry.getTime()) || expiry < new Date()) {
+      return NextResponse.json({ error: "Token expired" }, { status: 401 });
+    }
   }
 
   // Check scope
-  const scopes: string[] = JSON.parse(pat.scopes);
+  let scopes: string[];
+  try {
+    scopes = JSON.parse(pat.scopes);
+  } catch {
+    return NextResponse.json(
+      { error: "Token has invalid scope data" },
+      { status: 401 }
+    );
+  }
   if (!scopes.includes(requiredScope)) {
     return NextResponse.json(
-      { error: `Missing scope: ${requiredScope}` },
+      { error: "Insufficient scope" },
       { status: 403 }
     );
   }

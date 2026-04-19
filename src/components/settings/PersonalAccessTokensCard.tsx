@@ -13,26 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { KeyRound, Plus, Trash2, Copy, Check } from "lucide-react";
-
-const SCOPE_GROUPS = {
-  tasks: { label: "Tasks", scopes: ["tasks:read", "tasks:write"] },
-  shopping: { label: "Shopping", scopes: ["shopping:read", "shopping:write"] },
-  meals: { label: "Meals", scopes: ["meals:read", "meals:write"] },
-  recipes: { label: "Recipes", scopes: ["recipes:read", "recipes:write"] },
-  vehicles: { label: "Vehicles", scopes: ["vehicles:read", "vehicles:write"] },
-  vendors: { label: "Vendors", scopes: ["vendors:read", "vendors:write"] },
-  quotes: { label: "Quotes", scopes: ["quotes:read", "quotes:write"] },
-  appliances: {
-    label: "Appliances",
-    scopes: ["appliances:read", "appliances:write"],
-  },
-  activities: {
-    label: "Activities",
-    scopes: ["activities:read", "activities:write"],
-  },
-  users: { label: "Users", scopes: ["users:read", "users:write"] },
-  stats: { label: "Stats", scopes: ["stats:read"] },
-} as const;
+import { SCOPE_GROUPS } from "@/lib/auth/scopes";
 
 interface TokenInfo {
   id: number;
@@ -52,6 +33,7 @@ export function PersonalAccessTokensCard() {
   const [selectedScopes, setSelectedScopes] = useState<Set<string>>(new Set());
   const [newToken, setNewToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchTokens = async () => {
     try {
@@ -102,6 +84,7 @@ export function PersonalAccessTokensCard() {
     e.preventDefault();
     if (selectedScopes.size === 0) return;
     setIsSaving(true);
+    setError(null);
 
     try {
       const response = await fetch("/api/tokens", {
@@ -117,9 +100,12 @@ export function PersonalAccessTokensCard() {
         const data = await response.json();
         setNewToken(data.token);
         fetchTokens();
+      } else {
+        const data = await response.json().catch(() => null);
+        setError(data?.error || "Failed to create token");
       }
-    } catch (error) {
-      console.error("Error creating token:", error);
+    } catch {
+      setError("Network error — could not reach the server");
     } finally {
       setIsSaving(false);
     }
@@ -127,14 +113,19 @@ export function PersonalAccessTokensCard() {
 
   const handleDelete = async (token: TokenInfo) => {
     if (!confirm(`Revoke token "${token.name}"? This cannot be undone.`)) return;
+    setError(null);
 
     try {
       const response = await fetch(`/api/tokens/${token.id}`, {
         method: "DELETE",
       });
-      if (response.ok) fetchTokens();
-    } catch (error) {
-      console.error("Error deleting token:", error);
+      if (response.ok) {
+        fetchTokens();
+      } else {
+        setError("Failed to revoke token");
+      }
+    } catch {
+      setError("Network error — could not reach the server");
     }
   };
 
@@ -151,6 +142,7 @@ export function PersonalAccessTokensCard() {
     setSelectedScopes(new Set());
     setNewToken(null);
     setCopied(false);
+    setError(null);
   };
 
   const formatDate = (dateStr: string | null) => {
@@ -182,6 +174,11 @@ export function PersonalAccessTokensCard() {
         </Button>
       </CardHeader>
       <CardContent>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
         {isLoading ? (
           <p className="text-muted-foreground text-center py-8">Loading...</p>
         ) : tokens.length === 0 ? (

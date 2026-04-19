@@ -7,14 +7,22 @@ export async function api(
   const config = requireConfig();
   const url = `${config.url.replace(/\/$/, "")}${path}`;
 
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.token}`,
-      ...options?.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.token}`,
+        ...options?.headers,
+      },
+    });
+  } catch (err) {
+    const msg =
+      err instanceof Error ? err.message : "Unknown network error";
+    console.error(`Cannot connect to ${config.url}: ${msg}`);
+    process.exit(1);
+  }
 
   if (!res.ok) {
     const body = await res.text();
@@ -29,7 +37,13 @@ export async function api(
     process.exit(1);
   }
 
-  return res.json();
+  const text = await res.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text };
+  }
 }
 
 export function printJson(data: unknown): void {

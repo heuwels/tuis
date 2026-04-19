@@ -20,7 +20,7 @@ export function loadConfig(): Config | null {
 }
 
 export function saveConfig(config: Config): void {
-  mkdirSync(CONFIG_DIR, { recursive: true });
+  mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
   writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2) + "\n", {
     mode: 0o600,
   });

@@ -52,6 +52,19 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate expiresAt if provided
+    let validatedExpiry: string | null = null;
+    if (expiresAt) {
+      const d = new Date(expiresAt);
+      if (isNaN(d.getTime())) {
+        return NextResponse.json(
+          { error: "Invalid expiresAt date" },
+          { status: 400 }
+        );
+      }
+      validatedExpiry = d.toISOString();
+    }
+
     const rawToken = `tuis_${randomBytes(32).toString("hex")}`;
     const tokenHash = hashToken(rawToken);
 
@@ -59,7 +72,7 @@ export async function POST(request: Request) {
       name,
       tokenHash,
       scopes: JSON.stringify(scopes),
-      expiresAt: expiresAt || null,
+      expiresAt: validatedExpiry,
     });
 
     return NextResponse.json(

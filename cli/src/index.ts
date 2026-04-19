@@ -215,11 +215,12 @@ shoppingItems
   .option("--name <name>", "Item name")
   .option("--quantity <qty>", "Quantity")
   .option("--checked", "Mark as checked")
+  .option("--no-checked", "Mark as unchecked")
   .action(async (id, opts) => {
     const body: Record<string, unknown> = {};
-    if (opts.name) body.name = opts.name;
-    if (opts.quantity) body.quantity = opts.quantity;
-    if (opts.checked !== undefined) body.checked = true;
+    if (opts.name !== undefined) body.name = opts.name;
+    if (opts.quantity !== undefined) body.quantity = opts.quantity;
+    if (opts.checked !== undefined) body.checked = opts.checked;
     printJson(
       await api(`/api/shopping/items/${id}`, {
         method: "PUT",
