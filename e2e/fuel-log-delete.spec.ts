@@ -58,14 +58,20 @@ test.describe("Fuel Log Delete", () => {
       // Switch to Fuel tab
       await detailDialog.getByRole("button", { name: "Fuel" }).click();
 
-      // Add a fuel log
+      // Open the inline fuel form
       await detailDialog.getByRole("button", { name: "Add Fuel" }).click();
 
-      // Fill the fuel form (it's inline, not a separate dialog)
-      await detailDialog.getByLabel("Date").fill("2026-01-15");
-      await detailDialog.getByLabel("Odometer (km)").fill("10000");
-      await detailDialog.getByLabel("Litres").fill("40");
-      await detailDialog.getByLabel("Total Cost ($)").fill("80");
+      // The form uses Label without htmlFor, so locate inputs by type
+      const fuelForm = detailDialog.locator("form");
+      await expect(fuelForm).toBeVisible({ timeout: 5000 });
+
+      const dateInput = fuelForm.locator('input[type="date"]');
+      await dateInput.fill("2026-01-15");
+
+      const numberInputs = fuelForm.locator('input[type="number"]');
+      await numberInputs.nth(0).fill("10000"); // Odometer
+      await numberInputs.nth(1).fill("40");    // Litres
+      await numberInputs.nth(2).fill("80");    // Total Cost
 
       const fuelResponse = page.waitForResponse(
         (resp) =>
@@ -73,7 +79,7 @@ test.describe("Fuel Log Delete", () => {
           resp.url().includes("/fuel") &&
           resp.request().method() === "POST"
       );
-      await detailDialog.getByRole("button", { name: "Save" }).click();
+      await fuelForm.getByRole("button", { name: "Add" }).click();
       await fuelResponse;
       await page.waitForLoadState("networkidle");
 
