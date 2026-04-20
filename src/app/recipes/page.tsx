@@ -5,10 +5,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Search, ChefHat } from "lucide-react";
+import { Plus, Search, ChefHat, Globe } from "lucide-react";
 import { RecipeCard, Recipe } from "@/components/meals/RecipeCard";
-import { RecipeForm } from "@/components/meals/RecipeForm";
+import { RecipeForm, RecipeImportData } from "@/components/meals/RecipeForm";
 import { RecipeDetail } from "@/components/meals/RecipeDetail";
+import { ImportRecipeDialog, ImportedRecipeData } from "@/components/meals/ImportRecipeDialog";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 interface RecipeWithIngredients extends Recipe {
@@ -23,6 +24,8 @@ export default function RecipesPage() {
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeWithIngredients | null>(null);
   const [editingRecipe, setEditingRecipe] = useState<RecipeWithIngredients | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [pendingImport, setPendingImport] = useState<RecipeImportData | undefined>(undefined);
 
   const fetchRecipes = async (query?: string) => {
     try {
@@ -89,10 +92,41 @@ export default function RecipesPage() {
     }
   };
 
+  const handleImport = (data: ImportedRecipeData) => {
+    // Map imported data to the shape RecipeForm expects
+    const mapped: RecipeImportData = {
+      name: data.name,
+      description: data.description,
+      instructions: data.instructions,
+      prepTime: data.prepTime,
+      cookTime: data.cookTime,
+      servings: data.servings,
+      imageUrl: data.imageUrl,
+      ingredients: data.ingredients.map((ing) => ({
+        name: ing.name,
+        amount: ing.amount,
+        unit: ing.unit,
+        raw: ing.raw,
+      })),
+    };
+    // Open form in create mode with imported data pre-populated
+    setEditingRecipe(null);
+    setPendingImport(mapped);
+    setIsFormOpen(true);
+  };
+
   const actions = (
     <>
+      <Button
+        variant="outline"
+        onClick={() => setIsImportOpen(true)}
+      >
+        <Globe className="h-4 w-4 mr-2" />
+        Import from URL
+      </Button>
       <Button onClick={() => {
         setEditingRecipe(null);
+        setPendingImport(undefined);
         setIsFormOpen(true);
       }}>
         <Plus className="h-4 w-4 mr-2" />
@@ -135,6 +169,7 @@ export default function RecipesPage() {
             {!searchQuery && (
               <Button onClick={() => {
                 setEditingRecipe(null);
+                setPendingImport(undefined);
                 setIsFormOpen(true);
               }}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -157,9 +192,14 @@ export default function RecipesPage() {
 
       <RecipeForm
         recipe={editingRecipe || undefined}
+        importData={pendingImport}
         open={isFormOpen}
-        onOpenChange={setIsFormOpen}
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) setPendingImport(undefined);
+        }}
         onSuccess={() => {
+          setPendingImport(undefined);
           fetchRecipes(searchQuery);
         }}
       />
@@ -174,6 +214,11 @@ export default function RecipesPage() {
           // Navigate to meal planner with recipe selected
           window.location.href = `/meals?addRecipe=${selectedRecipe?.id}`;
         }}
+      />
+      <ImportRecipeDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onImport={handleImport}
       />
     </AppLayout>
   );

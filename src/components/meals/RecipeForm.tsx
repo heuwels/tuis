@@ -37,6 +37,22 @@ interface Ingredient {
   legacyQuantity?: string;
 }
 
+export interface RecipeImportData {
+  name: string;
+  description: string | null;
+  instructions: string | null;
+  prepTime: number | null;
+  cookTime: number | null;
+  servings: number | null;
+  imageUrl: string | null;
+  ingredients: {
+    name: string;
+    amount: number | null;
+    unit: string | null;
+    raw: string;
+  }[];
+}
+
 interface RecipeFormProps {
   recipe?: Recipe & {
     ingredients?: {
@@ -47,6 +63,7 @@ interface RecipeFormProps {
       section: string | null;
     }[];
   };
+  importData?: RecipeImportData;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
@@ -54,6 +71,7 @@ interface RecipeFormProps {
 
 export function RecipeForm({
   recipe,
+  importData,
   open,
   onOpenChange,
   onSuccess,
@@ -117,6 +135,37 @@ export function RecipeForm({
           };
         }) || [{ name: "", amount: "", unit: "", section: "" }]
       );
+    } else if (importData) {
+      setName(importData.name || "");
+      setDescription(importData.description || "");
+      setInstructions(importData.instructions || "");
+      setPrepTime(importData.prepTime?.toString() || "");
+      setCookTime(importData.cookTime?.toString() || "");
+      setServings(importData.servings?.toString() || "");
+      setCategory("main");
+      setImageUrl(importData.imageUrl || "");
+      setUseUrlMode(!!importData.imageUrl?.startsWith("http"));
+      setIngredients(
+        importData.ingredients?.length
+          ? importData.ingredients.map((i) => {
+              if (i.amount != null && i.unit) {
+                return {
+                  name: i.name,
+                  amount: i.amount.toString(),
+                  unit: i.unit as IngredientUnit,
+                  section: "",
+                };
+              }
+              return {
+                name: i.name,
+                amount: "",
+                unit: "" as const,
+                section: "",
+                legacyQuantity: i.raw || "",
+              };
+            })
+          : [{ name: "", amount: "", unit: "", section: "" }]
+      );
     } else {
       setName("");
       setDescription("");
@@ -129,7 +178,7 @@ export function RecipeForm({
       setUseUrlMode(false);
       setIngredients([{ name: "", amount: "", unit: "", section: "" }]);
     }
-  }, [recipe, open]);
+  }, [recipe, importData, open]);
 
   const handleAddIngredient = (afterIndex?: number) => {
     const newIng: Ingredient = {
