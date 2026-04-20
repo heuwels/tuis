@@ -262,6 +262,62 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       expires_at TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS properties (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      address TEXT NOT NULL,
+      purchase_price REAL NOT NULL,
+      purchase_date TEXT NOT NULL,
+      loan_amount_original REAL NOT NULL,
+      loan_term_years INTEGER,
+      lender TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS mortgage_rates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+      effective_date TEXT NOT NULL,
+      annual_rate REAL NOT NULL,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS mortgage_payments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+      date TEXT NOT NULL,
+      payment_amount REAL NOT NULL,
+      interest_amount REAL NOT NULL,
+      principal_amount REAL NOT NULL,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS property_valuations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+      date TEXT NOT NULL,
+      estimated_value REAL NOT NULL,
+      source TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS household_expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      category TEXT NOT NULL,
+      description TEXT NOT NULL,
+      amount REAL NOT NULL,
+      vendor_id INTEGER REFERENCES vendors(id),
+      receipt_url TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Add new columns if they don't exist (migrations for existing databases)
@@ -318,6 +374,14 @@ function initDb(): BetterSQLite3Database<typeof schema> {
 
   // Migrate legacy quantity strings to structured amount+unit
   migrateLegacyQuantities(sqlite);
+
+  // Structured cost field for completions (legacy cost is TEXT)
+  try {
+    sqlite.exec(`ALTER TABLE completions ADD COLUMN cost_amount REAL`);
+  } catch { /* column already exists */ }
+
+  // Backfill cost_amount from legacy TEXT cost field
+  migrateCompletionCosts(sqlite);
 
   _db = drizzle(sqlite, { schema });
   return _db;
@@ -377,6 +441,31 @@ function migrateLegacyQuantities(sqlite: Database.Database) {
       const parsed = parseQuantityString(row.quantity);
       if (parsed) {
         update.run(parsed.amount, parsed.unit, row.id);
+      }
+    }
+  });
+
+  tx();
+}
+
+function migrateCompletionCosts(sqlite: Database.Database) {
+  const rows = sqlite
+    .prepare(
+      `SELECT id, cost FROM completions WHERE cost IS NOT NULL AND cost_amount IS NULL`
+    )
+    .all() as { id: number; cost: string }[];
+
+  if (rows.length === 0) return;
+
+  const update = sqlite.prepare(
+    `UPDATE completions SET cost_amount = ? WHERE id = ?`
+  );
+
+  const tx = sqlite.transaction(() => {
+    for (const row of rows) {
+      const parsed = parseFloat(row.cost.replace(/[^0-9.-]/g, ""));
+      if (!isNaN(parsed)) {
+        update.run(parsed, row.id);
       }
     }
   });

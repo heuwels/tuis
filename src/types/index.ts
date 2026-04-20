@@ -63,6 +63,7 @@ export interface Completion {
   completedBy: number | null;
   vendorId: number | null;
   cost: string | null;
+  costAmount: number | null;
 }
 
 export interface TaskWithAppliance extends Task {
@@ -163,4 +164,64 @@ export interface VehicleCostSummary {
   totalKmTracked: number;
   costPerKm: number | null;
   avgFuelConsumption: number | null;
+}
+
+export interface Property {
+  id: number;
+  address: string;
+  purchasePrice: number;
+  purchaseDate: string;
+  loanAmountOriginal: number;
+  loanTermYears: number | null;
+  lender: string | null;
+  notes: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface MortgageRate {
+  id: number;
+  propertyId: number;
+  effectiveDate: string;
+  annualRate: number;
+  notes: string | null;
+  createdAt: string | null;
+}
+
+export interface MortgagePayment {
+  id: number;
+  propertyId: number;
+  date: string;
+  paymentAmount: number;
+  interestAmount: number;
+  principalAmount: number;
+  notes: string | null;
+  createdAt: string | null;
+}
+
+export interface PropertyValuation {
+  id: number;
+  propertyId: number;
+  date: string;
+  estimatedValue: number;
+  source: string | null;
+  notes: string | null;
+  createdAt: string | null;
+}
+
+export interface HouseholdExpense {
+  id: number;
+  date: string;
+  category: string;
+  description: string;
+  amount: number;
+  vendorId: number | null;
+  receiptUrl: string | null;
+  notes: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface HouseholdExpenseWithVendor extends HouseholdExpense {
+  vendorName?: string | null;
 }
