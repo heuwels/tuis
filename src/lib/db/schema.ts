@@ -33,6 +33,7 @@ export const completions = sqliteTable("completions", {
   completedBy: integer("completed_by").references(() => users.id),
   vendorId: integer("vendor_id"),
   cost: text("cost"),
+  costAmount: real("cost_amount"),
 });
 
 export const googleCalendarSettings = sqliteTable("google_calendar_settings", {
@@ -297,3 +298,70 @@ export type FuelLog = typeof fuelLogs.$inferSelect;
 export type NewFuelLog = typeof fuelLogs.$inferInsert;
 export type PersonalAccessToken = typeof personalAccessTokens.$inferSelect;
 export type NewPersonalAccessToken = typeof personalAccessTokens.$inferInsert;
+
+export const properties = sqliteTable("properties", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  address: text("address").notNull(),
+  purchasePrice: real("purchase_price").notNull(),
+  purchaseDate: text("purchase_date").notNull(),
+  loanAmountOriginal: real("loan_amount_original").notNull(),
+  loanTermYears: integer("loan_term_years"),
+  lender: text("lender"),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const mortgageRates = sqliteTable("mortgage_rates", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  propertyId: integer("property_id").notNull().references(() => properties.id),
+  effectiveDate: text("effective_date").notNull(),
+  annualRate: real("annual_rate").notNull(),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const mortgagePayments = sqliteTable("mortgage_payments", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  propertyId: integer("property_id").notNull().references(() => properties.id),
+  date: text("date").notNull(),
+  paymentAmount: real("payment_amount").notNull(),
+  interestAmount: real("interest_amount").notNull(),
+  principalAmount: real("principal_amount").notNull(),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const propertyValuations = sqliteTable("property_valuations", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  propertyId: integer("property_id").notNull().references(() => properties.id),
+  date: text("date").notNull(),
+  estimatedValue: real("estimated_value").notNull(),
+  source: text("source"),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const householdExpenses = sqliteTable("household_expenses", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  date: text("date").notNull(),
+  category: text("category").notNull(),
+  description: text("description").notNull(),
+  amount: real("amount").notNull(),
+  vendorId: integer("vendor_id").references(() => vendors.id),
+  receiptUrl: text("receipt_url"),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
+export type Property = typeof properties.$inferSelect;
+export type NewProperty = typeof properties.$inferInsert;
+export type MortgageRate = typeof mortgageRates.$inferSelect;
+export type NewMortgageRate = typeof mortgageRates.$inferInsert;
+export type MortgagePayment = typeof mortgagePayments.$inferSelect;
+export type NewMortgagePayment = typeof mortgagePayments.$inferInsert;
+export type PropertyValuation = typeof propertyValuations.$inferSelect;
+export type NewPropertyValuation = typeof propertyValuations.$inferInsert;
+export type HouseholdExpense = typeof householdExpenses.$inferSelect;
+export type NewHouseholdExpense = typeof householdExpenses.$inferInsert;
