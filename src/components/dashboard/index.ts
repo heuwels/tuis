@@ -8,3 +8,4 @@ export { StatsRow } from "./StatsRow";
 export { TodaysMealCard } from "./TodaysMealCard";
 export { ShoppingOverview } from "./ShoppingOverview";
 export { RecentCompletions } from "./RecentCompletions";
+export { ExpenseWidget } from "./ExpenseWidget";

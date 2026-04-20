@@ -7,6 +7,7 @@ import { DailyTasksList } from "./DailyTasksList";
 import { StatsRow } from "./StatsRow";
 import { TodaysMealCard } from "./TodaysMealCard";
 import { ShoppingOverview } from "./ShoppingOverview";
+import { ExpenseWidget } from "./ExpenseWidget";
 import { RecentCompletions } from "./RecentCompletions";
 import { parseISO, isToday, isBefore, addDays, startOfDay } from "date-fns";
 
@@ -107,10 +108,11 @@ export function Dashboard() {
       {/* Stats overview */}
       <StatsRow />
 
-      {/* Quick glance row: meal + shopping */}
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* Quick glance row: meal + shopping + spending */}
+      <div className="grid gap-4 md:grid-cols-3">
         <TodaysMealCard />
         <ShoppingOverview />
+        <ExpenseWidget />
       </div>
 
       {/* Recent completions */}

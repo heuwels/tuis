@@ -10,7 +10,9 @@ import {
   TrendingUp,
   Calendar,
   ListTodo,
+  DollarSign,
 } from "lucide-react";
+import Link from "next/link";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { areaBarColors } from "@/lib/area-colors";
 
@@ -219,6 +221,28 @@ export default function StatsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Expense Summary Link */}
+        <Link href="/stats/expenses" className="block group">
+          <Card className="transition-colors group-hover:border-emerald-200 dark:group-hover:border-emerald-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-emerald-100 dark:bg-emerald-950 rounded-lg">
+                    <DollarSign className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Expense Summary</p>
+                    <p className="text-sm text-muted-foreground">
+                      View spending by category, vendor, and vehicle
+                    </p>
+                  </div>
+                </div>
+                <span className="text-muted-foreground">&rarr;</span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Most Completed Tasks */}
         <Card>
