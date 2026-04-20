@@ -8,6 +8,7 @@ import {
   recipes,
   recipeIngredients,
 } from "@/lib/db/schema";
+import { categorizeItem } from "@/lib/shopping-categories";
 
 export const dynamic = "force-dynamic";
 
@@ -168,9 +169,11 @@ export async function POST(request: Request) {
       const listId = Number(listResult.lastInsertRowid);
 
       for (let i = 0; i < STARTER_SHOPPING_ITEMS.length; i++) {
+        const itemName = STARTER_SHOPPING_ITEMS[i];
         await db.insert(shoppingItems).values({
           listId,
-          name: STARTER_SHOPPING_ITEMS[i],
+          name: itemName,
+          category: categorizeItem(itemName),
           sortOrder: i,
         });
       }

@@ -316,6 +316,16 @@ function initDb(): BetterSQLite3Database<typeof schema> {
     sqlite.exec(`ALTER TABLE recipe_ingredients ADD COLUMN section TEXT`);
   } catch { /* column already exists */ }
 
+  // Shopping item category
+  try {
+    sqlite.exec(`ALTER TABLE shopping_items ADD COLUMN category TEXT`);
+  } catch { /* column already exists */ }
+
+  // Item history category
+  try {
+    sqlite.exec(`ALTER TABLE item_history ADD COLUMN category TEXT`);
+  } catch { /* column already exists */ }
+
   // Migrate legacy quantity strings to structured amount+unit
   migrateLegacyQuantities(sqlite);
 

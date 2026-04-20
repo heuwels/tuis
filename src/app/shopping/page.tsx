@@ -15,6 +15,11 @@ import { Plus, Trash2, Pencil, ShoppingCart, Check } from "lucide-react";
 import { AddItemInput } from "@/components/shopping/AddItemInput";
 import { ListForm } from "@/components/shopping/ListForm";
 import { AppLayout } from "@/components/layout/AppLayout";
+import {
+  SHOPPING_CATEGORIES,
+  getCategorySortOrder,
+  getCategoryByName,
+} from "@/lib/shopping-categories";
 
 interface ShoppingList {
   id: number;
@@ -31,7 +36,36 @@ interface ShoppingItem {
   quantity: string | null;
   checked: boolean;
   sortOrder: number;
+  category: string | null;
   createdAt: string | null;
+}
+
+interface CategoryGroup {
+  name: string;
+  color: string;
+  items: ShoppingItem[];
+}
+
+function groupItemsByCategory(items: ShoppingItem[]): CategoryGroup[] {
+  const groups: Record<string, ShoppingItem[]> = {};
+  for (const item of items) {
+    const cat = item.category || "Uncategorised";
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(item);
+  }
+
+  return Object.entries(groups)
+    .map(([name, groupItems]) => {
+      const catInfo = getCategoryByName(name);
+      return {
+        name,
+        color: catInfo?.color || "#6b7280",
+        items: groupItems,
+      };
+    })
+    .sort(
+      (a, b) => getCategorySortOrder(a.name) - getCategorySortOrder(b.name)
+    );
 }
 
 export default function ShoppingPage() {
@@ -176,9 +210,28 @@ export default function ShoppingPage() {
     }
   };
 
+  const handleUpdateCategory = async (id: number, category: string) => {
+    try {
+      const response = await fetch(`/api/shopping/items/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category }),
+      });
+
+      if (response.ok) {
+        setItems((prev) =>
+          prev.map((item) => (item.id === id ? { ...item, category } : item))
+        );
+      }
+    } catch (error) {
+      console.error("Error updating category:", error);
+    }
+  };
+
   const checkedCount = items.filter((i) => i.checked).length;
   const uncheckedItems = items.filter((i) => !i.checked);
   const checkedItems = items.filter((i) => i.checked);
+  const uncheckedGroups = groupItemsByCategory(uncheckedItems);
 
   return (
     <AppLayout title="Shopping Lists">
@@ -292,66 +345,132 @@ export default function ShoppingPage() {
                     No items yet. Add something above!
                   </p>
                 ) : (
-                  <div className="space-y-2">
-                    {/* Unchecked items first */}
-                    {uncheckedItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 rounded-lg border group"
-                      >
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={(checked) =>
-                            handleToggleItem(item.id, checked as boolean)
-                          }
-                        />
-                        <div className="flex-1 min-w-0">
-                          {item.quantity && (
-                            <span className="font-medium text-blue-600 mr-2">
-                              {item.quantity}
-                            </span>
-                          )}
-                          {item.name}
+                  <div className="space-y-4">
+                    {/* Unchecked items grouped by category */}
+                    {uncheckedGroups.map((group) => (
+                      <div key={group.name} data-testid={`category-group-${group.name}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: group.color }}
+                          />
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                            {group.name}
+                          </h3>
+                          <span className="text-xs text-muted-foreground">
+                            ({group.items.length})
+                          </span>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => handleDeleteItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="space-y-2">
+                          {group.items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center gap-3 p-3 bg-white dark:bg-zinc-900 rounded-lg border group"
+                            >
+                              <Checkbox
+                                checked={item.checked}
+                                onCheckedChange={(checked) =>
+                                  handleToggleItem(item.id, checked as boolean)
+                                }
+                              />
+                              <div className="flex-1 min-w-0">
+                                {item.quantity && (
+                                  <span className="font-medium text-blue-600 mr-2">
+                                    {item.quantity}
+                                  </span>
+                                )}
+                                {item.name}
+                                {item.category && (
+                                  <span
+                                    className="ml-2 inline-block text-xs px-1.5 py-0.5 rounded-full text-white"
+                                    style={{
+                                      backgroundColor:
+                                        getCategoryByName(item.category)?.color || "#6b7280",
+                                    }}
+                                  >
+                                    {item.category}
+                                  </span>
+                                )}
+                              </div>
+                              <Select
+                                value={item.category || ""}
+                                onValueChange={(value) =>
+                                  handleUpdateCategory(item.id, value)
+                                }
+                              >
+                                <SelectTrigger className="w-[130px] h-8 text-xs opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity">
+                                  <SelectValue placeholder="Category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {SHOPPING_CATEGORIES.map((cat) => (
+                                    <SelectItem key={cat.id} value={cat.name}>
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className="w-2 h-2 rounded-full"
+                                          style={{ backgroundColor: cat.color }}
+                                        />
+                                        {cat.name}
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => handleDeleteItem(item.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
 
                     {/* Checked items with strikethrough */}
-                    {checkedItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg border opacity-60 group"
-                      >
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={(checked) =>
-                            handleToggleItem(item.id, checked as boolean)
-                          }
-                        />
-                        <div className="flex-1 min-w-0 line-through text-muted-foreground">
-                          {item.quantity && (
-                            <span className="mr-2">{item.quantity}</span>
-                          )}
-                          {item.name}
+                    {checkedItems.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                            Checked
+                          </h3>
+                          <span className="text-xs text-muted-foreground">
+                            ({checkedItems.length})
+                          </span>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => handleDeleteItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="space-y-2">
+                          {checkedItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg border opacity-60 group"
+                            >
+                              <Checkbox
+                                checked={item.checked}
+                                onCheckedChange={(checked) =>
+                                  handleToggleItem(item.id, checked as boolean)
+                                }
+                              />
+                              <div className="flex-1 min-w-0 line-through text-muted-foreground">
+                                {item.quantity && (
+                                  <span className="mr-2">{item.quantity}</span>
+                                )}
+                                {item.name}
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => handleDeleteItem(item.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </CardContent>
