@@ -14,6 +14,9 @@ import {
   mealPlan,
   users,
   personalAccessTokens,
+  vehicles,
+  fuelLogs,
+  vehicleServices,
 } from "@/lib/db/schema";
 import { like, eq, inArray, sql } from "drizzle-orm";
 
@@ -30,6 +33,7 @@ const VALID_TYPES = [
   "meals",
   "users",
   "tokens",
+  "vehicles",
 ] as const;
 
 type CleanupType = (typeof VALID_TYPES)[number];
@@ -193,6 +197,27 @@ export async function POST(request: NextRequest) {
           .delete(personalAccessTokens)
           .where(like(personalAccessTokens.name, namePattern));
         deleted = result.changes ?? 0;
+        break;
+      }
+
+      case "vehicles": {
+        const matchingVehicles = await db
+          .select({ id: vehicles.id })
+          .from(vehicles)
+          .where(like(vehicles.name, namePattern));
+        if (matchingVehicles.length > 0) {
+          const vehicleIds = matchingVehicles.map((v) => v.id);
+          await db
+            .delete(fuelLogs)
+            .where(inArray(fuelLogs.vehicleId, vehicleIds));
+          await db
+            .delete(vehicleServices)
+            .where(inArray(vehicleServices.vehicleId, vehicleIds));
+          await db
+            .delete(vehicles)
+            .where(inArray(vehicles.id, vehicleIds));
+          deleted = matchingVehicles.length;
+        }
         break;
       }
 
