@@ -30,7 +30,7 @@ test.describe.serial("Personal Access Tokens", () => {
     await dismissUserPickerIfVisible(page);
 
     await expect(
-      page.getByRole("heading", { name: "Personal Access Tokens" })
+      page.getByText("Personal Access Tokens")
     ).toBeVisible();
     await expect(
       page.getByText("No tokens yet. Create one to use with the CLI.")

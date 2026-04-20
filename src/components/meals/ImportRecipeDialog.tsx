@@ -48,6 +48,18 @@ export function ImportRecipeDialog({
     e.preventDefault();
     if (!url.trim()) return;
 
+    // Client-side URL validation
+    try {
+      const parsed = new URL(url.trim());
+      if (!parsed.protocol.startsWith("http")) {
+        setError("Invalid URL. Please enter an HTTP or HTTPS URL.");
+        return;
+      }
+    } catch {
+      setError("Invalid URL. Please enter a valid web address.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -97,7 +109,8 @@ export function ImportRecipeDialog({
             <Label htmlFor="recipe-url">Recipe URL</Label>
             <Input
               id="recipe-url"
-              type="url"
+              type="text"
+              inputMode="url"
               value={url}
               onChange={(e) => {
                 setUrl(e.target.value);

@@ -93,6 +93,7 @@ test.describe("Recipe Import from URL", () => {
 
       // Wait for the import button to be enabled then click
       const importButton = dialog.getByRole("button", { name: "Import" });
+      await expect(importButton).toBeEnabled({ timeout: 5000 });
       await importButton.click();
 
       // Should show an error message
