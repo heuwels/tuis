@@ -191,9 +191,9 @@ test.describe("Property & Equity", () => {
       await expect(page.getByText("Current Value")).toBeVisible({
         timeout: 10000,
       });
-      await expect(page.getByText("Loan Balance")).toBeVisible();
-      await expect(page.getByText("Total Equity")).toBeVisible();
-      await expect(page.getByText("LVR")).toBeVisible();
+      await expect(page.getByText("Loan Balance").first()).toBeVisible();
+      await expect(page.getByText("Total Equity").first()).toBeVisible();
+      await expect(page.getByText("LVR").first()).toBeVisible();
     });
   });
 });
