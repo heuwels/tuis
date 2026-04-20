@@ -46,6 +46,9 @@ test.describe("Household Expenses", () => {
         page.getByRole("heading", { name: "Finance" }).first()
       ).toBeVisible();
 
+      // Switch to Expenses tab
+      await page.getByRole("button", { name: "Expenses" }).click();
+
       // Wait for loading to finish
       await expect(page.getByText("Loading expenses...")).not.toBeVisible({
         timeout: 10000,
@@ -58,6 +61,9 @@ test.describe("Household Expenses", () => {
     test("should create an expense", async ({ page }) => {
       await page.goto("/finance");
       await dismissUserPickerIfVisible(page);
+
+      // Switch to Expenses tab
+      await page.getByRole("button", { name: "Expenses" }).click();
       await expect(page.getByText("Loading expenses...")).not.toBeVisible({
         timeout: 10000,
       });
@@ -109,6 +115,7 @@ test.describe("Household Expenses", () => {
       // First, create a second expense in a different category
       await page.goto("/finance");
       await dismissUserPickerIfVisible(page);
+      await page.getByRole("button", { name: "Expenses" }).click();
       await expect(page.getByText("Loading expenses...")).not.toBeVisible({
         timeout: 10000,
       });
@@ -163,6 +170,7 @@ test.describe("Household Expenses", () => {
     test("should edit an expense", async ({ page }) => {
       await page.goto("/finance");
       await dismissUserPickerIfVisible(page);
+      await page.getByRole("button", { name: "Expenses" }).click();
       await expect(page.getByText("Loading expenses...")).not.toBeVisible({
         timeout: 10000,
       });
@@ -206,6 +214,7 @@ test.describe("Household Expenses", () => {
     test("should delete an expense", async ({ page }) => {
       await page.goto("/finance");
       await dismissUserPickerIfVisible(page);
+      await page.getByRole("button", { name: "Expenses" }).click();
       await expect(page.getByText("Loading expenses...")).not.toBeVisible({
         timeout: 10000,
       });
