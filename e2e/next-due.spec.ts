@@ -64,9 +64,9 @@ test.describe.serial("Next Due Calculation", () => {
     const taskText = page.getByText(TEST_TASK_NAME).first();
     await expect(taskText).toBeVisible({ timeout: 10000 });
 
-    // Click the "Done" button for this task
-    const taskCard = page.locator("div").filter({ hasText: TEST_TASK_NAME }).first();
-    const doneButton = taskCard.getByRole("button", { name: "Done" });
+    // Click the "Done" button for this task — find the closest card-level container
+    const taskCard = page.locator("[data-slot='card']").filter({ hasText: TEST_TASK_NAME });
+    const doneButton = taskCard.getByRole("button", { name: "Done" }).first();
 
     const responsePromise = page.waitForResponse(
       (resp) =>
