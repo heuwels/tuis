@@ -295,5 +295,13 @@ export const personalAccessTokens = sqliteTable("personal_access_tokens", {
 
 export type FuelLog = typeof fuelLogs.$inferSelect;
 export type NewFuelLog = typeof fuelLogs.$inferInsert;
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
 export type PersonalAccessToken = typeof personalAccessTokens.$inferSelect;
 export type NewPersonalAccessToken = typeof personalAccessTokens.$inferInsert;
+export type Setting = typeof settings.$inferSelect;
+export type NewSetting = typeof settings.$inferInsert;

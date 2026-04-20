@@ -11,6 +11,14 @@ import {
   Gauge,
 } from "lucide-react";
 import { format, parse } from "date-fns";
+import { useUnitSystem } from "@/lib/useUnitSystem";
+import {
+  formatDistance,
+  formatCostPerVolume,
+  formatFuelEconomy,
+  formatCostPerDistance,
+  getUnitLabels,
+} from "@/lib/units";
 
 interface MonthlyData {
   month: string;
@@ -129,7 +137,7 @@ function BarChart({
   );
 }
 
-function MultiLineChart({ data }: { data: MonthlyData[] }) {
+function MultiLineChart({ data, labels }: { data: MonthlyData[]; labels: import("@/lib/units").UnitLabels }) {
   if (data.length < 2) return null;
 
   const metrics = [
@@ -138,14 +146,14 @@ function MultiLineChart({ data }: { data: MonthlyData[] }) {
       label: "Fuel Price",
       color: "text-red-500",
       dotColor: "bg-red-500",
-      format: (v: number) => `$${v.toFixed(3)}/L`,
+      format: (v: number) => `$${v.toFixed(3)}/${labels.litresShort}`,
     },
     {
       key: "fuelEconomy" as const,
       label: "Economy",
       color: "text-blue-500",
       dotColor: "bg-blue-500",
-      format: (v: number) => `${v.toFixed(1)} L/100km`,
+      format: (v: number) => `${v.toFixed(1)} ${labels.per100km}`,
     },
     {
       key: "totalSpend" as const,
@@ -280,6 +288,8 @@ function MultiLineChart({ data }: { data: MonthlyData[] }) {
 export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
   const [analytics, setAnalytics] = useState<FuelAnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { unitSystem } = useUnitSystem();
+  const labels = getUnitLabels(unitSystem);
 
   useEffect(() => {
     let cancelled = false;
@@ -325,10 +335,10 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
             <MetricCard
               icon={DollarSign}
               label="Avg Price (3 mo)"
-              value={`$${keyMetrics.rolling3MonthPrice.toFixed(3)}/L`}
+              value={formatCostPerVolume(keyMetrics.rolling3MonthPrice, unitSystem)}
               subtitle={
                 keyMetrics.allTimePrice
-                  ? `All-time: $${keyMetrics.allTimePrice.toFixed(3)}/L`
+                  ? `All-time: ${formatCostPerVolume(keyMetrics.allTimePrice, unitSystem)}`
                   : undefined
               }
               bgClass="bg-red-50 dark:bg-red-950/30"
@@ -339,7 +349,7 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
             <MetricCard
               icon={MapPin}
               label="Avg Monthly Distance"
-              value={`${Math.round(keyMetrics.avgMonthlyDistance).toLocaleString()} km`}
+              value={formatDistance(keyMetrics.avgMonthlyDistance, unitSystem)}
               bgClass="bg-blue-50 dark:bg-blue-950/30"
               textClass="text-blue-700 dark:text-blue-400"
             />
@@ -347,11 +357,11 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
           {keyMetrics.recentCostPerKm !== null && (
             <MetricCard
               icon={Gauge}
-              label="Cost/km (3 mo)"
-              value={`$${keyMetrics.recentCostPerKm.toFixed(2)}/km`}
+              label={`Cost/${labels.km} (3 mo)`}
+              value={formatCostPerDistance(keyMetrics.recentCostPerKm, unitSystem)}
               subtitle={
                 keyMetrics.priorCostPerKm
-                  ? `Prior 3 mo: $${keyMetrics.priorCostPerKm.toFixed(2)}/km`
+                  ? `Prior 3 mo: ${formatCostPerDistance(keyMetrics.priorCostPerKm, unitSystem)}`
                   : undefined
               }
               bgClass="bg-green-50 dark:bg-green-950/30"
@@ -366,7 +376,7 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
               <MetricCard
                 icon={Fuel}
                 label="Latest Economy"
-                value={`${latest.fuelEconomy!.toFixed(1)} L/100km`}
+                value={formatFuelEconomy(latest.fuelEconomy!, unitSystem)}
                 bgClass="bg-amber-50 dark:bg-amber-950/30"
                 textClass="text-amber-700 dark:text-amber-400"
               />
@@ -462,9 +472,9 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
         <BarChart
           data={chartData}
           getValue={(d) => d.avgPricePerLitre}
-          formatValue={(v) => `$${v.toFixed(3)}/L`}
+          formatValue={(v) => `$${v.toFixed(3)}/${labels.litresShort}`}
           barColor="bg-red-400"
-          label="Average Fuel Price ($/L)"
+          label={`Average Fuel Price ($/${labels.litresShort})`}
         />
       </div>
 
@@ -473,7 +483,7 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
         <BarChart
           data={chartData}
           getValue={(d) => d.distanceKm}
-          formatValue={(v) => `${v.toLocaleString()} km`}
+          formatValue={(v) => formatDistance(v, unitSystem)}
           barColor="bg-blue-500"
           label="Distance per Month"
         />
@@ -481,7 +491,7 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
 
       {/* Multi-line overlay */}
       <div className="p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg">
-        <MultiLineChart data={chartData} />
+        <MultiLineChart data={chartData} labels={labels} />
       </div>
     </div>
   );

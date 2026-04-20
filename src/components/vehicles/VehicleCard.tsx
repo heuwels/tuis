@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Vehicle } from "@/types";
 import { Car, Gauge, Calendar, AlertTriangle } from "lucide-react";
 import { format, parseISO, isPast, isBefore, addDays } from "date-fns";
+import { useUnitSystem } from "@/lib/useUnitSystem";
+import { formatDistance } from "@/lib/units";
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -44,6 +46,7 @@ function RegoStatus({ expiryDate }: { expiryDate: string | null }) {
 }
 
 export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
+  const { unitSystem } = useUnitSystem();
   const subtitle = [vehicle.make, vehicle.model, vehicle.year]
     .filter(Boolean)
     .join(" ");
@@ -88,7 +91,7 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
           {vehicle.currentOdometer && (
             <span className="flex items-center gap-1">
               <Gauge className="h-4 w-4" />
-              {vehicle.currentOdometer.toLocaleString()} km
+              {formatDistance(vehicle.currentOdometer, unitSystem)}
             </span>
           )}
         </div>

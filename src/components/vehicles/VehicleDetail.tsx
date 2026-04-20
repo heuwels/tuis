@@ -44,6 +44,15 @@ import {
 } from "lucide-react";
 import { format, parseISO, isPast, isBefore, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useUnitSystem } from "@/lib/useUnitSystem";
+import {
+  formatDistance,
+  formatVolume,
+  formatCostPerVolume,
+  formatFuelEconomy,
+  formatCostPerDistance,
+  getUnitLabels,
+} from "@/lib/units";
 import { FuelAnalytics } from "./FuelAnalytics";
 
 type TabId = "overview" | "services" | "fuel" | "costs" | "analytics";
@@ -420,6 +429,8 @@ export function VehicleDetail({
   const [costSummary, setCostSummary] = useState<VehicleCostSummary | null>(
     null
   );
+  const { unitSystem } = useUnitSystem();
+  const labels = getUnitLabels(unitSystem);
 
   useEffect(() => {
     if (vehicle && activeTab === "costs") {
@@ -513,7 +524,7 @@ export function VehicleDetail({
                     <p className="text-xs text-muted-foreground">Odometer</p>
                     <p className="font-medium flex items-center gap-1">
                       <Gauge className="h-4 w-4" />
-                      {vehicle.currentOdometer.toLocaleString()} km
+                      {formatDistance(vehicle.currentOdometer, unitSystem)}
                     </p>
                   </div>
                 )}
@@ -554,10 +565,10 @@ export function VehicleDetail({
                 {vehicle.warrantyExpiryKm && (
                   <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm text-muted-foreground">
-                      Warranty km limit
+                      Warranty {labels.km} limit
                     </span>
                     <span className="text-sm font-medium">
-                      {vehicle.warrantyExpiryKm.toLocaleString()} km
+                      {formatDistance(vehicle.warrantyExpiryKm, unitSystem)}
                     </span>
                   </div>
                 )}
@@ -617,7 +628,7 @@ export function VehicleDetail({
                           </div>
                           {service.odometer && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              {service.odometer.toLocaleString()} km
+                              {formatDistance(service.odometer, unitSystem)}
                             </p>
                           )}
                           {service.notes && (
@@ -666,10 +677,10 @@ export function VehicleDetail({
                             {format(parseISO(log.date), "d MMM yyyy")}
                           </p>
                           <div className="flex flex-wrap gap-3 mt-1 text-muted-foreground">
-                            <span>{log.odometer.toLocaleString()} km</span>
-                            <span>{log.litres.toFixed(2)} L</span>
+                            <span>{formatDistance(log.odometer, unitSystem)}</span>
+                            <span>{formatVolume(log.litres, unitSystem)}</span>
                             {log.costPerLitre && (
-                              <span>${log.costPerLitre.toFixed(3)}/L</span>
+                              <span>{formatCostPerVolume(log.costPerLitre, unitSystem)}</span>
                             )}
                             {log.station && <span>{log.station}</span>}
                           </div>
@@ -738,7 +749,7 @@ export function VehicleDetail({
                         Distance Tracked
                       </p>
                       <p className="text-lg font-semibold">
-                        {costSummary.totalKmTracked.toLocaleString()} km
+                        {formatDistance(costSummary.totalKmTracked, unitSystem)}
                       </p>
                     </div>
                   </div>
@@ -748,10 +759,10 @@ export function VehicleDetail({
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2">
                             <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">Cost per km</span>
+                            <span className="text-sm">Cost per {labels.km}</span>
                           </div>
                           <span className="font-medium">
-                            ${costSummary.costPerKm.toFixed(2)}/km
+                            {formatCostPerDistance(costSummary.costPerKm, unitSystem)}
                           </span>
                         </div>
                       )}
@@ -764,7 +775,7 @@ export function VehicleDetail({
                             </span>
                           </div>
                           <span className="font-medium">
-                            {costSummary.avgFuelConsumption.toFixed(1)} L/100km
+                            {formatFuelEconomy(costSummary.avgFuelConsumption, unitSystem)}
                           </span>
                         </div>
                       )}
@@ -777,7 +788,7 @@ export function VehicleDetail({
                             </span>
                           </div>
                           <span className="font-medium">
-                            {costSummary.totalFuelLitres.toFixed(1)} L
+                            {formatVolume(costSummary.totalFuelLitres, unitSystem)}
                           </span>
                         </div>
                       )}
