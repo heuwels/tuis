@@ -17,7 +17,9 @@ import {
   Copy,
   Printer,
   Check,
+  ChefHat,
 } from "lucide-react";
+import { CookMode } from "./CookMode";
 import { Recipe } from "./RecipeCard";
 import { resolveFileUrl } from "@/lib/file-url";
 import {
@@ -59,6 +61,7 @@ export function RecipeDetail({
 }: RecipeDetailProps) {
   const [multiplier, setMultiplier] = useState(1);
   const [copied, setCopied] = useState(false);
+  const [cookModeOpen, setCookModeOpen] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   if (!recipe) return null;
@@ -232,6 +235,7 @@ export function RecipeDetail({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -346,7 +350,7 @@ export function RecipeDetail({
           </div>
         )}
 
-        {/* Copy & Print buttons */}
+        {/* Copy, Print & Cook buttons */}
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={handleCopy}>
             {copied ? (
@@ -360,6 +364,17 @@ export function RecipeDetail({
             <Printer className="h-4 w-4 mr-1" />
             Print
           </Button>
+          {recipe.instructions && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setCookModeOpen(true)}
+              data-testid="start-cooking"
+            >
+              <ChefHat className="h-4 w-4 mr-1" />
+              Start Cooking
+            </Button>
+          )}
         </div>
 
         <div className="flex justify-between items-center pt-4 border-t">
@@ -391,5 +406,16 @@ export function RecipeDetail({
         </div>
       </DialogContent>
     </Dialog>
+
+    {cookModeOpen && recipe.instructions && (
+      <CookMode
+        recipeName={recipe.name}
+        instructions={recipe.instructions}
+        ingredients={recipe.ingredients}
+        multiplier={multiplier}
+        onClose={() => setCookModeOpen(false)}
+      />
+    )}
+    </>
   );
 }
