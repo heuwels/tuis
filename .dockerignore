@@ -28,6 +28,3 @@ Thumbs.db
 # Misc
 README.md
 .env*
-
-# Keep CSV for seeding
-!chore-calendar.csv
