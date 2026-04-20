@@ -420,6 +420,9 @@ export function VehicleDetail({
   const [costSummary, setCostSummary] = useState<VehicleCostSummary | null>(
     null
   );
+  const [deletingFuelLogId, setDeletingFuelLogId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     if (vehicle && activeTab === "costs") {
@@ -436,6 +439,24 @@ export function VehicleDetail({
       setCostSummary(null);
     }
     onOpenChange(isOpen);
+  };
+
+  const handleDeleteFuelLog = async (logId: number) => {
+    if (!confirm("Delete this fuel log? This cannot be undone.")) return;
+    setDeletingFuelLogId(logId);
+    try {
+      const response = await fetch(
+        `/api/vehicles/${vehicle!.id}/fuel/${logId}`,
+        { method: "DELETE" }
+      );
+      if (response.ok) {
+        onRefresh?.();
+      }
+    } catch (error) {
+      console.error("Error deleting fuel log:", error);
+    } finally {
+      setDeletingFuelLogId(null);
+    }
   };
 
   if (!vehicle) return null;
@@ -687,12 +708,23 @@ export function VehicleDetail({
                             </p>
                           )}
                         </div>
-                        <Badge
-                          variant="secondary"
-                          className="bg-green-100 text-green-800 whitespace-nowrap"
-                        >
-                          ${log.costTotal.toFixed(2)}
-                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <Badge
+                            variant="secondary"
+                            className="bg-green-100 text-green-800 whitespace-nowrap"
+                          >
+                            ${log.costTotal.toFixed(2)}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-red-600"
+                            onClick={() => handleDeleteFuelLog(log.id)}
+                            disabled={deletingFuelLogId === log.id}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
