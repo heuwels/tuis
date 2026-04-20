@@ -20,11 +20,13 @@ import {
   CreditCard,
   Percent,
   TrendingUp,
+  DollarSign,
 } from "lucide-react";
 import {
   MortgagePayment,
   MortgageRate,
   PropertyValuation,
+  PropertyIncome,
 } from "@/types";
 
 function formatCurrency(amount: number): string {
@@ -58,6 +60,7 @@ export function PaymentsTab({ propertyId }: { propertyId: number | null }) {
       <MortgagePaymentsSection propertyId={propertyId} />
       <RateHistorySection propertyId={propertyId} />
       <ValuationsSection propertyId={propertyId} />
+      <IncomeSection propertyId={propertyId} />
     </div>
   );
 }
@@ -910,6 +913,391 @@ function ValuationFormDialog({
                 : valuation
                   ? "Save Changes"
                   : "Add Valuation"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// MARK: - Income Section
+
+function IncomeSection({ propertyId }: { propertyId: number }) {
+  const [income, setIncome] = useState<PropertyIncome[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<PropertyIncome | null>(null);
+
+  const fetchIncome = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `/api/finance/properties/${propertyId}/income`
+      );
+      if (res.ok) setIncome(await res.json());
+    } catch (error) {
+      console.error("Error fetching income:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [propertyId]);
+
+  useEffect(() => {
+    fetchIncome();
+  }, [fetchIncome]);
+
+  const handleDelete = async (item: PropertyIncome) => {
+    if (!window.confirm("Delete this income record? This cannot be undone."))
+      return;
+    try {
+      const res = await fetch(
+        `/api/finance/properties/${propertyId}/income/${item.id}`,
+        { method: "DELETE" }
+      );
+      if (res.ok) fetchIncome();
+    } catch (error) {
+      console.error("Error deleting income:", error);
+    }
+  };
+
+  const totalIncome = income.reduce((sum, i) => sum + i.amount, 0);
+
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <h3 className="font-semibold">Income</h3>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Income
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <p className="text-center text-muted-foreground py-4">Loading...</p>
+        ) : income.length === 0 ? (
+          <p className="text-center text-muted-foreground py-4">
+            No income recorded yet.
+          </p>
+        ) : (
+          <div className="border rounded-lg overflow-hidden bg-white dark:bg-zinc-900">
+            {/* Desktop header */}
+            <div className="hidden md:grid md:grid-cols-[100px_1fr_90px_1fr_1fr_80px] gap-2 px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <span>Date</span>
+              <span className="text-right">Amount</span>
+              <span>Category</span>
+              <span>Tenant</span>
+              <span>Description</span>
+              <span>Actions</span>
+            </div>
+
+            <div className="divide-y">
+              {income.map((item) => (
+                <div key={item.id}>
+                  {/* Desktop row */}
+                  <div className="hidden md:grid md:grid-cols-[100px_1fr_90px_1fr_1fr_80px] gap-2 px-4 py-3 items-center">
+                    <span className="text-xs text-muted-foreground">
+                      {format(parseISO(item.date), "d MMM yy")}
+                    </span>
+                    <span className="text-sm font-semibold text-right text-green-600 dark:text-green-400">
+                      {formatCurrency(item.amount)}
+                    </span>
+                    <span className="text-xs capitalize">{item.category}</span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {item.tenant || "—"}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {item.description || "—"}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => {
+                          setEditing(item);
+                          setFormOpen(true);
+                        }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(item)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Mobile row */}
+                  <div className="md:hidden px-4 py-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-green-600 dark:text-green-400">
+                          {formatCurrency(item.amount)}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-muted-foreground">
+                            {format(parseISO(item.date), "d MMM yy")}
+                          </span>
+                          <span className="text-xs capitalize">
+                            {item.category}
+                          </span>
+                          {item.tenant && (
+                            <span className="text-xs text-muted-foreground">
+                              {item.tenant}
+                            </span>
+                          )}
+                        </div>
+                        {item.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                            {item.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setEditing(item);
+                            setFormOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          onClick={() => handleDelete(item)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Totals row */}
+              <div className="hidden md:grid md:grid-cols-[100px_1fr_90px_1fr_1fr_80px] gap-2 px-4 py-2 bg-gray-50 dark:bg-zinc-800 text-xs font-semibold">
+                <span>Total</span>
+                <span className="text-right text-green-600 dark:text-green-400">
+                  {formatCurrency(totalIncome)}
+                </span>
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <IncomeFormDialog
+          propertyId={propertyId}
+          open={formOpen}
+          onOpenChange={(open) => {
+            setFormOpen(open);
+            if (!open) setEditing(null);
+          }}
+          income={editing}
+          onSave={fetchIncome}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+// MARK: - Income Form Dialog
+
+function IncomeFormDialog({
+  propertyId,
+  open,
+  onOpenChange,
+  income,
+  onSave,
+}: {
+  propertyId: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  income: PropertyIncome | null;
+  onSave: () => void;
+}) {
+  const [date, setDate] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("rent");
+  const [description, setDescription] = useState("");
+  const [tenant, setTenant] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (income) {
+      setDate(income.date);
+      setAmount(income.amount.toString());
+      setCategory(income.category);
+      setDescription(income.description ?? "");
+      setTenant(income.tenant ?? "");
+      setNotes(income.notes ?? "");
+    } else {
+      setDate(new Date().toISOString().split("T")[0]);
+      setAmount("");
+      setCategory("rent");
+      setDescription("");
+      setTenant("");
+      setNotes("");
+    }
+  }, [income, open]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!date || !amount || !category) return;
+    setIsSaving(true);
+
+    try {
+      const url = income
+        ? `/api/finance/properties/${propertyId}/income/${income.id}`
+        : `/api/finance/properties/${propertyId}/income`;
+      const method = income ? "PUT" : "POST";
+
+      const body = {
+        date,
+        amount: parseFloat(amount),
+        category,
+        description: description.trim() || null,
+        tenant: tenant.trim() || null,
+        notes: notes.trim() || null,
+      };
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        onOpenChange(false);
+        onSave();
+      }
+    } catch (error) {
+      console.error("Error saving income:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[450px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {income ? "Edit Income" : "Add Income"}
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="inc-date">Date *</Label>
+              <Input
+                id="inc-date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="inc-amount">Amount ($) *</Label>
+              <Input
+                id="inc-amount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="inc-category">Category *</Label>
+            <select
+              id="inc-category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              required
+            >
+              <option value="rent">Rent</option>
+              <option value="bond">Bond</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="inc-tenant">Tenant</Label>
+            <Input
+              id="inc-tenant"
+              value={tenant}
+              onChange={(e) => setTenant(e.target.value)}
+              placeholder="Tenant name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="inc-description">Description</Label>
+            <Input
+              id="inc-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g., Monthly rent payment"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="inc-notes">Notes</Label>
+            <Textarea
+              id="inc-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSaving || !date || !amount || !category}
+            >
+              {isSaving
+                ? "Saving..."
+                : income
+                  ? "Save Changes"
+                  : "Add Income"}
             </Button>
           </div>
         </form>

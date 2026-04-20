@@ -363,5 +363,20 @@ export type MortgagePayment = typeof mortgagePayments.$inferSelect;
 export type NewMortgagePayment = typeof mortgagePayments.$inferInsert;
 export type PropertyValuation = typeof propertyValuations.$inferSelect;
 export type NewPropertyValuation = typeof propertyValuations.$inferInsert;
+export const propertyIncome = sqliteTable("property_income", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  propertyId: integer("property_id").notNull().references(() => properties.id),
+  date: text("date").notNull(),
+  amount: real("amount").notNull(),
+  category: text("category").notNull(), // rent, bond, other
+  description: text("description"),
+  tenant: text("tenant"),
+  notes: text("notes"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
 export type HouseholdExpense = typeof householdExpenses.$inferSelect;
 export type NewHouseholdExpense = typeof householdExpenses.$inferInsert;
+export type PropertyIncome = typeof propertyIncome.$inferSelect;
+export type NewPropertyIncome = typeof propertyIncome.$inferInsert;
