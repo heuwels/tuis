@@ -76,6 +76,7 @@ export const shoppingItems = sqliteTable("shopping_items", {
   quantity: text("quantity"),
   checked: integer("checked", { mode: "boolean" }).default(false),
   sortOrder: integer("sort_order").default(0),
+  category: text("category"),
   addedBy: integer("added_by").references(() => users.id),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
@@ -83,6 +84,7 @@ export const shoppingItems = sqliteTable("shopping_items", {
 export const itemHistory = sqliteTable("item_history", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull().unique(),
+  category: text("category"),
   useCount: integer("use_count").default(1),
   lastUsed: text("last_used").default("CURRENT_TIMESTAMP"),
 });

@@ -54,6 +54,7 @@ function createTables() {
       quantity TEXT,
       checked INTEGER DEFAULT 0,
       sort_order INTEGER DEFAULT 0,
+      category TEXT,
       added_by INTEGER REFERENCES users(id),
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { shoppingItems, itemHistory } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
+import { categorizeItem } from "@/lib/shopping-categories";
 
 export async function POST(request: Request) {
   try {
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
     if (authError) return authError;
 
     const body = await request.json();
-    const { listId, name, quantity, addedBy } = body;
+    const { listId, name, quantity, addedBy, category: explicitCategory } = body;
 
     if (!listId || !name) {
       return NextResponse.json(
@@ -19,29 +20,51 @@ export async function POST(request: Request) {
       );
     }
 
+    // Resolve category: explicit > history > auto-detect
+    const normalizedName = name.trim().toLowerCase();
+    let resolvedCategory: string | null = explicitCategory || null;
+
+    if (!resolvedCategory) {
+      // Check item history for a previously stored category
+      const historyRows = await db
+        .select({ category: itemHistory.category })
+        .from(itemHistory)
+        .where(eq(itemHistory.name, normalizedName))
+        .limit(1);
+      if (historyRows.length > 0 && historyRows[0].category) {
+        resolvedCategory = historyRows[0].category;
+      }
+    }
+
+    if (!resolvedCategory) {
+      resolvedCategory = categorizeItem(name.trim());
+    }
+
     // Add item to list
     const result = await db.insert(shoppingItems).values({
       listId,
       name: name.trim(),
       quantity: quantity || null,
+      category: resolvedCategory,
       addedBy: addedBy || null,
     });
 
-    // Update item history for autocomplete
-    const normalizedName = name.trim().toLowerCase();
+    // Update item history for autocomplete (including category)
     try {
       await db.insert(itemHistory).values({
         name: normalizedName,
+        category: resolvedCategory,
         useCount: 1,
         lastUsed: new Date().toISOString(),
       });
     } catch {
-      // Item already exists, update count
+      // Item already exists, update count and category
       await db
         .update(itemHistory)
         .set({
           useCount: sql`${itemHistory.useCount} + 1`,
           lastUsed: new Date().toISOString(),
+          ...(resolvedCategory ? { category: resolvedCategory } : {}),
         })
         .where(eq(itemHistory.name, normalizedName));
     }
