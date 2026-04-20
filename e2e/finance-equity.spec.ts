@@ -25,9 +25,7 @@ async function cleanupTestProperties(request: import("@playwright/test").APIRequ
     const res = await request.get("/api/finance/properties");
     const properties = await res.json();
     for (const prop of properties) {
-      if (prop.address.startsWith(TEST_PREFIX)) {
-        await request.delete(`/api/finance/properties/${prop.id}`);
-      }
+      await request.delete(`/api/finance/properties/${prop.id}`);
     }
   } catch {
     console.warn("Cleanup failed for finance properties");
