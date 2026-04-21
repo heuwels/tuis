@@ -62,14 +62,18 @@ export function areUnitsCompatible(
 }
 
 function toBase(amount: number, unit: IngredientUnit): number {
-  return amount * TO_BASE[unit].factor;
+  const entry = TO_BASE[unit];
+  if (!entry) return amount;
+  return amount * entry.factor;
 }
 
 function fromBase(
   baseAmount: number,
   targetUnit: IngredientUnit
 ): number {
-  return baseAmount / TO_BASE[targetUnit].factor;
+  const entry = TO_BASE[targetUnit];
+  if (!entry) return baseAmount;
+  return baseAmount / entry.factor;
 }
 
 /** Pick the best display unit for a base amount in a given group */
@@ -108,9 +112,10 @@ export function scaleAmount(
   multiplier: number
 ): { amount: number; unit: IngredientUnit } {
   const scaled = amount * multiplier;
+  const entry = TO_BASE[unit];
+  if (!entry) return { amount: scaled, unit };
   const baseAmount = toBase(scaled, unit);
-  const base = TO_BASE[unit].base;
-  return bestUnit(baseAmount, base);
+  return bestUnit(baseAmount, entry.base);
 }
 
 // Common fractions for cooking display
@@ -257,7 +262,13 @@ export function aggregateIngredients(
     >();
 
     for (const entry of structured) {
-      const base = TO_BASE[entry.unit].base;
+      const convEntry = TO_BASE[entry.unit];
+      if (!convEntry) {
+        // Unknown unit — treat as legacy
+        legacy.push(entry);
+        continue;
+      }
+      const base = convEntry.base;
       const baseKey = base;
 
       if (unitBuckets.has(baseKey)) {
