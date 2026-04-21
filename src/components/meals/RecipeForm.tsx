@@ -31,7 +31,7 @@ import {
 interface Ingredient {
   name: string;
   amount: string;
-  unit: IngredientUnit | "";
+  unit: string; // IngredientUnit or custom string like "bunch", "clove"
   section: string;
   // Legacy field for old recipes
   legacyQuantity?: string;
@@ -346,23 +346,51 @@ export function RecipeForm({
                   placeholder="Amt"
                   className="w-[72px]"
                 />
-                <Select
-                  value={ing.unit || undefined}
-                  onValueChange={(val) =>
-                    handleIngredientChange(index, "unit", val)
-                  }
-                >
-                  <SelectTrigger className="w-[88px]">
-                    <SelectValue placeholder="Unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNITS.map((u) => (
-                      <SelectItem key={u} value={u}>
-                        {UNIT_LABELS[u]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {ing.unit && !(UNITS as readonly string[]).includes(ing.unit) ? (
+                  <div className="flex gap-1">
+                    <Input
+                      value={ing.unit}
+                      onChange={(e) =>
+                        handleIngredientChange(index, "unit", e.target.value)
+                      }
+                      placeholder="e.g. bunch"
+                      className="w-[88px]"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-6 flex-shrink-0"
+                      onClick={() => handleIngredientChange(index, "unit", "")}
+                      title="Switch back to unit picker"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Select
+                    value={ing.unit || undefined}
+                    onValueChange={(val) => {
+                      if (val === "__other__") {
+                        handleIngredientChange(index, "unit", "other");
+                      } else {
+                        handleIngredientChange(index, "unit", val);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[88px]">
+                      <SelectValue placeholder="Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UNITS.map((u) => (
+                        <SelectItem key={u} value={u}>
+                          {UNIT_LABELS[u]}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="__other__">other...</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </>
             )}
             <Input
