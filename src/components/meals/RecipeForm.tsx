@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, GripVertical, SeparatorHorizontal, Upload, X, Link as LinkIcon } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, SeparatorHorizontal, Upload, X, Link as LinkIcon } from "lucide-react";
 import { resolveFileUrl } from "@/lib/file-url";
 import { Recipe } from "./RecipeCard";
 import {
@@ -294,7 +294,32 @@ export function RecipeForm({
             </div>
           )}
           <div className="flex items-center gap-1.5">
-            <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex flex-col flex-shrink-0">
+              <button
+                type="button"
+                disabled={index === 0}
+                onClick={() => {
+                  const updated = [...ingredients];
+                  [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+                  setIngredients(updated);
+                }}
+                className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-0 h-3"
+              >
+                <ChevronUp className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                disabled={index === ingredients.length - 1}
+                onClick={() => {
+                  const updated = [...ingredients];
+                  [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+                  setIngredients(updated);
+                }}
+                className="text-muted-foreground hover:text-foreground disabled:opacity-30 p-0 h-3"
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </button>
+            </div>
             {ing.legacyQuantity !== undefined && !ing.amount && !ing.unit ? (
               // Legacy freetext fallback
               <Input
