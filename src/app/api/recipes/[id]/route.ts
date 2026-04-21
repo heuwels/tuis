@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { recipes, recipeIngredients } from "@/lib/db/schema";
+import { recipes, recipeIngredients, mealPlan } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { formatIngredient, IngredientUnit } from "@/lib/ingredients";
 import { validateApiRequest } from "@/lib/auth/validate";
@@ -127,6 +127,8 @@ export async function DELETE(
     const { id } = await params;
     const recipeId = parseInt(id);
 
+    // Clear meal plan references (no CASCADE on this FK)
+    await db.update(mealPlan).set({ recipeId: null }).where(eq(mealPlan.recipeId, recipeId));
     // Ingredients are deleted via ON DELETE CASCADE
     const result = await db.delete(recipes).where(eq(recipes.id, recipeId));
 
