@@ -225,3 +225,16 @@ export interface HouseholdExpense {
 export interface HouseholdExpenseWithVendor extends HouseholdExpense {
   vendorName?: string | null;
 }
+
+export interface PropertyIncome {
+  id: number;
+  propertyId: number;
+  date: string;
+  amount: number;
+  category: string;
+  description: string | null;
+  tenant: string | null;
+  notes: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}

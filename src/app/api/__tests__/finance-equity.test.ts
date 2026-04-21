@@ -56,6 +56,18 @@ function createTables() {
       notes TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS property_income (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id INTEGER NOT NULL REFERENCES properties(id),
+      date TEXT NOT NULL,
+      amount REAL NOT NULL,
+      category TEXT NOT NULL,
+      description TEXT,
+      tenant TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 }
 

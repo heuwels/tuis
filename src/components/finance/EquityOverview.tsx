@@ -22,6 +22,8 @@ interface TimelineEntry {
   cumulativePrincipal: number;
   loanBalance: number;
   equity: number;
+  income: number;
+  netCashflow: number;
 }
 
 interface EquityData {
@@ -32,6 +34,10 @@ interface EquityData {
   equityFromAppreciation: number;
   lvr: number | null;
   currentRate: number | null;
+  totalIncome: number;
+  totalCosts: number;
+  netCashflow: number;
+  grossYield: number | null;
   paymentSummary: {
     totalPaid: number;
     totalInterest: number;
@@ -150,10 +156,26 @@ export function EquityOverview({
       ? (equity.equityFromPrincipal / totalEquityBar) * 100
       : 50;
 
+  const hasIncome = equity.monthlyTimeline.some((e) => e.income > 0);
+  const activeTimelineMetrics: MetricConfig<TimelineEntry>[] = hasIncome
+    ? [
+        ...timelineMetrics,
+        {
+          key: "income",
+          getValue: (d: TimelineEntry) => d.income,
+          label: "Income",
+          color: "text-emerald-500",
+          dotColor: "bg-emerald-500",
+          strokeColor: "#10b981",
+          format: (v: number) => formatCurrency.format(v),
+        },
+      ]
+    : timelineMetrics;
+
   return (
     <div className="space-y-4">
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <MetricCard
           label="Current Value"
           value={formatCurrency.format(equity.currentValue)}
@@ -181,6 +203,24 @@ export function EquityOverview({
           }
           color="amber"
         />
+        {equity.totalIncome > 0 && (
+          <MetricCard
+            label="Net Cashflow"
+            value={`${equity.netCashflow >= 0 ? "+" : ""}${formatCurrency.format(equity.netCashflow)}`}
+            color={equity.netCashflow >= 0 ? "green" : "red"}
+          />
+        )}
+        {equity.totalIncome > 0 && (
+          <MetricCard
+            label="Gross Yield"
+            value={
+              equity.grossYield !== null
+                ? `${(equity.grossYield * 100).toFixed(1)}%`
+                : "\u2014"
+            }
+            color="purple"
+          />
+        )}
       </div>
 
       {/* Equity Breakdown */}
@@ -218,7 +258,7 @@ export function EquityOverview({
         <div className="p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg">
           <MultiLineChart
             data={equity.monthlyTimeline}
-            metrics={timelineMetrics}
+            metrics={activeTimelineMetrics}
             getLabel={(d) => formatMonth(d.month)}
             title="Equity Over Time"
           />

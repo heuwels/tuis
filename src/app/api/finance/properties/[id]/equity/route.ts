@@ -5,6 +5,7 @@ import {
   mortgagePayments,
   propertyValuations,
   mortgageRates,
+  propertyIncome,
 } from "@/lib/db/schema";
 import { eq, asc, desc } from "drizzle-orm";
 import { format, addMonths, isBefore, startOfMonth } from "date-fns";
@@ -39,8 +40,8 @@ export async function GET(
 
     const property = propertyResult[0];
 
-    // Fetch all payments (ASC), all valuations (ASC), latest rate
-    const [payments, valuations, rates] = await Promise.all([
+    // Fetch all payments (ASC), all valuations (ASC), latest rate, all income (ASC)
+    const [payments, valuations, rates, incomeRecords] = await Promise.all([
       db
         .select()
         .from(mortgagePayments)
@@ -57,6 +58,11 @@ export async function GET(
         .where(eq(mortgageRates.propertyId, propertyId))
         .orderBy(desc(mortgageRates.effectiveDate))
         .limit(1),
+      db
+        .select()
+        .from(propertyIncome)
+        .where(eq(propertyIncome.propertyId, propertyId))
+        .orderBy(asc(propertyIncome.date)),
     ]);
 
     // Current value: latest valuation or purchase price
@@ -92,6 +98,29 @@ export async function GET(
     const avgMonthlyPayment =
       payments.length > 0 ? totalPaid / payments.length : 0;
 
+    // Income calculations
+    const totalIncome = incomeRecords.reduce((sum, i) => sum + i.amount, 0);
+    const totalCosts = totalPaid;
+    const netCashflow = totalIncome - totalCosts;
+
+    // Gross yield: annualize income if we have data spanning at least one month
+    let grossYield: number | null = null;
+    if (incomeRecords.length > 0 && currentValue > 0) {
+      const firstIncomeDate = new Date(incomeRecords[0].date);
+      const lastIncomeDate = new Date(incomeRecords[incomeRecords.length - 1].date);
+      const monthsOfData =
+        (lastIncomeDate.getFullYear() - firstIncomeDate.getFullYear()) * 12 +
+        (lastIncomeDate.getMonth() - firstIncomeDate.getMonth());
+      if (monthsOfData >= 1) {
+        const annualIncome = (totalIncome / monthsOfData) * 12;
+        grossYield = annualIncome / currentValue;
+      } else if (incomeRecords.length >= 1) {
+        // Less than a month of data but have records — annualize from count=1 month
+        const annualIncome = totalIncome * 12;
+        grossYield = annualIncome / currentValue;
+      }
+    }
+
     // Monthly timeline: one entry per month from first payment to now
     const monthlyTimeline: Array<{
       month: string;
@@ -99,6 +128,8 @@ export async function GET(
       cumulativePrincipal: number;
       loanBalance: number;
       equity: number;
+      income: number;
+      netCashflow: number;
     }> = [];
 
     if (payments.length > 0) {
@@ -132,12 +163,30 @@ export async function GET(
         const monthLoanBalance =
           property.loanAmountOriginal - cumulativePrincipal;
 
+        // Sum income for this month
+        let monthIncome = 0;
+        for (const inc of incomeRecords) {
+          if (inc.date.substring(0, 7) === monthStr) {
+            monthIncome += inc.amount;
+          }
+        }
+
+        // Sum payments for this month
+        let monthPayment = 0;
+        for (const p of payments) {
+          if (p.date.substring(0, 7) === monthStr) {
+            monthPayment += p.paymentAmount;
+          }
+        }
+
         monthlyTimeline.push({
           month: monthStr,
           estimatedValue,
           cumulativePrincipal,
           loanBalance: monthLoanBalance,
           equity: estimatedValue - monthLoanBalance,
+          income: monthIncome,
+          netCashflow: monthIncome - monthPayment,
         });
 
         currentMonth = addMonths(currentMonth, 1);
@@ -152,6 +201,10 @@ export async function GET(
       equityFromAppreciation,
       lvr,
       currentRate,
+      totalIncome,
+      totalCosts,
+      netCashflow,
+      grossYield,
       paymentSummary: {
         totalPaid,
         totalInterest,
