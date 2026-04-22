@@ -376,7 +376,16 @@ export const propertyIncome = sqliteTable("property_income", {
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
 });
 
+export const householdSettings = sqliteTable("household_settings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  measurementSystem: text("measurement_system").notNull().default("metric"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
+});
+
 export type HouseholdExpense = typeof householdExpenses.$inferSelect;
 export type NewHouseholdExpense = typeof householdExpenses.$inferInsert;
 export type PropertyIncome = typeof propertyIncome.$inferSelect;
 export type NewPropertyIncome = typeof propertyIncome.$inferInsert;
+export type HouseholdSettings = typeof householdSettings.$inferSelect;
+export type NewHouseholdSettings = typeof householdSettings.$inferInsert;

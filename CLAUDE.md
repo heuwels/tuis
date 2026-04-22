@@ -2,6 +2,13 @@
 
 **IMPORTANT: Before making any changes, read `CONTRIBUTING.md` for test requirements. All unit tests, lint, and e2e tests must pass locally before raising a PR.**
 
+## Branching & PRs
+
+- **`master` is the main trunk** and is branch-protected. Never push directly to master.
+- All changes must be made on a feature branch and merged via pull request.
+- Branch naming: `feature/<name>`, `fix/<name>`, `chore/<name>`
+- Create a PR with `gh pr create` after pushing your branch.
+
 ## Overview
 Tuis (Afrikaans for "at home") is a self-hosted household management web app built with Next.js. It handles chores, meal planning, shopping lists, recipes, appliance tracking, vendor management, quotes, and couple activities.
 
