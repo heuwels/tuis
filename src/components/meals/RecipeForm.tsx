@@ -26,6 +26,8 @@ import {
   IngredientUnit,
   UNIT_LABELS,
   parseQuantityString,
+  getUnitsForSystem,
+  type MeasurementSystem,
 } from "@/lib/ingredients";
 
 interface Ingredient {
@@ -90,6 +92,18 @@ export function RecipeForm({
     { name: "", amount: "", unit: "", section: "" },
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [displayUnits, setDisplayUnits] = useState<IngredientUnit[]>([...getUnitsForSystem("metric")]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/household-settings", { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        setDisplayUnits(getUnitsForSystem(data.measurementSystem || "metric"));
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     if (recipe) {
@@ -382,7 +396,7 @@ export function RecipeForm({
                       <SelectValue placeholder="Unit" />
                     </SelectTrigger>
                     <SelectContent>
-                      {UNITS.map((u) => (
+                      {displayUnits.map((u) => (
                         <SelectItem key={u} value={u}>
                           {UNIT_LABELS[u]}
                         </SelectItem>

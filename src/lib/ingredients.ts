@@ -1,8 +1,14 @@
 export const UNITS = [
   "g",
   "kg",
+  "oz",
+  "lb",
   "mL",
   "L",
+  "fl oz",
+  "pint",
+  "quart",
+  "gallon",
   "cup",
   "tbsp",
   "tsp",
@@ -11,11 +17,19 @@ export const UNITS = [
 
 export type IngredientUnit = (typeof UNITS)[number];
 
+export type MeasurementSystem = "metric" | "imperial";
+
 export const UNIT_LABELS: Record<IngredientUnit, string> = {
   g: "g",
   kg: "kg",
+  oz: "oz",
+  lb: "lb",
   mL: "mL",
   L: "L",
+  "fl oz": "fl oz",
+  pint: "pint",
+  quart: "quart",
+  gallon: "gallon",
   cup: "cup",
   tbsp: "tbsp",
   tsp: "tsp",
@@ -23,26 +37,43 @@ export const UNIT_LABELS: Record<IngredientUnit, string> = {
 };
 
 export const UNIT_GROUPS: Record<string, IngredientUnit[]> = {
-  weight: ["g", "kg"],
-  metricVolume: ["mL", "L"],
+  weight: ["g", "kg", "oz", "lb"],
+  volume: ["mL", "L", "fl oz", "pint", "quart", "gallon"],
   cookingVolume: ["tsp", "tbsp", "cup"],
   countable: ["whole"],
 };
 
 // Conversion to base unit within each group
+// Imperial weight converts through g; imperial volume converts through mL
+// so cross-system aggregation works correctly
 const TO_BASE: Record<
   IngredientUnit,
   { base: IngredientUnit; factor: number }
 > = {
   g: { base: "g", factor: 1 },
   kg: { base: "g", factor: 1000 },
+  oz: { base: "g", factor: 28.3495 },
+  lb: { base: "g", factor: 453.592 },
   mL: { base: "mL", factor: 1 },
   L: { base: "mL", factor: 1000 },
+  "fl oz": { base: "mL", factor: 29.5735 },
+  pint: { base: "mL", factor: 473.176 },
+  quart: { base: "mL", factor: 946.353 },
+  gallon: { base: "mL", factor: 3785.41 },
   tsp: { base: "tsp", factor: 1 },
   tbsp: { base: "tsp", factor: 3 },
   cup: { base: "tsp", factor: 48 },
   whole: { base: "whole", factor: 1 },
 };
+
+/** Get the filtered list of units for a measurement system */
+export function getUnitsForSystem(system: MeasurementSystem): IngredientUnit[] {
+  if (system === "imperial") {
+    return ["oz", "lb", "fl oz", "pint", "quart", "gallon", "cup", "tbsp", "tsp", "whole"];
+  }
+  // metric (default)
+  return ["g", "kg", "mL", "L", "cup", "tbsp", "tsp", "whole"];
+}
 
 function getUnitGroup(unit: IngredientUnit): IngredientUnit[] | null {
   for (const group of Object.values(UNIT_GROUPS)) {
@@ -76,21 +107,38 @@ function fromBase(
   return baseAmount / entry.factor;
 }
 
-/** Pick the best display unit for a base amount in a given group */
+/** Pick the best display unit for a base amount in a given group.
+ *  When originalUnit is provided, stays within the same system (metric/imperial). */
 function bestUnit(
   baseAmount: number,
-  baseUnit: IngredientUnit
+  baseUnit: IngredientUnit,
+  originalUnit?: IngredientUnit
 ): { amount: number; unit: IngredientUnit } {
+  const isImperialWeight = originalUnit && ["oz", "lb"].includes(originalUnit);
+  const isImperialVolume = originalUnit && ["fl oz", "pint", "quart", "gallon"].includes(originalUnit);
+
   // Weight: g base
   if (baseUnit === "g") {
+    if (isImperialWeight) {
+      // Stay in imperial
+      if (baseAmount >= 453.592) return { amount: baseAmount / 453.592, unit: "lb" };
+      return { amount: baseAmount / 28.3495, unit: "oz" };
+    }
     if (baseAmount >= 1000) return { amount: baseAmount / 1000, unit: "kg" };
     if (baseAmount < 1 && baseAmount > 0)
       return { amount: baseAmount, unit: "g" };
     return { amount: baseAmount, unit: "g" };
   }
 
-  // Metric volume: mL base
+  // Volume: mL base
   if (baseUnit === "mL") {
+    if (isImperialVolume) {
+      // Stay in imperial
+      if (baseAmount >= 3785.41) return { amount: baseAmount / 3785.41, unit: "gallon" };
+      if (baseAmount >= 946.353) return { amount: baseAmount / 946.353, unit: "quart" };
+      if (baseAmount >= 473.176) return { amount: baseAmount / 473.176, unit: "pint" };
+      return { amount: baseAmount / 29.5735, unit: "fl oz" };
+    }
     if (baseAmount >= 1000) return { amount: baseAmount / 1000, unit: "L" };
     return { amount: baseAmount, unit: "mL" };
   }
@@ -115,7 +163,7 @@ export function scaleAmount(
   const entry = TO_BASE[unit];
   if (!entry) return { amount: scaled, unit };
   const baseAmount = toBase(scaled, unit);
-  return bestUnit(baseAmount, entry.base);
+  return bestUnit(baseAmount, entry.base, unit);
 }
 
 // Common fractions for cooking display
@@ -193,8 +241,8 @@ export function formatIngredient(
 
   if (unit === "whole") return formatted;
 
-  // No space for g, kg, mL, L; space for cup, tbsp, tsp
-  if (["g", "kg", "mL", "L"].includes(unit)) {
+  // No space for compact metric/imperial abbreviations
+  if (["g", "kg", "mL", "L", "oz", "lb"].includes(unit)) {
     return `${formatted}${unit}`;
   }
 
@@ -284,7 +332,7 @@ export function aggregateIngredients(
     }
 
     for (const bucket of unitBuckets.values()) {
-      const best = bestUnit(bucket.baseAmount, bucket.baseUnit);
+      const best = bestUnit(bucket.baseAmount, bucket.baseUnit, bucket.originalUnit);
       result.push({
         name: group.name,
         amount: best.amount,
@@ -320,6 +368,13 @@ const UNIT_ALIASES: Record<string, IngredientUnit> = {
   kg: "kg",
   kilogram: "kg",
   kilograms: "kg",
+  oz: "oz",
+  ounce: "oz",
+  ounces: "oz",
+  lb: "lb",
+  lbs: "lb",
+  pound: "lb",
+  pounds: "lb",
   ml: "mL",
   milliliter: "mL",
   milliliters: "mL",
@@ -330,6 +385,17 @@ const UNIT_ALIASES: Record<string, IngredientUnit> = {
   liters: "L",
   litre: "L",
   litres: "L",
+  "fl oz": "fl oz",
+  floz: "fl oz",
+  pint: "pint",
+  pints: "pint",
+  pt: "pint",
+  quart: "quart",
+  quarts: "quart",
+  qt: "quart",
+  gallon: "gallon",
+  gallons: "gallon",
+  gal: "gallon",
   cup: "cup",
   cups: "cup",
   tbsp: "tbsp",
@@ -358,10 +424,10 @@ export function parseQuantityString(
   if (!qty) return null;
   const s = qty.trim();
 
-  // Match: optional whole number, optional fraction, optional unit
-  // e.g. "2 cups", "1/2 tsp", "1 1/2 cup", "200g", "200 g", "3"
+  // Match: optional whole number, optional fraction, optional unit (may contain spaces, e.g. "fl oz")
+  // e.g. "2 cups", "1/2 tsp", "1 1/2 cup", "200g", "200 g", "3", "4 fl oz"
   const match = s.match(
-    /^(\d+(?:\.\d+)?)?\s*(?:(\d+\/\d+))?\s*([a-zA-Z]+)?$/
+    /^(\d+(?:\.\d+)?)?\s*(?:(\d+\/\d+))?\s*([a-zA-Z]+(?:\s+[a-zA-Z]+)*)?$/
   );
 
   if (!match) return null;

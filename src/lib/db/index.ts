@@ -331,6 +331,13 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS household_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      measurement_system TEXT NOT NULL DEFAULT 'metric',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Add new columns if they don't exist (migrations for existing databases)
