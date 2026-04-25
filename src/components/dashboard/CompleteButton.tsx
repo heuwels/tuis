@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -32,8 +32,11 @@ export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonP
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { currentUser } = useCurrentUser();
+  const completingRef = useRef(false);
 
   const completeTask = async (date?: Date) => {
+    if (completingRef.current) return;
+    completingRef.current = true;
     setIsLoading(true);
     try {
       const response = await fetch(`/api/tasks/${taskId}/complete`, {
@@ -52,6 +55,7 @@ export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonP
     } catch (error) {
       console.error("Error completing task:", error);
     } finally {
+      completingRef.current = false;
       setIsLoading(false);
     }
   };

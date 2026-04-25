@@ -78,7 +78,7 @@ export function CompletionDetailsDialog({
         body: JSON.stringify({
           completedDate: format(date, "yyyy-MM-dd"),
           completedBy: currentUser?.id || null,
-          vendorId: selectedVendorId ? parseInt(selectedVendorId) : null,
+          vendorId: selectedVendorId && selectedVendorId !== "none" ? parseInt(selectedVendorId) : null,
           cost: cost || null,
         }),
       });
@@ -144,7 +144,7 @@ export function CompletionDetailsDialog({
                 <SelectValue placeholder="Select a vendor" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {vendors.map((vendor) => (
                   <SelectItem key={vendor.id} value={vendor.id.toString()}>
                     {vendor.name}
