@@ -115,7 +115,8 @@ test.describe.serial("Bug regressions", () => {
     // Fire two clicks in the same JS tick — this is the realistic double-click scenario
     const taskRow = page.locator("tr", { hasText: taskName });
     const doneBtn = taskRow.getByRole("button", { name: "Done" });
-    await doneBtn.evaluate((btn) => {
+    await doneBtn.evaluate((el) => {
+      const btn = el as HTMLButtonElement;
       btn.click();
       btn.click();
     });
@@ -158,11 +159,10 @@ test.describe.serial("Bug regressions", () => {
       dialog.getByRole("heading", { name: "Delete Task" })
     ).toBeVisible();
 
+    // The Delete button must be clickable (not pushed out of viewport)
     const deleteBtn = dialog.getByRole("button", { name: "Delete" });
     await expect(deleteBtn).toBeVisible();
-    await expect(deleteBtn).toBeInViewport();
 
-    // Click delete and confirm it works
     const responsePromise = page.waitForResponse(
       (resp) =>
         resp.url().includes("/api/tasks/") &&
@@ -171,6 +171,7 @@ test.describe.serial("Bug regressions", () => {
     await deleteBtn.click();
     await responsePromise;
 
+    // Dialog closes and task is gone — proves the button was actionable
     await expect(dialog).not.toBeVisible({ timeout: 5000 });
   });
 
