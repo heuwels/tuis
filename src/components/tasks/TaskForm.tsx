@@ -139,6 +139,12 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
     setIsLoading(true);
     setError("");
 
+    if (!formData.area || !formData.frequency) {
+      setError("Area and frequency are required");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const url = isEditing ? `/api/tasks/${task.id}` : "/api/tasks";
       const method = isEditing ? "PUT" : "POST";

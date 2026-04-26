@@ -58,8 +58,11 @@ export function DeleteTaskDialog({
         <DialogHeader>
           <DialogTitle>Delete Task</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete &ldquo;{task?.name}&rdquo;? This action
-            cannot be undone.
+            Are you sure you want to delete &ldquo;
+            {task?.name && task.name.length > 100
+              ? task.name.slice(0, 100) + "…"
+              : task?.name}
+            &rdquo;? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
 
