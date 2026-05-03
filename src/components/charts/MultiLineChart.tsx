@@ -35,7 +35,7 @@ function ChartTooltip({
   active?: boolean;
   payload?: { dataKey: string; payload: Record<string, number | null> }[];
   label?: string;
-  metrics: MetricConfig<unknown>[];
+  metrics: MetricConfig<never>[];
 }) {
   if (!active || !payload?.length) return null;
   return (
