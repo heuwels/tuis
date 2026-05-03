@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
 export interface MetricConfig<T> {
   key: string;
   getValue: (d: T) => number | null;
@@ -17,6 +26,40 @@ interface MultiLineChartProps<T> {
   title: string;
 }
 
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  metrics,
+}: {
+  active?: boolean;
+  payload?: { dataKey: string; payload: Record<string, number | null> }[];
+  label?: string;
+  metrics: MetricConfig<never>[];
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-md">
+      <p className="font-medium mb-1">{label}</p>
+      {metrics.map((m) => {
+        const entry = payload.find((p) => p.dataKey === m.key);
+        const raw = entry?.payload[`${m.key}_raw`];
+        if (raw == null) return null;
+        return (
+          <div key={m.key} className="flex items-center gap-2">
+            <span
+              className={`w-2 h-2 rounded-full shrink-0 ${m.dotColor}`}
+            />
+            <span className="text-muted-foreground">
+              {m.label}: {m.format(raw)}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function MultiLineChart<T>({
   data,
   metrics,
@@ -25,103 +68,76 @@ export function MultiLineChart<T>({
 }: MultiLineChartProps<T>) {
   if (data.length < 2) return null;
 
-  const width = 500;
-  const height = 120;
-  const padding = { top: 10, right: 10, bottom: 20, left: 10 };
-  const chartW = width - padding.left - padding.right;
-  const chartH = height - padding.top - padding.bottom;
+  // Normalize each series independently to [0, 1] for overlay comparison
+  const seriesStats: Record<
+    string,
+    { min: number; max: number; range: number }
+  > = {};
+  metrics.forEach((m) => {
+    const nums = data
+      .map((d) => m.getValue(d))
+      .filter((v): v is number => v !== null);
+    if (nums.length === 0) {
+      seriesStats[m.key] = { min: 0, max: 1, range: 1 };
+    } else {
+      const min = Math.min(...nums);
+      const max = Math.max(...nums);
+      seriesStats[m.key] = { min, max, range: max - min || 1 };
+    }
+  });
 
-  const xStep = data.length > 1 ? chartW / (data.length - 1) : 0;
-
-  function normalizeSeries(values: (number | null)[]): (number | null)[] {
-    const nums = values.filter((v): v is number => v !== null);
-    if (nums.length === 0) return values;
-    const min = Math.min(...nums);
-    const max = Math.max(...nums);
-    const range = max - min || 1;
-    return values.map((v) => (v !== null ? (v - min) / range : null));
-  }
+  const chartData = data.map((d) => {
+    const point: Record<string, string | number | null> = { label: getLabel(d) };
+    metrics.forEach((m) => {
+      const raw = m.getValue(d);
+      point[`${m.key}_raw`] = raw;
+      const { min, range } = seriesStats[m.key];
+      point[m.key] = raw !== null ? (raw - min) / range : null;
+    });
+    return point;
+  });
 
   return (
     <div>
       <p className="text-sm font-medium mb-2">{title}</p>
-      <div className="flex gap-3 mb-2">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 mb-2">
         {metrics.map((m) => (
           <div key={m.key} className="flex items-center gap-1">
             <div className={`w-2 h-2 rounded-full ${m.dotColor}`} />
-            <span className="text-[11px] text-muted-foreground">
-              {m.label}
-            </span>
+            <span className="text-[11px] text-muted-foreground">{m.label}</span>
           </div>
         ))}
       </div>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="w-full"
-        preserveAspectRatio="xMidYMid meet"
-      >
-        {/* X-axis labels */}
-        {data.map((d, i) => {
-          const step = Math.max(1, Math.floor(data.length / 6));
-          if (i % step !== 0 && i !== data.length - 1) return null;
-          return (
-            <text
-              key={getLabel(d)}
-              x={padding.left + i * xStep}
-              y={height - 2}
-              textAnchor="middle"
-              className="fill-muted-foreground"
-              fontSize="9"
-            >
-              {getLabel(d)}
-            </text>
-          );
-        })}
-
-        {/* Lines */}
-        {metrics.map((m) => {
-          const rawValues = data.map((d) => m.getValue(d));
-          const normalized = normalizeSeries(rawValues);
-
-          const points: { x: number; y: number; raw: number; idx: number }[] =
-            [];
-          normalized.forEach((v, i) => {
-            if (v !== null) {
-              points.push({
-                x: padding.left + i * xStep,
-                y: padding.top + chartH - v * chartH,
-                raw: rawValues[i]!,
-                idx: i,
-              });
-            }
-          });
-
-          if (points.length < 2) return null;
-
-          const pathD = points
-            .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
-            .join(" ");
-
-          return (
-            <g key={m.key}>
-              <path
-                d={pathD}
-                fill="none"
+      <div className="text-muted-foreground">
+        <ResponsiveContainer width="100%" height={180}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 5, right: 10, bottom: 0, left: 10 }}
+          >
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11, fill: "currentColor" }}
+              tickLine={false}
+              axisLine={false}
+              interval="preserveStartEnd"
+            />
+            <YAxis hide domain={[0, 1]} />
+            <Tooltip content={<ChartTooltip metrics={metrics} />} />
+            {metrics.map((m) => (
+              <Line
+                key={m.key}
+                type="monotone"
+                dataKey={m.key}
                 stroke={m.strokeColor}
-                strokeWidth="2"
-                strokeLinejoin="round"
+                strokeWidth={2}
+                dot={{ r: 3, fill: m.strokeColor }}
+                activeDot={{ r: 5 }}
+                connectNulls
               />
-              {points.map((p, i) => (
-                <circle key={i} cx={p.x} cy={p.y} r="2.5" fill={m.strokeColor}>
-                  <title>
-                    {getLabel(data[p.idx])}: {m.format(p.raw)}
-                  </title>
-                </circle>
-              ))}
-            </g>
-          );
-        })}
-      </svg>
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

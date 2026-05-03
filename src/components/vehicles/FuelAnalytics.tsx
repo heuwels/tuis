@@ -247,7 +247,7 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
           getValue={(d) => d.totalSpend}
           formatValue={(v) => `$${v.toFixed(0)}`}
           formatLabel={(d) => formatMonth(d.month)}
-          barColor="bg-green-500"
+          barColor="#22c55e"
           label="Monthly Spend"
         />
       </div>
@@ -260,7 +260,7 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
           getValue={(d) => d.avgPricePerLitre}
           formatValue={(v) => `$${v.toFixed(3)}/L`}
           formatLabel={(d) => formatMonth(d.month)}
-          barColor="bg-red-400"
+          barColor="#f87171"
           label="Average Fuel Price ($/L)"
         />
       </div>
@@ -273,7 +273,7 @@ export function FuelAnalytics({ vehicleId }: { vehicleId: number }) {
           getValue={(d) => d.distanceKm}
           formatValue={(v) => `${v.toLocaleString()} km`}
           formatLabel={(d) => formatMonth(d.month)}
-          barColor="bg-blue-500"
+          barColor="#3b82f6"
           label="Distance per Month"
         />
       </div>
