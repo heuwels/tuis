@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -59,8 +60,6 @@ export function RecipeDetail({
 }: RecipeDetailProps) {
   const [multiplier, setMultiplier] = useState(1);
   const [copied, setCopied] = useState(false);
-  const printRef = useRef<HTMLDivElement>(null);
-
   if (!recipe) return null;
 
   const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0) || null;
@@ -152,7 +151,7 @@ export function RecipeDetail({
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
-    const text = formatRecipeAsText(
+    formatRecipeAsText(
       {
         name: recipe.name,
         prepTime: recipe.prepTime,
@@ -240,10 +239,12 @@ export function RecipeDetail({
 
         {recipe.imageUrl && (
           <div className="aspect-video relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden -mx-6">
-            <img
+            <Image
               src={resolveFileUrl(recipe.imageUrl) || ""}
               alt={recipe.name}
-              className="object-cover w-full h-full"
+              className="object-cover"
+              fill
+              unoptimized
             />
           </div>
         )}

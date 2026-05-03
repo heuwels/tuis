@@ -28,7 +28,7 @@ async function screenshot(page: Page, name: string) {
   });
 }
 
-async function screenshotFullPage(page: Page, name: string) {
+async function screenshotFullPage(page: Page, name: string) { // eslint-disable-line @typescript-eslint/no-unused-vars
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, `${name}.png`),
     fullPage: true,

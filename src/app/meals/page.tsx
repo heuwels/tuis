@@ -101,6 +101,7 @@ function MealsContent() {
       setIsPickerOpen(true);
       window.history.replaceState({}, "", "/meals");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handlePreviousWeek = () => {

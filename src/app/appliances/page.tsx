@@ -85,6 +85,7 @@ export default function AppliancesPage() {
 
   useEffect(() => {
     fetchAppliances();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLocation]);
 
   useEffect(() => {
@@ -92,6 +93,7 @@ export default function AppliancesPage() {
       fetchAppliances();
     }, 300);
     return () => clearTimeout(debounce);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const handleEdit = () => {

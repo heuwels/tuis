@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -150,11 +151,13 @@ export function RecipePicker({
 
             <div className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50 dark:bg-zinc-900">
               {selectedRecipeForConfirm.imageUrl ? (
-                <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
-                  <img
+                <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative">
+                  <Image
                     src={resolveFileUrl(selectedRecipeForConfirm.imageUrl) || ""}
                     alt={selectedRecipeForConfirm.name}
-                    className="object-cover w-full h-full"
+                    className="object-cover"
+                    fill
+                    unoptimized
                   />
                 </div>
               ) : (
@@ -238,11 +241,13 @@ export function RecipePicker({
                         onClick={() => handleRecipeClick(recipe)}
                       >
                         {recipe.imageUrl ? (
-                          <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">
-                            <img
+                          <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0 relative">
+                            <Image
                               src={resolveFileUrl(recipe.imageUrl) || ""}
                               alt={recipe.name}
-                              className="object-cover w-full h-full"
+                              className="object-cover"
+                              fill
+                              unoptimized
                             />
                           </div>
                         ) : (

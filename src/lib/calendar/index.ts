@@ -6,7 +6,7 @@ import {
   tasks,
   Task,
 } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 // Frequencies that should sync to Google Calendar
 const SYNCABLE_FREQUENCIES = [

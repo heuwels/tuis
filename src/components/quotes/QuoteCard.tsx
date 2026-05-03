@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { QuoteWithVendor } from "@/types";
-import { DollarSign, Calendar, Wrench } from "lucide-react";
+import { Calendar, Wrench } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 interface QuoteCardProps {

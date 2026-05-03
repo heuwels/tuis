@@ -54,6 +54,7 @@ export default function VehiclesPage() {
 
   useEffect(() => {
     fetchVehicles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function VehiclesPage() {
       fetchVehicles();
     }, 300);
     return () => clearTimeout(debounce);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const handleEdit = () => {

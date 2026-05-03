@@ -7,7 +7,6 @@ import {
   addWeeks,
   addMonths,
   format,
-  parseISO,
 } from "date-fns";
 import { syncTask } from "@/lib/calendar";
 import { validateApiRequest } from "@/lib/auth/validate";
@@ -52,7 +51,6 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     const completedDateStr = body.completedDate || format(new Date(), "yyyy-MM-dd");
-    const completedDate = parseISO(completedDateStr);
     const vendorId = body.vendorId || null;
     const cost = body.cost || null;
     const completedBy = body.completedBy || null;

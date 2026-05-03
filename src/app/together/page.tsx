@@ -77,6 +77,7 @@ export default function TogetherPage() {
 
   useEffect(() => {
     fetchActivities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, selectedStatus]);
 
   const handleActivityClick = (activity: Activity) => {

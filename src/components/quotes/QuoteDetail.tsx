@@ -13,7 +13,6 @@ import {
   FileText,
   Wrench,
   Calendar,
-  DollarSign,
   Pencil,
   Trash2,
 } from "lucide-react";

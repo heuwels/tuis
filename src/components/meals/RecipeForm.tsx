@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -528,11 +529,13 @@ export function RecipeForm({
             ) : (
               <div>
                 {imageUrl && !imageUrl.startsWith("http") ? (
-                  <div className="relative rounded-lg overflow-hidden border bg-gray-50 dark:bg-zinc-900">
-                    <img
+                  <div className="relative rounded-lg overflow-hidden border bg-gray-50 dark:bg-zinc-900 h-32">
+                    <Image
                       src={resolveFileUrl(imageUrl) || ""}
                       alt="Recipe"
-                      className="w-full h-32 object-cover"
+                      className="object-cover"
+                      fill
+                      unoptimized
                     />
                     <button
                       type="button"

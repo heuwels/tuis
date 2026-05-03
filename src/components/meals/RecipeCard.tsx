@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
 import { Clock, Users } from "lucide-react";
 import { resolveFileUrl } from "@/lib/file-url";
 
@@ -34,10 +35,12 @@ export function RecipeCard({ recipe, onClick }: RecipeCardProps) {
     >
       {recipe.imageUrl && (
         <div className="aspect-video relative bg-gray-100 dark:bg-gray-800">
-          <img
+          <Image
             src={resolveFileUrl(recipe.imageUrl) || ""}
             alt={recipe.name}
-            className="object-cover w-full h-full"
+            className="object-cover"
+            fill
+            unoptimized
           />
         </div>
       )}

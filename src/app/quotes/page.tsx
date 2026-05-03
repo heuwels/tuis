@@ -63,6 +63,7 @@ export default function QuotesPage() {
 
   useEffect(() => {
     fetchQuotes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStatus]);
 
   const pendingTotal = useMemo(
