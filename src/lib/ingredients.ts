@@ -67,15 +67,6 @@ function toBase(amount: number, unit: IngredientUnit): number {
   return amount * entry.factor;
 }
 
-function fromBase(
-  baseAmount: number,
-  targetUnit: IngredientUnit
-): number {
-  const entry = TO_BASE[targetUnit];
-  if (!entry) return baseAmount;
-  return baseAmount / entry.factor;
-}
-
 /** Pick the best display unit for a base amount in a given group */
 function bestUnit(
   baseAmount: number,

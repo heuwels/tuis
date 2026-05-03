@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { shoppingLists, shoppingItems } from "@/lib/db/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { completions, tasks, users } from "@/lib/db/schema";
 import { eq, gte, desc } from "drizzle-orm";
-import { subDays, format, startOfWeek } from "date-fns";
+import { format, startOfWeek } from "date-fns";
 import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";

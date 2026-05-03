@@ -132,7 +132,6 @@ describe("Setup API", () => {
 
   describe("GET /api/setup", () => {
     it("returns needsSetup: true when no users exist", async () => {
-      const req = makeRequest("/api/setup");
       const res = await setupRoute.GET();
       expect(res.status).toBe(200);
       const data = await res.json();

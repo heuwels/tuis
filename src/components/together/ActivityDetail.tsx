@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -127,10 +128,12 @@ export function ActivityDetail({
 
         {activity.imageUrl && (
           <div className="aspect-video relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden -mx-6">
-            <img
+            <Image
               src={activity.imageUrl}
               alt={activity.title}
-              className="object-cover w-full h-full"
+              className="object-cover"
+              fill
+              unoptimized
             />
           </div>
         )}

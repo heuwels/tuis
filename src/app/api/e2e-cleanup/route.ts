@@ -18,7 +18,7 @@ import {
   fuelLogs,
   vehicleServices,
 } from "@/lib/db/schema";
-import { like, eq, inArray, sql } from "drizzle-orm";
+import { like, inArray, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
             .delete(completions)
             .where(inArray(completions.taskId, taskIds));
           // Delete tasks
-          const result = await db
+          await db
             .delete(tasks)
             .where(inArray(tasks.id, taskIds));
           deleted = matchingTasks.length;

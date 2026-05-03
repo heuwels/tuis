@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -108,10 +109,12 @@ export function ActivityCard({ activity, onClick }: ActivityCardProps) {
     >
       {activity.imageUrl && (
         <div className="aspect-video relative bg-gray-100 dark:bg-gray-800">
-          <img
+          <Image
             src={activity.imageUrl}
             alt={activity.title}
-            className="object-cover w-full h-full"
+            className="object-cover"
+            fill
+            unoptimized
           />
         </div>
       )}

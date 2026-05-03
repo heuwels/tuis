@@ -564,10 +564,6 @@ describe("Recent Completions API", () => {
     });
 
     it("returns completions from the current week", async () => {
-      const weekStart = format(
-        startOfWeek(new Date(), { weekStartsOn: 1 }),
-        "yyyy-MM-dd"
-      );
       const today = format(new Date(), "yyyy-MM-dd");
 
       const userResult = insertUser("Alice");

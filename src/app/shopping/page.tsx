@@ -77,6 +77,7 @@ export default function ShoppingPage() {
 
   useEffect(() => {
     fetchLists();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

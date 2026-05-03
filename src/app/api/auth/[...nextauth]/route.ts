@@ -3,7 +3,7 @@ import Google from "next-auth/providers/google";
 import { db } from "@/lib/db";
 import { googleCalendarSettings } from "@/lib/db/schema";
 
-const { handlers, auth } = NextAuth({
+const { handlers } = NextAuth({
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,

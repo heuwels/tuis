@@ -62,6 +62,7 @@ export function MissingIngredients({
         setIsLoading(false)
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, startDate, endDate]);
 
   const fetchIngredients = async () => {

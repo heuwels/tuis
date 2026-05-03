@@ -77,6 +77,7 @@ export default function VendorsPage() {
 
   useEffect(() => {
     fetchVendors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   useEffect(() => {
@@ -84,6 +85,7 @@ export default function VendorsPage() {
       fetchVendors();
     }, 300);
     return () => clearTimeout(debounce);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   const handleEdit = () => {
