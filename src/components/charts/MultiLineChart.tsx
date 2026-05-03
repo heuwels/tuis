@@ -26,13 +26,23 @@ interface MultiLineChartProps<T> {
   title: string;
 }
 
-function ChartTooltip({ active, payload, label, metrics }: any) {
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  metrics,
+}: {
+  active?: boolean;
+  payload?: { dataKey: string; payload: Record<string, number | null> }[];
+  label?: string;
+  metrics: MetricConfig<unknown>[];
+}) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border bg-background px-3 py-2 text-sm shadow-md">
       <p className="font-medium mb-1">{label}</p>
-      {(metrics as MetricConfig<unknown>[]).map((m) => {
-        const entry = payload.find((p: any) => p.dataKey === m.key);
+      {metrics.map((m) => {
+        const entry = payload.find((p) => p.dataKey === m.key);
         const raw = entry?.payload[`${m.key}_raw`];
         if (raw == null) return null;
         return (
@@ -77,7 +87,7 @@ export function MultiLineChart<T>({
   });
 
   const chartData = data.map((d) => {
-    const point: Record<string, any> = { label: getLabel(d) };
+    const point: Record<string, string | number | null> = { label: getLabel(d) };
     metrics.forEach((m) => {
       const raw = m.getValue(d);
       point[`${m.key}_raw`] = raw;
