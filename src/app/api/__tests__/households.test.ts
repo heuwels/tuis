@@ -110,8 +110,8 @@ function jsonBody(data: Record<string, unknown>): RequestInit {
 // ─── Import routes ──────────────────────────────────────────────────────────
 
 import * as householdsRoute from "@/app/api/households/route";
-import * as householdByIdRoute from "@/app/api/households/[id]/route";
-import * as membersRoute from "@/app/api/households/[id]/members/route";
+import * as householdByIdRoute from "@/app/api/households/[householdId]/route";
+import * as membersRoute from "@/app/api/households/[householdId]/members/route";
 import * as nestedTasksRoute from "@/app/api/households/[householdId]/tasks/route";
 import * as nestedVendorsRoute from "@/app/api/households/[householdId]/vendors/route";
 
@@ -194,7 +194,7 @@ describe("Households API", () => {
   describe("PUT /api/households/[id]", () => {
     it("renames a household", async () => {
       sqlite.exec(`INSERT INTO households (name) VALUES ('Home')`);
-      const params = Promise.resolve({ id: "1" });
+      const params = Promise.resolve({ householdId: "1" });
 
       const res = await householdByIdRoute.PUT(
         makeRequest("/api/households/1", {
@@ -217,7 +217,7 @@ describe("Households API", () => {
       sqlite.exec(`INSERT INTO users (name, color) VALUES ('Bob', '#ef4444')`);
       sqlite.exec(`INSERT INTO households (name) VALUES ('Home')`);
 
-      const params = Promise.resolve({ id: "1" });
+      const params = Promise.resolve({ householdId: "1" });
 
       await membersRoute.POST(
         makeRequest("/api/households/1/members", jsonBody({ userId: 1, role: "owner" })),
@@ -225,12 +225,12 @@ describe("Households API", () => {
       );
       await membersRoute.POST(
         makeRequest("/api/households/1/members", jsonBody({ userId: 2 })),
-        { params: Promise.resolve({ id: "1" }) }
+        { params: Promise.resolve({ householdId: "1" }) }
       );
 
       const res = await membersRoute.GET(
         makeRequest("/api/households/1/members"),
-        { params: Promise.resolve({ id: "1" }) }
+        { params: Promise.resolve({ householdId: "1" }) }
       );
       const data = await res.json();
       expect(data).toHaveLength(2);
@@ -247,7 +247,7 @@ describe("Households API", () => {
 
       const res = await membersRoute.DELETE(
         makeRequest("/api/households/1/members?userId=1", { method: "DELETE" }),
-        { params: Promise.resolve({ id: "1" }) }
+        { params: Promise.resolve({ householdId: "1" }) }
       );
       expect(res.status).toBe(200);
 

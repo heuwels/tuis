@@ -8,13 +8,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ householdId: string }> }
 ) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId: id } = await params;
     const result = await db
       .select()
       .from(households)
@@ -40,13 +40,13 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ householdId: string }> }
 ) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId: id } = await params;
     const body = await request.json();
     const { name } = body;
 
@@ -74,13 +74,13 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ householdId: string }> }
 ) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId: id } = await params;
     await db.delete(households).where(eq(households.id, parseInt(id)));
 
     return NextResponse.json({ success: true });
