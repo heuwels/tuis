@@ -80,6 +80,21 @@ function createTables() {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS quotes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vendor_id INTEGER REFERENCES vendors(id),
+      description TEXT NOT NULL,
+      total REAL NOT NULL,
+      labor REAL,
+      materials REAL,
+      other REAL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      received_date TEXT,
+      household_id INTEGER REFERENCES households(id),
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 }
 
@@ -114,6 +129,8 @@ import * as householdByIdRoute from "@/app/api/households/[householdId]/route";
 import * as membersRoute from "@/app/api/households/[householdId]/members/route";
 import * as nestedTasksRoute from "@/app/api/households/[householdId]/tasks/route";
 import * as nestedVendorsRoute from "@/app/api/households/[householdId]/vendors/route";
+import * as nestedAppliancesRoute from "@/app/api/households/[householdId]/appliances/route";
+import * as nestedQuotesRoute from "@/app/api/households/[householdId]/quotes/route";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // HOUSEHOLD CRUD
@@ -321,5 +338,226 @@ describe("Household Scoping (nested routes)", () => {
     const data = await res.json();
     expect(data).toHaveLength(1);
     expect(data[0].name).toBe("Plumber Joe");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MULTI-HOUSEHOLD ISOLATION
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("Multi-Household Isolation", () => {
+  // Helper: seed two households with a shared user and one unique user each
+  function seedTwoHouseholds() {
+    sqlite.exec(`INSERT INTO users (name, color) VALUES ('Alice', '#3b82f6')`); // id=1
+    sqlite.exec(`INSERT INTO users (name, color) VALUES ('Bob', '#ef4444')`);   // id=2
+    sqlite.exec(`INSERT INTO users (name, color) VALUES ('Carol', '#22c55e')`); // id=3
+    sqlite.exec(`INSERT INTO households (name) VALUES ('Home')`);               // id=1
+    sqlite.exec(`INSERT INTO households (name) VALUES ('Beach House')`);        // id=2
+    // Alice belongs to both, Bob to Home only, Carol to Beach only
+    sqlite.exec(`INSERT INTO user_households (user_id, household_id, role) VALUES (1, 1, 'owner')`);
+    sqlite.exec(`INSERT INTO user_households (user_id, household_id, role) VALUES (2, 1, 'member')`);
+    sqlite.exec(`INSERT INTO user_households (user_id, household_id, role) VALUES (1, 2, 'owner')`);
+    sqlite.exec(`INSERT INTO user_households (user_id, household_id, role) VALUES (3, 2, 'member')`);
+  }
+
+  it("creating a second household via API and adding members", async () => {
+    sqlite.exec(`INSERT INTO users (name, color) VALUES ('Alice', '#3b82f6')`);
+    sqlite.exec(`INSERT INTO users (name, color) VALUES ('Bob', '#ef4444')`);
+
+    // Create first household
+    const res1 = await householdsRoute.POST(
+      makeRequest("/api/households", jsonBody({ name: "Home", userId: 1 }))
+    );
+    expect(res1.status).toBe(201);
+    const { id: h1 } = await res1.json();
+
+    // Create second household
+    const res2 = await householdsRoute.POST(
+      makeRequest("/api/households", jsonBody({ name: "Beach House", userId: 1 }))
+    );
+    expect(res2.status).toBe(201);
+    const { id: h2 } = await res2.json();
+
+    // Add Bob to second household
+    await membersRoute.POST(
+      makeRequest(`/api/households/${h2}/members`, jsonBody({ userId: 2 })),
+      { params: Promise.resolve({ householdId: String(h2) }) }
+    );
+
+    // Alice should see both households
+    const aliceRes = await householdsRoute.GET(makeRequest("/api/households?userId=1"));
+    const aliceHouseholds = await aliceRes.json();
+    expect(aliceHouseholds).toHaveLength(2);
+    expect(aliceHouseholds.map((h: { name: string }) => h.name).sort()).toEqual(["Beach House", "Home"]);
+
+    // Bob should see only Beach House
+    const bobRes = await householdsRoute.GET(makeRequest("/api/households?userId=2"));
+    const bobHouseholds = await bobRes.json();
+    expect(bobHouseholds).toHaveLength(1);
+    expect(bobHouseholds[0].name).toBe("Beach House");
+  });
+
+  it("tasks created in one household are invisible to another", async () => {
+    seedTwoHouseholds();
+
+    // Create tasks in each household
+    await nestedTasksRoute.POST(
+      makeRequest("/api/households/1/tasks", jsonBody({ name: "Mow lawn", area: "Garden", frequency: "weekly" })),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    await nestedTasksRoute.POST(
+      makeRequest("/api/households/1/tasks", jsonBody({ name: "Wash dishes", area: "Kitchen", frequency: "daily" })),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    await nestedTasksRoute.POST(
+      makeRequest("/api/households/2/tasks", jsonBody({ name: "Sweep deck", area: "Outdoor", frequency: "weekly" })),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+
+    // Home should have 2 tasks
+    const homeRes = await nestedTasksRoute.GET(
+      makeRequest("/api/households/1/tasks"),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    const homeTasks = await homeRes.json();
+    expect(homeTasks).toHaveLength(2);
+    expect(homeTasks.map((t: { name: string }) => t.name).sort()).toEqual(["Mow lawn", "Wash dishes"]);
+
+    // Beach House should have 1 task
+    const beachRes = await nestedTasksRoute.GET(
+      makeRequest("/api/households/2/tasks"),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+    const beachTasks = await beachRes.json();
+    expect(beachTasks).toHaveLength(1);
+    expect(beachTasks[0].name).toBe("Sweep deck");
+  });
+
+  it("vendors are isolated between households", async () => {
+    seedTwoHouseholds();
+
+    await nestedVendorsRoute.POST(
+      makeRequest("/api/households/1/vendors", jsonBody({ name: "Dave's Plumbing", category: "Plumber" })),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    await nestedVendorsRoute.POST(
+      makeRequest("/api/households/2/vendors", jsonBody({ name: "Coastal Cleaners", category: "Cleaning" })),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+
+    const homeRes = await nestedVendorsRoute.GET(
+      makeRequest("/api/households/1/vendors"),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    const homeVendors = await homeRes.json();
+    expect(homeVendors).toHaveLength(1);
+    expect(homeVendors[0].name).toBe("Dave's Plumbing");
+
+    const beachRes = await nestedVendorsRoute.GET(
+      makeRequest("/api/households/2/vendors"),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+    const beachVendors = await beachRes.json();
+    expect(beachVendors).toHaveLength(1);
+    expect(beachVendors[0].name).toBe("Coastal Cleaners");
+  });
+
+  it("appliances are isolated between households", async () => {
+    seedTwoHouseholds();
+
+    await nestedAppliancesRoute.POST(
+      makeRequest("/api/households/1/appliances", jsonBody({ name: "Dishwasher", brand: "Bosch" })),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    await nestedAppliancesRoute.POST(
+      makeRequest("/api/households/1/appliances", jsonBody({ name: "Washing Machine", brand: "LG" })),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    await nestedAppliancesRoute.POST(
+      makeRequest("/api/households/2/appliances", jsonBody({ name: "BBQ", brand: "Weber" })),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+
+    const homeRes = await nestedAppliancesRoute.GET(
+      makeRequest("/api/households/1/appliances"),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    expect((await homeRes.json())).toHaveLength(2);
+
+    const beachRes = await nestedAppliancesRoute.GET(
+      makeRequest("/api/households/2/appliances"),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+    const beachAppliances = await beachRes.json();
+    expect(beachAppliances).toHaveLength(1);
+    expect(beachAppliances[0].name).toBe("BBQ");
+  });
+
+  it("quotes are isolated between households", async () => {
+    seedTwoHouseholds();
+
+    await nestedQuotesRoute.POST(
+      makeRequest("/api/households/1/quotes", jsonBody({ description: "Fix roof leak", total: 2500 })),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    await nestedQuotesRoute.POST(
+      makeRequest("/api/households/2/quotes", jsonBody({ description: "Paint deck", total: 800 })),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+    await nestedQuotesRoute.POST(
+      makeRequest("/api/households/2/quotes", jsonBody({ description: "New outdoor shower", total: 3000 })),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+
+    const homeRes = await nestedQuotesRoute.GET(
+      makeRequest("/api/households/1/quotes"),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    const homeQuotes = await homeRes.json();
+    expect(homeQuotes).toHaveLength(1);
+    expect(homeQuotes[0].description).toBe("Fix roof leak");
+
+    const beachRes = await nestedQuotesRoute.GET(
+      makeRequest("/api/households/2/quotes"),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+    expect((await beachRes.json())).toHaveLength(2);
+  });
+
+  it("a user belonging to multiple households sees the right data in each", async () => {
+    seedTwoHouseholds();
+
+    // Alice creates a task in each household
+    await nestedTasksRoute.POST(
+      makeRequest("/api/households/1/tasks", jsonBody({ name: "Home task", area: "Kitchen", frequency: "daily" })),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    await nestedTasksRoute.POST(
+      makeRequest("/api/households/2/tasks", jsonBody({ name: "Beach task", area: "Outdoor", frequency: "weekly" })),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+
+    // Alice queries households — sees both
+    const aliceHouseholdsRes = await householdsRoute.GET(makeRequest("/api/households?userId=1"));
+    const aliceHouseholds = await aliceHouseholdsRes.json();
+    expect(aliceHouseholds).toHaveLength(2);
+
+    // When viewing Home, only Home tasks visible
+    const homeTasksRes = await nestedTasksRoute.GET(
+      makeRequest("/api/households/1/tasks"),
+      { params: Promise.resolve({ householdId: "1" }) }
+    );
+    const homeTasks = await homeTasksRes.json();
+    expect(homeTasks).toHaveLength(1);
+    expect(homeTasks[0].name).toBe("Home task");
+
+    // When viewing Beach House, only Beach tasks visible
+    const beachTasksRes = await nestedTasksRoute.GET(
+      makeRequest("/api/households/2/tasks"),
+      { params: Promise.resolve({ householdId: "2" }) }
+    );
+    const beachTasks = await beachTasksRes.json();
+    expect(beachTasks).toHaveLength(1);
+    expect(beachTasks[0].name).toBe("Beach task");
   });
 });
