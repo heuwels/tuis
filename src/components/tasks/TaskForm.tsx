@@ -88,7 +88,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
     }
     async function fetchAppliances() {
       try {
-        const response = await fetch(`/api/households/${currentHousehold.id}/appliances`);
+        const response = await fetch(`/api/households/${currentHousehold!.id}/appliances`);
         if (response.ok) {
           const data = await response.json();
           setAppliances(data);

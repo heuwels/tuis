@@ -110,7 +110,8 @@ afterEach(() => {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function makeRequest(url: string, init?: RequestInit): Request {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeRequest(url: string, init?: RequestInit): any {
   return new Request(`http://localhost${url}`, init);
 }
 

@@ -37,6 +37,7 @@ interface NavItem {
 
 interface NavGroup {
   title: string;
+  householdScoped?: boolean; // header replaced by HouseholdSwitcher
   items: NavItem[];
 }
 
@@ -47,18 +48,20 @@ const navigation: NavGroup[] = [
   },
   {
     title: "Household",
+    householdScoped: true,
     items: [
       { href: "/tasks", label: "Chores", icon: ListTodo },
       { href: "/appliances", label: "Appliances", icon: Refrigerator },
       { href: "/vendors", label: "Vendors", icon: Wrench },
       { href: "/quotes", label: "Quotes", icon: FileText },
-      { href: "/vehicles", label: "Cars", icon: Car },
       { href: "/finance", label: "Finance", icon: Landmark },
+      { href: "/stats", label: "Stats", icon: BarChart3 },
     ],
   },
   {
-    title: "Food",
+    title: "Life",
     items: [
+      { href: "/vehicles", label: "Cars", icon: Car },
       { href: "/shopping", label: "Shopping", icon: ShoppingCart },
       { href: "/meals", label: "Meals", icon: UtensilsCrossed },
       { href: "/recipes", label: "Recipes", icon: BookOpen },
@@ -70,10 +73,7 @@ const navigation: NavGroup[] = [
   },
   {
     title: "System",
-    items: [
-      { href: "/stats", label: "Stats", icon: BarChart3 },
-      { href: "/settings", label: "Settings", icon: Settings },
-    ],
+    items: [{ href: "/settings", label: "Settings", icon: Settings }],
   },
 ];
 
@@ -92,10 +92,16 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
     <nav className="flex-1 overflow-y-auto py-4">
       {navigation.map((group) => (
         <div key={group.title} className="mb-4">
-          {!isCollapsed && (
-            <h3 className="px-4 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              {group.title}
-            </h3>
+          {group.householdScoped ? (
+            <div className={cn("px-2 mb-1", isCollapsed && "px-1")}>
+              <HouseholdSwitcher collapsed={isCollapsed} />
+            </div>
+          ) : (
+            !isCollapsed && (
+              <h3 className="px-4 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                {group.title}
+              </h3>
+            )
           )}
           <ul className="space-y-1">
             {group.items.map((item) => {
@@ -110,7 +116,8 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
                       "flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg mx-2 transition-colors",
                       isActive
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50",
+                      group.householdScoped && "border-l-2 border-amber-400/60 dark:border-amber-500/40 rounded-l-none ml-4 mr-2"
                     )}
                     title={isCollapsed ? item.label : undefined}
                   >
@@ -170,9 +177,6 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
             <X className="h-5 w-5" />
           </Button>
         </div>
-        <div className="px-2 pt-2">
-          <HouseholdSwitcher />
-        </div>
         {navContent}
         <div className="p-3 border-t border-sidebar-border">
           <ThemeToggle />
@@ -202,9 +206,6 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
               <ChevronLeft className="h-4 w-4" />
             )}
           </Button>
-        </div>
-        <div className={cn("px-2 pt-2", isCollapsed && "px-1")}>
-          <HouseholdSwitcher collapsed={isCollapsed} />
         </div>
         {navContent}
         <div className={cn("p-3 border-t border-sidebar-border", isCollapsed ? "px-1" : "")}>
