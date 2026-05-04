@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { quotes, vendors } from "@/lib/db/schema";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
-import { getHouseholdId } from "@/lib/household-header";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +13,6 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
-    const householdId = getHouseholdId(request);
 
     let query = db
       .select({
@@ -38,15 +36,8 @@ export async function GET(request: NextRequest) {
       .orderBy(desc(quotes.updatedAt))
       .$dynamic();
 
-    const conditions = [];
-    if (householdId) {
-      conditions.push(eq(quotes.householdId, householdId));
-    }
     if (status) {
-      conditions.push(eq(quotes.status, status));
-    }
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(eq(quotes.status, status));
     }
 
     const results = await query;
@@ -72,7 +63,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const householdId = getHouseholdId(request);
     const result = await db.insert(quotes).values({
       description,
       vendorId: vendorId || null,
@@ -82,7 +72,6 @@ export async function POST(request: NextRequest) {
       other: other || null,
       status: status || "pending",
       receivedDate: receivedDate || null,
-      householdId,
       notes: notes || null,
     });
 

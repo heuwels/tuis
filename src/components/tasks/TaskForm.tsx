@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { householdFetch } from "@/lib/household-fetch";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +53,7 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps) {
+  const { currentHousehold } = useCurrentHousehold();
   const isEditing = !!task;
 
   const [formData, setFormData] = useState({
@@ -87,7 +88,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
     }
     async function fetchAppliances() {
       try {
-        const response = await householdFetch("/api/appliances");
+        const response = await fetch(`/api/households/${currentHousehold.id}/appliances`);
         if (response.ok) {
           const data = await response.json();
           setAppliances(data);
@@ -96,9 +97,10 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
         console.error("Error fetching appliances:", error);
       }
     }
+    if (!currentHousehold) return;
     fetchUsers();
     fetchAppliances();
-  }, []);
+  }, [currentHousehold]);
 
   // Update form when task changes (for editing different tasks)
   useEffect(() => {
@@ -147,7 +149,9 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
     }
 
     try {
-      const url = isEditing ? `/api/tasks/${task.id}` : "/api/tasks";
+      const url = isEditing
+        ? `/api/households/${currentHousehold!.id}/tasks/${task.id}`
+        : `/api/households/${currentHousehold!.id}/tasks`;
       const method = isEditing ? "PUT" : "POST";
 
       const payload = {
@@ -156,7 +160,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
         applianceId: formData.applianceId ? parseInt(formData.applianceId) : null,
       };
 
-      const response = await householdFetch(url, {
+      const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

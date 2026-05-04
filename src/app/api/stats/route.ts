@@ -4,7 +4,6 @@ import { tasks, completions } from "@/lib/db/schema";
 import { sql, eq, gte, and, count } from "drizzle-orm";
 import { subDays, startOfDay, startOfWeek, startOfMonth, format } from "date-fns";
 import { validateApiRequest } from "@/lib/auth/validate";
-import { getHouseholdId } from "@/lib/household-header";
 
 export const dynamic = "force-dynamic";
 
@@ -13,19 +12,14 @@ export async function GET(request: Request) {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const householdId = getHouseholdId(request);
     const now = new Date();
     const todayStart = format(startOfDay(now), "yyyy-MM-dd");
     const weekStart = format(startOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
     const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
     const last30Days = format(subDays(now, 30), "yyyy-MM-dd");
 
-    const householdFilter = householdId ? eq(tasks.householdId, householdId) : undefined;
-
     // Total tasks
-    const totalTasks = householdFilter
-      ? await db.select({ count: count() }).from(tasks).where(householdFilter)
-      : await db.select({ count: count() }).from(tasks);
+    const totalTasks = await db.select({ count: count() }).from(tasks);
 
     // Overdue tasks
     const overdueTasks = await db
@@ -35,8 +29,7 @@ export async function GET(request: Request) {
         and(
           sql`${tasks.nextDue} IS NOT NULL`,
           sql`${tasks.nextDue} < ${todayStart}`,
-          sql`${tasks.frequency} != 'Daily'`,
-          householdFilter
+          sql`${tasks.frequency} != 'Daily'`
         )
       );
 
@@ -44,15 +37,13 @@ export async function GET(request: Request) {
     const completionsThisWeek = await db
       .select({ count: count() })
       .from(completions)
-      .innerJoin(tasks, eq(completions.taskId, tasks.id))
-      .where(and(gte(completions.completedAt, weekStart), householdFilter));
+      .where(gte(completions.completedAt, weekStart));
 
     // Completions this month
     const completionsThisMonth = await db
       .select({ count: count() })
       .from(completions)
-      .innerJoin(tasks, eq(completions.taskId, tasks.id))
-      .where(and(gte(completions.completedAt, monthStart), householdFilter));
+      .where(gte(completions.completedAt, monthStart));
 
     // Completions by day (last 30 days)
     const completionsByDay = await db
@@ -61,8 +52,7 @@ export async function GET(request: Request) {
         count: count(),
       })
       .from(completions)
-      .innerJoin(tasks, eq(completions.taskId, tasks.id))
-      .where(and(gte(completions.completedAt, last30Days), householdFilter))
+      .where(gte(completions.completedAt, last30Days))
       .groupBy(completions.completedAt)
       .orderBy(completions.completedAt);
 
@@ -74,7 +64,7 @@ export async function GET(request: Request) {
       })
       .from(completions)
       .innerJoin(tasks, eq(completions.taskId, tasks.id))
-      .where(and(gte(completions.completedAt, monthStart), householdFilter))
+      .where(gte(completions.completedAt, monthStart))
       .groupBy(tasks.area);
 
     // Most completed tasks
@@ -87,7 +77,7 @@ export async function GET(request: Request) {
       })
       .from(completions)
       .innerJoin(tasks, eq(completions.taskId, tasks.id))
-      .where(and(gte(completions.completedAt, monthStart), householdFilter))
+      .where(gte(completions.completedAt, monthStart))
       .groupBy(completions.taskId, tasks.name, tasks.area)
       .orderBy(sql`count(*) DESC`)
       .limit(10);
@@ -102,8 +92,7 @@ export async function GET(request: Request) {
           sql`${tasks.nextDue} IS NOT NULL`,
           sql`${tasks.nextDue} >= ${todayStart}`,
           sql`${tasks.nextDue} <= ${next7Days}`,
-          sql`${tasks.frequency} != 'Daily'`,
-          householdFilter
+          sql`${tasks.frequency} != 'Daily'`
         )
       );
 

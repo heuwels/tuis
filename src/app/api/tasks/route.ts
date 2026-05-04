@@ -4,7 +4,6 @@ import { tasks } from "@/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { syncTask } from "@/lib/calendar";
 import { validateApiRequest } from "@/lib/auth/validate";
-import { getHouseholdId } from "@/lib/household-header";
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +12,7 @@ export async function GET(request: Request) {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const householdId = getHouseholdId(request);
-    let allTasks;
-    if (householdId) {
-      allTasks = await db.select().from(tasks).where(eq(tasks.householdId, householdId)).orderBy(desc(tasks.nextDue));
-    } else {
-      allTasks = await db.select().from(tasks).orderBy(desc(tasks.nextDue));
-    }
+    const allTasks = await db.select().from(tasks).orderBy(desc(tasks.nextDue));
     return NextResponse.json(allTasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);
@@ -32,7 +25,6 @@ export async function POST(request: Request) {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const householdId = getHouseholdId(request);
     const body = await request.json();
     const { name, area, frequency, assignedDay, season, notes, nextDue, applianceId } = body;
 
@@ -53,7 +45,6 @@ export async function POST(request: Request) {
       nextDue: nextDue || null,
       lastCompleted: null,
       applianceId: applianceId || null,
-      householdId,
     });
 
     // Sync to Google Calendar (if connected and task is syncable)

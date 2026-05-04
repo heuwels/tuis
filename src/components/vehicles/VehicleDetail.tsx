@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { householdFetch } from "@/lib/household-fetch";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -98,6 +98,7 @@ function ServiceForm({
   vehicleId: number;
   onSuccess: () => void;
 }) {
+  const { currentHousehold } = useCurrentHousehold();
   const [isOpen, setIsOpen] = useState(false);
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [description, setDescription] = useState("");
@@ -111,13 +112,14 @@ function ServiceForm({
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    if (!currentHousehold) return;
     if (isOpen) {
-      householdFetch("/api/vendors")
+      fetch(`/api/households/${currentHousehold.id}/vendors`)
         .then((r) => r.json())
         .then(setVendors)
         .catch(console.error);
     }
-  }, [isOpen]);
+  }, [isOpen, currentHousehold]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

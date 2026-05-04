@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { householdFetch } from "@/lib/household-fetch";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,6 +25,7 @@ export function DeleteTaskDialog({
   onOpenChange,
   onSuccess,
 }: DeleteTaskDialogProps) {
+  const { currentHousehold } = useCurrentHousehold();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,7 +36,7 @@ export function DeleteTaskDialog({
     setError("");
 
     try {
-      const response = await householdFetch(`/api/tasks/${task.id}`, {
+      const response = await fetch(`/api/households/${currentHousehold!.id}/tasks/${task.id}`, {
         method: "DELETE",
       });
 

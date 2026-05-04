@@ -8,8 +8,6 @@ import {
   recipes,
   recipeIngredients,
 } from "@/lib/db/schema";
-import { getHouseholdId } from "@/lib/household-header";
-
 export const dynamic = "force-dynamic";
 
 export async function GET() {
@@ -142,7 +140,6 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { seedChores, seedShopping, seedRecipes } = body;
-    const householdId = getHouseholdId(request);
     const results: string[] = [];
 
     if (seedChores) {
@@ -157,7 +154,6 @@ export async function POST(request: Request) {
           lastCompleted: null,
           nextDue: null,
           applianceId: null,
-          householdId,
         });
       }
       results.push(`Added ${STARTER_CHORES.length} household chores`);

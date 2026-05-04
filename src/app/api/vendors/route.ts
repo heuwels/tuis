@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { vendors } from "@/lib/db/schema";
 import { eq, like, or, desc, and } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
-import { getHouseholdId } from "@/lib/household-header";
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +14,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const category = searchParams.get("category");
-    const householdId = getHouseholdId(request);
 
     const conditions = [];
-
-    if (householdId) {
-      conditions.push(eq(vendors.householdId, householdId));
-    }
 
     if (search) {
       conditions.push(
@@ -75,7 +69,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const householdId = getHouseholdId(request);
     const result = await db.insert(vendors).values({
       name,
       category: category || null,
@@ -84,7 +77,6 @@ export async function POST(request: Request) {
       website: website || null,
       notes: notes || null,
       rating: rating || null,
-      householdId,
       createdAt: null,
       updatedAt: null,
     });

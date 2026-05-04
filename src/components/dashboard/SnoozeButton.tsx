@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { householdFetch } from "@/lib/household-fetch";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -23,13 +23,14 @@ const snoozeOptions = [
 ];
 
 export function SnoozeButton({ taskId, onSnooze }: SnoozeButtonProps) {
+  const { currentHousehold } = useCurrentHousehold();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSnooze = async (duration: string) => {
     setIsLoading(true);
     try {
-      const response = await householdFetch(`/api/tasks/${taskId}/snooze`, {
+      const response = await fetch(`/api/households/${currentHousehold!.id}/tasks/${taskId}/snooze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ duration }),

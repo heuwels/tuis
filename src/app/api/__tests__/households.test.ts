@@ -112,8 +112,8 @@ function jsonBody(data: Record<string, unknown>): RequestInit {
 import * as householdsRoute from "@/app/api/households/route";
 import * as householdByIdRoute from "@/app/api/households/[id]/route";
 import * as membersRoute from "@/app/api/households/[id]/members/route";
-import * as tasksRoute from "@/app/api/tasks/route";
-import * as vendorsRoute from "@/app/api/vendors/route";
+import * as nestedTasksRoute from "@/app/api/households/[householdId]/tasks/route";
+import * as nestedVendorsRoute from "@/app/api/households/[householdId]/vendors/route";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // HOUSEHOLD CRUD
@@ -261,51 +261,46 @@ describe("Households API", () => {
 // HOUSEHOLD SCOPING
 // ═══════════════════════════════════════════════════════════════════════════
 
-describe("Household Scoping", () => {
-  it("tasks are filtered by X-Household-Id header", async () => {
+describe("Household Scoping (nested routes)", () => {
+  it("tasks are filtered by householdId path param", async () => {
     sqlite.exec(`INSERT INTO households (name) VALUES ('Home')`);
     sqlite.exec(`INSERT INTO households (name) VALUES ('Office')`);
     sqlite.exec(`INSERT INTO tasks (name, area, frequency, household_id) VALUES ('Mow lawn', 'Outdoor', 'weekly', 1)`);
     sqlite.exec(`INSERT INTO tasks (name, area, frequency, household_id) VALUES ('Clean desk', 'Office', 'daily', 2)`);
 
     // With household 1
-    const res1 = await tasksRoute.GET(
-      makeRequest("/api/tasks", { headers: { "X-Household-Id": "1" } })
+    const res1 = await nestedTasksRoute.GET(
+      makeRequest("/api/households/1/tasks"),
+      { params: Promise.resolve({ householdId: "1" }) }
     );
     const data1 = await res1.json();
     expect(data1).toHaveLength(1);
     expect(data1[0].name).toBe("Mow lawn");
 
     // With household 2
-    const res2 = await tasksRoute.GET(
-      makeRequest("/api/tasks", { headers: { "X-Household-Id": "2" } })
+    const res2 = await nestedTasksRoute.GET(
+      makeRequest("/api/households/2/tasks"),
+      { params: Promise.resolve({ householdId: "2" }) }
     );
     const data2 = await res2.json();
     expect(data2).toHaveLength(1);
     expect(data2[0].name).toBe("Clean desk");
-
-    // Without header — returns all
-    const resAll = await tasksRoute.GET(makeRequest("/api/tasks"));
-    const dataAll = await resAll.json();
-    expect(dataAll).toHaveLength(2);
   });
 
-  it("new tasks are assigned to the household from the header", async () => {
+  it("new tasks are assigned to the household from the path", async () => {
     sqlite.exec(`INSERT INTO households (name) VALUES ('Home')`);
 
-    const res = await tasksRoute.POST(
-      makeRequest("/api/tasks", {
+    const res = await nestedTasksRoute.POST(
+      makeRequest("/api/households/1/tasks", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Household-Id": "1",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: "Vacuum",
           area: "Living Room",
           frequency: "weekly",
         }),
-      })
+      }),
+      { params: Promise.resolve({ householdId: "1" }) }
     );
     expect(res.status).toBe(201);
 
@@ -313,14 +308,15 @@ describe("Household Scoping", () => {
     expect(row.household_id).toBe(1);
   });
 
-  it("vendors are filtered by household", async () => {
+  it("vendors are filtered by household path param", async () => {
     sqlite.exec(`INSERT INTO households (name) VALUES ('Home')`);
     sqlite.exec(`INSERT INTO households (name) VALUES ('Office')`);
     sqlite.exec(`INSERT INTO vendors (name, household_id) VALUES ('Plumber Joe', 1)`);
     sqlite.exec(`INSERT INTO vendors (name, household_id) VALUES ('IT Support', 2)`);
 
-    const res = await vendorsRoute.GET(
-      makeRequest("/api/vendors", { headers: { "X-Household-Id": "1" } })
+    const res = await nestedVendorsRoute.GET(
+      makeRequest("/api/households/1/vendors"),
+      { params: Promise.resolve({ householdId: "1" }) }
     );
     const data = await res.json();
     expect(data).toHaveLength(1);

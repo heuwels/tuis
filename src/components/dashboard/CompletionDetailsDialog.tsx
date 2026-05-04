@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { householdFetch } from "@/lib/household-fetch";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,8 +52,10 @@ export function CompletionDetailsDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const { currentUser } = useCurrentUser();
+  const { currentHousehold } = useCurrentHousehold();
 
   useEffect(() => {
+    if (!currentHousehold) return;
     if (open) {
       // Reset form
       setDate(new Date());
@@ -61,19 +63,19 @@ export function CompletionDetailsDialog({
       setCost("");
 
       // Fetch vendors
-      householdFetch("/api/vendors")
+      fetch(`/api/households/${currentHousehold.id}/vendors`)
         .then((res) => res.json())
         .then((data) => setVendors(data))
         .catch(console.error);
     }
-  }, [open]);
+  }, [open, currentHousehold]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const response = await householdFetch(`/api/tasks/${taskId}/complete`, {
+      const response = await fetch(`/api/households/${currentHousehold!.id}/tasks/${taskId}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

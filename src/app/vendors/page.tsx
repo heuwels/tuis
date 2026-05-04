@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { householdFetch } from "@/lib/household-fetch";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +35,7 @@ interface VendorWithDetails extends Vendor {
 }
 
 export default function VendorsPage() {
+  const { currentHousehold } = useCurrentHousehold();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,8 +51,8 @@ export default function VendorsPage() {
       if (searchQuery) params.set("search", searchQuery);
       if (selectedCategory) params.set("category", selectedCategory);
 
-      const url = `/api/vendors${params.toString() ? `?${params}` : ""}`;
-      const response = await householdFetch(url);
+      const url = `/api/households/${currentHousehold!.id}/vendors${params.toString() ? `?${params}` : ""}`;
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setVendors(data);
@@ -65,7 +66,7 @@ export default function VendorsPage() {
 
   const fetchVendorDetails = async (id: number) => {
     try {
-      const response = await householdFetch(`/api/vendors/${id}`);
+      const response = await fetch(`/api/households/${currentHousehold!.id}/vendors/${id}`);
       if (response.ok) {
         const data = await response.json();
         setSelectedVendor(data);
@@ -102,7 +103,7 @@ export default function VendorsPage() {
     if (!confirm(`Delete "${selectedVendor.name}"? This cannot be undone.`)) return;
 
     try {
-      const response = await householdFetch(`/api/vendors/${selectedVendor.id}`, {
+      const response = await fetch(`/api/households/${currentHousehold!.id}/vendors/${selectedVendor.id}`, {
         method: "DELETE",
       });
       if (response.ok) {

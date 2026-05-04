@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { householdFetch } from "@/lib/household-fetch";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,7 @@ export function ExpenseForm({
   onSave,
   expense,
 }: ExpenseFormProps) {
+  const { currentHousehold } = useCurrentHousehold();
   const [date, setDate] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
@@ -55,13 +56,14 @@ export function ExpenseForm({
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    if (!currentHousehold) return;
     if (open) {
-      householdFetch("/api/vendors")
+      fetch(`/api/households/${currentHousehold.id}/vendors`)
         .then((r) => (r.ok ? r.json() : []))
         .then(setVendors)
         .catch(() => {});
     }
-  }, [open]);
+  }, [open, currentHousehold]);
 
   useEffect(() => {
     if (expense) {
