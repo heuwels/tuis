@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +56,7 @@ export function ExpenseForm({
 
   useEffect(() => {
     if (open) {
-      fetch("/api/vendors")
+      householdFetch("/api/vendors")
         .then((r) => (r.ok ? r.json() : []))
         .then(setVendors)
         .catch(() => {});

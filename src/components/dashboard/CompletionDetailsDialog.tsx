@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,7 +61,7 @@ export function CompletionDetailsDialog({
       setCost("");
 
       // Fetch vendors
-      fetch("/api/vendors")
+      householdFetch("/api/vendors")
         .then((res) => res.json())
         .then((data) => setVendors(data))
         .catch(console.error);
@@ -72,7 +73,7 @@ export function CompletionDetailsDialog({
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/tasks/${taskId}/complete`, {
+      const response = await householdFetch(`/api/tasks/${taskId}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

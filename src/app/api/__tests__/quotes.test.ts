@@ -18,6 +18,11 @@ vi.mock("@/lib/db", () => ({
 
 function createTables() {
   sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS households (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE TABLE IF NOT EXISTS vendors (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -27,6 +32,7 @@ function createTables() {
       website TEXT,
       notes TEXT,
       rating INTEGER,
+      household_id INTEGER REFERENCES households(id),
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
@@ -47,6 +53,7 @@ function createTables() {
       extended_notes TEXT,
       assigned_to INTEGER REFERENCES users(id),
       appliance_id INTEGER,
+      household_id INTEGER REFERENCES households(id),
       last_completed TEXT,
       next_due TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -71,6 +78,7 @@ function createTables() {
       other REAL,
       status TEXT NOT NULL DEFAULT 'pending',
       received_date TEXT,
+      household_id INTEGER REFERENCES households(id),
       notes TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -564,6 +572,10 @@ describe("Recent Completions API", () => {
     });
 
     it("returns completions from the current week", async () => {
+      const _weekStart = format(
+        startOfWeek(new Date(), { weekStartsOn: 1 }),
+        "yyyy-MM-dd"
+      );
       const today = format(new Date(), "yyyy-MM-dd");
 
       const userResult = insertUser("Alice");

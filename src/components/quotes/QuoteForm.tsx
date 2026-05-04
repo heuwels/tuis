@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,7 +55,7 @@ export function QuoteForm({
 
   useEffect(() => {
     if (open) {
-      fetch("/api/vendors")
+      householdFetch("/api/vendors")
         .then((r) => (r.ok ? r.json() : []))
         .then(setVendors)
         .catch(() => {});
@@ -107,7 +108,7 @@ export function QuoteForm({
       if (materials) body.materials = parseFloat(materials);
       if (other) body.other = parseFloat(other);
 
-      const response = await fetch(url, {
+      const response = await householdFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

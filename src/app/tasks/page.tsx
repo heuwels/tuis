@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Task } from "@/types";
 import { TaskTable, TaskFilters, TaskForm, TaskDetail, DeleteTaskDialog } from "@/components/tasks";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ export default function TasksPage() {
 
   const fetchTasks = useCallback(async () => {
     try {
-      const response = await fetch("/api/tasks");
+      const response = await householdFetch("/api/tasks");
       if (response.ok) {
         const data = await response.json();
         setTasks(data);

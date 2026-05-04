@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,7 +87,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
     }
     async function fetchAppliances() {
       try {
-        const response = await fetch("/api/appliances");
+        const response = await householdFetch("/api/appliances");
         if (response.ok) {
           const data = await response.json();
           setAppliances(data);
@@ -155,7 +156,7 @@ export function TaskForm({ task, open, onOpenChange, onSuccess }: TaskFormProps)
         applianceId: formData.applianceId ? parseInt(formData.applianceId) : null,
       };
 
-      const response = await fetch(url, {
+      const response = await householdFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

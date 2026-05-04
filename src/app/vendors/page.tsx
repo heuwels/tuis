@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,7 +51,7 @@ export default function VendorsPage() {
       if (selectedCategory) params.set("category", selectedCategory);
 
       const url = `/api/vendors${params.toString() ? `?${params}` : ""}`;
-      const response = await fetch(url);
+      const response = await householdFetch(url);
       if (response.ok) {
         const data = await response.json();
         setVendors(data);
@@ -64,7 +65,7 @@ export default function VendorsPage() {
 
   const fetchVendorDetails = async (id: number) => {
     try {
-      const response = await fetch(`/api/vendors/${id}`);
+      const response = await householdFetch(`/api/vendors/${id}`);
       if (response.ok) {
         const data = await response.json();
         setSelectedVendor(data);
@@ -101,7 +102,7 @@ export default function VendorsPage() {
     if (!confirm(`Delete "${selectedVendor.name}"? This cannot be undone.`)) return;
 
     try {
-      const response = await fetch(`/api/vendors/${selectedVendor.id}`, {
+      const response = await householdFetch(`/api/vendors/${selectedVendor.id}`, {
         method: "DELETE",
       });
       if (response.ok) {

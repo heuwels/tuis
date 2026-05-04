@@ -27,6 +27,7 @@ import {
 import { BottomNav } from "./BottomNav";
 import { UserAvatar } from "@/components/user-identity/UserAvatar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { HouseholdSwitcher } from "@/components/household/HouseholdSwitcher";
 
 interface NavItem {
   href: string;
@@ -169,6 +170,9 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
             <X className="h-5 w-5" />
           </Button>
         </div>
+        <div className="px-2 pt-2">
+          <HouseholdSwitcher />
+        </div>
         {navContent}
         <div className="p-3 border-t border-sidebar-border">
           <ThemeToggle />
@@ -198,6 +202,9 @@ export function AppLayout({ children, title, actions }: AppLayoutProps) {
               <ChevronLeft className="h-4 w-4" />
             )}
           </Button>
+        </div>
+        <div className={cn("px-2 pt-2", isCollapsed && "px-1")}>
+          <HouseholdSwitcher collapsed={isCollapsed} />
         </div>
         {navContent}
         <div className={cn("p-3 border-t border-sidebar-border", isCollapsed ? "px-1" : "")}>

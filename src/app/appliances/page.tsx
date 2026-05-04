@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -58,7 +59,7 @@ export default function AppliancesPage() {
       if (selectedLocation) params.set("location", selectedLocation);
 
       const url = `/api/appliances${params.toString() ? `?${params}` : ""}`;
-      const response = await fetch(url);
+      const response = await householdFetch(url);
       if (response.ok) {
         const data = await response.json();
         setAppliances(data);
@@ -72,7 +73,7 @@ export default function AppliancesPage() {
 
   const fetchApplianceDetails = async (id: number) => {
     try {
-      const response = await fetch(`/api/appliances/${id}`);
+      const response = await householdFetch(`/api/appliances/${id}`);
       if (response.ok) {
         const data = await response.json();
         setSelectedAppliance(data);
@@ -109,7 +110,7 @@ export default function AppliancesPage() {
     if (!confirm(`Delete "${selectedAppliance.name}"? This cannot be undone.`)) return;
 
     try {
-      const response = await fetch(`/api/appliances/${selectedAppliance.id}`, {
+      const response = await householdFetch(`/api/appliances/${selectedAppliance.id}`, {
         method: "DELETE",
       });
       if (response.ok) {

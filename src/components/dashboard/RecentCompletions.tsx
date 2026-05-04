@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
@@ -30,7 +31,7 @@ export function RecentCompletions() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    fetch("/api/stats/recent-completions")
+    householdFetch("/api/stats/recent-completions")
       .then((r) => r.ok ? r.json() : [])
       .then((data: RecentCompletion[]) => {
         setCompletions(data);

@@ -17,6 +17,11 @@ vi.mock("@/lib/db", () => ({
 
 function createTables() {
   sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS households (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -34,6 +39,7 @@ function createTables() {
       extended_notes TEXT,
       assigned_to INTEGER REFERENCES users(id),
       appliance_id INTEGER,
+      household_id INTEGER REFERENCES households(id),
       last_completed TEXT,
       next_due TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,

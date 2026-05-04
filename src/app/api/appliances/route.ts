@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { appliances } from "@/lib/db/schema";
-import { eq, like, or, desc } from "drizzle-orm";
+import { eq, like, or, desc, and } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
+import { getHouseholdId } from "@/lib/household-header";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +15,15 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const location = searchParams.get("location");
+    const householdId = getHouseholdId(request);
 
     const query = db.select().from(appliances);
 
     const conditions = [];
+
+    if (householdId) {
+      conditions.push(eq(appliances.householdId, householdId));
+    }
 
     if (search) {
       conditions.push(
@@ -35,7 +41,6 @@ export async function GET(request: Request) {
 
     let result;
     if (conditions.length > 0) {
-      const { and } = await import("drizzle-orm");
       result = await query.where(and(...conditions)).orderBy(desc(appliances.updatedAt));
     } else {
       result = await query.orderBy(desc(appliances.updatedAt));
@@ -76,6 +81,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const householdId = getHouseholdId(request);
     const result = await db.insert(appliances).values({
       name,
       location: location || null,
@@ -85,6 +91,7 @@ export async function POST(request: Request) {
       warrantyExpiry: warrantyExpiry || null,
       manualUrl: manualUrl || null,
       warrantyDocUrl: warrantyDocUrl || null,
+      householdId,
       notes: notes || null,
       createdAt: null,
       updatedAt: null,

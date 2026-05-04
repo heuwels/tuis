@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,7 +51,7 @@ export default function QuotesPage() {
       const params = new URLSearchParams();
       if (selectedStatus) params.set("status", selectedStatus);
       const url = `/api/quotes${params.toString() ? `?${params}` : ""}`;
-      const response = await fetch(url);
+      const response = await householdFetch(url);
       if (response.ok) {
         setQuotes(await response.json());
       }
@@ -93,7 +94,7 @@ export default function QuotesPage() {
       return;
 
     try {
-      const response = await fetch(`/api/quotes/${selectedQuote.id}`, {
+      const response = await householdFetch(`/api/quotes/${selectedQuote.id}`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -109,7 +110,7 @@ export default function QuotesPage() {
   const handleStatusChange = async (newStatus: string) => {
     if (!selectedQuote) return;
     try {
-      const response = await fetch(`/api/quotes/${selectedQuote.id}`, {
+      const response = await householdFetch(`/api/quotes/${selectedQuote.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

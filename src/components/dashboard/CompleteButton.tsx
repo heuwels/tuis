@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -39,7 +40,7 @@ export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonP
     completingRef.current = true;
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/tasks/${taskId}/complete`, {
+      const response = await householdFetch(`/api/tasks/${taskId}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

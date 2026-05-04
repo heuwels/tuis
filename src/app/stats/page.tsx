@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { householdFetch } from "@/lib/household-fetch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -38,7 +39,7 @@ export default function StatsPage() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const response = await fetch("/api/stats");
+        const response = await householdFetch("/api/stats");
         if (response.ok) {
           const data = await response.json();
           setStats(data);
