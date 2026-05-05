@@ -13,7 +13,8 @@ async function backupAndClearUsers(request: APIRequestContext) {
   if (res.ok()) {
     existingUsers = await res.json();
   }
-  // Delete all users to simulate fresh install
+  // Delete all households and users to simulate fresh install
+  await cleanupTestData(request, "households", "%");
   if (existingUsers.length > 0) {
     await cleanupTestData(request, "users", "%");
   }
@@ -21,10 +22,29 @@ async function backupAndClearUsers(request: APIRequestContext) {
 
 async function restoreUsers(request: APIRequestContext) {
   // Re-create the original users
+  const userIds: number[] = [];
   for (const user of existingUsers) {
-    await request.post("/api/users", {
+    const res = await request.post("/api/users", {
       data: { name: user.name, color: user.color },
     });
+    if (res.ok()) {
+      const data = await res.json();
+      userIds.push(data.id);
+    }
+  }
+  // Recreate a default household and assign all users
+  if (userIds.length > 0) {
+    const hRes = await request.post("/api/households", {
+      data: { name: "Home", userId: userIds[0] },
+    });
+    if (hRes.ok()) {
+      const { id: householdId } = await hRes.json();
+      for (let i = 1; i < userIds.length; i++) {
+        await request.post(`/api/households/${householdId}/members`, {
+          data: { userId: userIds[i], role: "member" },
+        });
+      }
+    }
   }
 }
 
@@ -61,7 +81,8 @@ test.describe.serial("Setup Wizard", () => {
   });
 
   test.afterAll(async ({ request }) => {
-    // Clean up test user and seeded data
+    // Clean up test households and users
+    await cleanupTestData(request, "households", "%");
     await cleanupTestData(request, "users", `${TEST_USER_PREFIX}%`);
     await cleanupTestData(request, "tasks", "Wash dishes");
     await cleanupTestData(request, "tasks", "Wipe kitchen counters");

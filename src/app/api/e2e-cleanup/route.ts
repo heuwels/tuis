@@ -13,12 +13,14 @@ import {
   recipeIngredients,
   mealPlan,
   users,
+  userHouseholds,
+  households,
   personalAccessTokens,
   vehicles,
   fuelLogs,
   vehicleServices,
 } from "@/lib/db/schema";
-import { like, inArray, sql } from "drizzle-orm";
+import { like, inArray, eq, sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +36,7 @@ const VALID_TYPES = [
   "users",
   "tokens",
   "vehicles",
+  "households",
 ] as const;
 
 type CleanupType = (typeof VALID_TYPES)[number];
@@ -241,11 +244,35 @@ export async function POST(request: NextRequest) {
               sql`UPDATE shopping_items SET added_by = NULL WHERE added_by = ${uid}`
             );
           }
+          // Delete user_households memberships
+          await db
+            .delete(userHouseholds)
+            .where(inArray(userHouseholds.userId, userIds));
           // Delete users
           await db
             .delete(users)
             .where(inArray(users.id, userIds));
           deleted = matchingUsers.length;
+        }
+        break;
+      }
+
+      case "households": {
+        const matchingHouseholds = await db
+          .select({ id: households.id })
+          .from(households)
+          .where(like(households.name, namePattern));
+        if (matchingHouseholds.length > 0) {
+          const householdIds = matchingHouseholds.map((h) => h.id);
+          // Delete memberships
+          await db
+            .delete(userHouseholds)
+            .where(inArray(userHouseholds.householdId, householdIds));
+          // Delete households
+          await db
+            .delete(households)
+            .where(inArray(households.id, householdIds));
+          deleted = matchingHouseholds.length;
         }
         break;
       }
