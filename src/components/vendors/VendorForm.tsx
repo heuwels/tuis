@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCurrentHousehold } from "@/lib/household";
 import { Vendor } from "@/types";
 import { Star } from "lucide-react";
 
@@ -51,6 +52,7 @@ export function VendorForm({
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
   const [notes, setNotes] = useState("");
+  const { currentHousehold } = useCurrentHousehold();
   const [rating, setRating] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -79,7 +81,9 @@ export function VendorForm({
     setIsSaving(true);
 
     try {
-      const url = vendor ? `/api/vendors/${vendor.id}` : "/api/vendors";
+      const url = vendor
+        ? `/api/households/${currentHousehold!.id}/vendors/${vendor.id}`
+        : `/api/households/${currentHousehold!.id}/vendors`;
       const method = vendor ? "PUT" : "POST";
 
       const response = await fetch(url, {

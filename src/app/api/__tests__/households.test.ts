@@ -260,6 +260,23 @@ describe("Households API", () => {
 
     it("removes a member", async () => {
       sqlite.exec(`INSERT INTO users (name, color) VALUES ('Alice', '#3b82f6')`);
+      sqlite.exec(`INSERT INTO users (name, color) VALUES ('Bob', '#ef4444')`);
+      sqlite.exec(`INSERT INTO households (name) VALUES ('Home')`);
+      sqlite.exec(`INSERT INTO user_households (user_id, household_id, role) VALUES (1, 1, 'owner')`);
+      sqlite.exec(`INSERT INTO user_households (user_id, household_id, role) VALUES (2, 1, 'member')`);
+
+      const res = await membersRoute.DELETE(
+        makeRequest("/api/households/1/members?userId=2", { method: "DELETE" }),
+        { params: Promise.resolve({ householdId: "1" }) }
+      );
+      expect(res.status).toBe(200);
+
+      const rows = sqlite.prepare("SELECT * FROM user_households").all();
+      expect(rows).toHaveLength(1);
+    });
+
+    it("prevents removing the last member", async () => {
+      sqlite.exec(`INSERT INTO users (name, color) VALUES ('Alice', '#3b82f6')`);
       sqlite.exec(`INSERT INTO households (name) VALUES ('Home')`);
       sqlite.exec(`INSERT INTO user_households (user_id, household_id, role) VALUES (1, 1, 'owner')`);
 
@@ -267,10 +284,7 @@ describe("Households API", () => {
         makeRequest("/api/households/1/members?userId=1", { method: "DELETE" }),
         { params: Promise.resolve({ householdId: "1" }) }
       );
-      expect(res.status).toBe(200);
-
-      const rows = sqlite.prepare("SELECT * FROM user_households").all();
-      expect(rows).toHaveLength(0);
+      expect(res.status).toBe(400);
     });
   });
 });

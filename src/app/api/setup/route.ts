@@ -139,7 +139,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { seedChores, seedShopping, seedRecipes } = body;
+    const { seedChores, seedShopping, seedRecipes, householdId } = body;
     const results: string[] = [];
 
     if (seedChores) {
@@ -154,6 +154,7 @@ export async function POST(request: Request) {
           lastCompleted: null,
           nextDue: null,
           applianceId: null,
+          householdId: householdId || null,
         });
       }
       results.push(`Added ${STARTER_CHORES.length} household chores`);

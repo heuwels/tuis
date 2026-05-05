@@ -48,10 +48,11 @@ export default function QuotesPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchQuotes = async () => {
+    if (!currentHousehold) return;
     try {
       const params = new URLSearchParams();
       if (selectedStatus) params.set("status", selectedStatus);
-      const url = `/api/households/${currentHousehold!.id}/quotes${params.toString() ? `?${params}` : ""}`;
+      const url = `/api/households/${currentHousehold.id}/quotes${params.toString() ? `?${params}` : ""}`;
       const response = await fetch(url);
       if (response.ok) {
         setQuotes(await response.json());
@@ -66,7 +67,7 @@ export default function QuotesPage() {
   useEffect(() => {
     fetchQuotes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStatus]);
+  }, [selectedStatus, currentHousehold]);
 
   const pendingTotal = useMemo(
     () =>

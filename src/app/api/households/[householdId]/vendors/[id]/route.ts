@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { vendors, completions, tasks, vehicleServices } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
@@ -14,13 +14,13 @@ export async function GET(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const vendorId = parseInt(id);
 
     const [vendor] = await db
       .select()
       .from(vendors)
-      .where(eq(vendors.id, vendorId));
+      .where(and(eq(vendors.id, vendorId), eq(vendors.householdId, parseInt(householdId))));
 
     if (!vendor) {
       return NextResponse.json(
@@ -64,7 +64,7 @@ export async function PUT(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const vendorId = parseInt(id);
     const body = await request.json();
 
@@ -82,7 +82,7 @@ export async function PUT(
         rating: rating || null,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(vendors.id, vendorId));
+      .where(and(eq(vendors.id, vendorId), eq(vendors.householdId, parseInt(householdId))));
 
     if (result.changes === 0) {
       return NextResponse.json(
@@ -109,8 +109,21 @@ export async function DELETE(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const vendorId = parseInt(id);
+
+    // Verify vendor belongs to household
+    const [existing] = await db
+      .select()
+      .from(vendors)
+      .where(and(eq(vendors.id, vendorId), eq(vendors.householdId, parseInt(householdId))));
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Vendor not found" },
+        { status: 404 }
+      );
+    }
 
     // Unlink any completions that reference this vendor
     await db
@@ -125,16 +138,9 @@ export async function DELETE(
       .where(eq(vehicleServices.vendorId, vendorId));
 
     // Then delete the vendor
-    const result = await db
+    await db
       .delete(vendors)
       .where(eq(vendors.id, vendorId));
-
-    if (result.changes === 0) {
-      return NextResponse.json(
-        { error: "Vendor not found" },
-        { status: 404 }
-      );
-    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

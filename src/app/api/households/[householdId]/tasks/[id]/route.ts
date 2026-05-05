@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { tasks, completions } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { syncTask, deleteTaskCalendarEvents } from "@/lib/calendar";
 import { validateApiRequest } from "@/lib/auth/validate";
 
@@ -15,8 +15,12 @@ export async function GET(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
-    const task = await db.select().from(tasks).where(eq(tasks.id, parseInt(id))).limit(1);
+    const { householdId, id } = await params;
+    const task = await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.id, parseInt(id)), eq(tasks.householdId, parseInt(householdId))))
+      .limit(1);
 
     if (task.length === 0) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
@@ -37,16 +41,26 @@ export async function PUT(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const body = await request.json();
+    const { name, area, frequency, assignedDay, season, notes, extendedNotes, assignedTo, applianceId, nextDue } = body;
 
     const result = await db
       .update(tasks)
       .set({
-        ...body,
+        name: name !== undefined ? name : undefined,
+        area: area !== undefined ? area : undefined,
+        frequency: frequency !== undefined ? frequency : undefined,
+        assignedDay: assignedDay !== undefined ? assignedDay : undefined,
+        season: season !== undefined ? season : undefined,
+        notes: notes !== undefined ? notes : undefined,
+        extendedNotes: extendedNotes !== undefined ? extendedNotes : undefined,
+        assignedTo: assignedTo !== undefined ? assignedTo : undefined,
+        applianceId: applianceId !== undefined ? applianceId : undefined,
+        nextDue: nextDue !== undefined ? nextDue : undefined,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(tasks.id, parseInt(id)));
+      .where(and(eq(tasks.id, parseInt(id)), eq(tasks.householdId, parseInt(householdId))));
 
     if (result.changes === 0) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
@@ -77,8 +91,20 @@ export async function DELETE(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const taskId = parseInt(id);
+    const houseId = parseInt(householdId);
+
+    // Verify task belongs to household
+    const task = await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.id, taskId), eq(tasks.householdId, houseId)))
+      .limit(1);
+
+    if (task.length === 0) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
 
     // Delete calendar events first
     await deleteTaskCalendarEvents(taskId).catch(console.error);
@@ -87,11 +113,7 @@ export async function DELETE(
     await db.delete(completions).where(eq(completions.taskId, taskId));
 
     // Then delete the task
-    const result = await db.delete(tasks).where(eq(tasks.id, taskId));
-
-    if (result.changes === 0) {
-      return NextResponse.json({ error: "Task not found" }, { status: 404 });
-    }
+    await db.delete(tasks).where(eq(tasks.id, taskId));
 
     return NextResponse.json({ success: true });
   } catch (error) {

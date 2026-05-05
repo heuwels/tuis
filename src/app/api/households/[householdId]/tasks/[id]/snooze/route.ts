@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { tasks } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { addDays, addWeeks, format } from "date-fns";
 import { syncTask } from "@/lib/calendar";
 import { validateApiRequest } from "@/lib/auth/validate";
@@ -14,7 +14,7 @@ export async function POST(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const body = await request.json();
     const { duration } = body; // "1day", "3days", "1week", "2weeks"
 
@@ -22,7 +22,7 @@ export async function POST(
     const task = await db
       .select()
       .from(tasks)
-      .where(eq(tasks.id, parseInt(id)))
+      .where(and(eq(tasks.id, parseInt(id)), eq(tasks.householdId, parseInt(householdId))))
       .limit(1);
 
     if (task.length === 0) {

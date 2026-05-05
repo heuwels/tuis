@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { appliances, tasks, completions } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
@@ -14,13 +14,13 @@ export async function GET(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const applianceId = parseInt(id);
 
     const [appliance] = await db
       .select()
       .from(appliances)
-      .where(eq(appliances.id, applianceId));
+      .where(and(eq(appliances.id, applianceId), eq(appliances.householdId, parseInt(householdId))));
 
     if (!appliance) {
       return NextResponse.json(
@@ -87,7 +87,7 @@ export async function PUT(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const applianceId = parseInt(id);
     const body = await request.json();
 
@@ -117,7 +117,7 @@ export async function PUT(
         notes: notes || null,
         updatedAt: new Date().toISOString(),
       })
-      .where(eq(appliances.id, applianceId));
+      .where(and(eq(appliances.id, applianceId), eq(appliances.householdId, parseInt(householdId))));
 
     if (result.changes === 0) {
       return NextResponse.json(
@@ -144,8 +144,21 @@ export async function DELETE(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const applianceId = parseInt(id);
+
+    // Verify appliance belongs to household
+    const [existing] = await db
+      .select()
+      .from(appliances)
+      .where(and(eq(appliances.id, applianceId), eq(appliances.householdId, parseInt(householdId))));
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: "Appliance not found" },
+        { status: 404 }
+      );
+    }
 
     // First, unlink any tasks that reference this appliance
     await db
@@ -154,16 +167,9 @@ export async function DELETE(
       .where(eq(tasks.applianceId, applianceId));
 
     // Then delete the appliance
-    const result = await db
+    await db
       .delete(appliances)
       .where(eq(appliances.id, applianceId));
-
-    if (result.changes === 0) {
-      return NextResponse.json(
-        { error: "Appliance not found" },
-        { status: 404 }
-      );
-    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

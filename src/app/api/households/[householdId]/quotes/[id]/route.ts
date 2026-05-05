@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { quotes, vendors } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
 
 export async function GET(
@@ -12,7 +12,7 @@ export async function GET(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const quoteId = parseInt(id);
 
     const result = await db
@@ -34,7 +34,7 @@ export async function GET(
       })
       .from(quotes)
       .leftJoin(vendors, eq(quotes.vendorId, vendors.id))
-      .where(eq(quotes.id, quoteId))
+      .where(and(eq(quotes.id, quoteId), eq(quotes.householdId, parseInt(householdId))))
       .limit(1);
 
     if (result.length === 0) {
@@ -56,11 +56,16 @@ export async function PUT(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const quoteId = parseInt(id);
     const body = await request.json();
+    const { description, vendorId, total, labour, materials, other, status, receivedDate, notes } = body;
 
-    const existing = await db.select().from(quotes).where(eq(quotes.id, quoteId)).limit(1);
+    const existing = await db
+      .select()
+      .from(quotes)
+      .where(and(eq(quotes.id, quoteId), eq(quotes.householdId, parseInt(householdId))))
+      .limit(1);
     if (existing.length === 0) {
       return NextResponse.json({ error: "Quote not found" }, { status: 404 });
     }
@@ -68,7 +73,15 @@ export async function PUT(
     await db
       .update(quotes)
       .set({
-        ...body,
+        description: description !== undefined ? description : undefined,
+        vendorId: vendorId !== undefined ? vendorId : undefined,
+        total: total !== undefined ? total : undefined,
+        labour: labour !== undefined ? labour : undefined,
+        materials: materials !== undefined ? materials : undefined,
+        other: other !== undefined ? other : undefined,
+        status: status !== undefined ? status : undefined,
+        receivedDate: receivedDate !== undefined ? receivedDate : undefined,
+        notes: notes !== undefined ? notes : undefined,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(quotes.id, quoteId));
@@ -88,10 +101,16 @@ export async function DELETE(
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId, id } = await params;
     const quoteId = parseInt(id);
 
-    await db.delete(quotes).where(eq(quotes.id, quoteId));
+    const result = await db
+      .delete(quotes)
+      .where(and(eq(quotes.id, quoteId), eq(quotes.householdId, parseInt(householdId))));
+
+    if (result.changes === 0) {
+      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

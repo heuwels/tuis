@@ -55,6 +55,24 @@ export async function POST(
       );
     }
 
+    // Check for duplicate membership
+    const existing = await db
+      .select()
+      .from(userHouseholds)
+      .where(
+        and(
+          eq(userHouseholds.userId, userId),
+          eq(userHouseholds.householdId, parseInt(id))
+        )
+      );
+
+    if (existing.length > 0) {
+      return NextResponse.json(
+        { error: "User is already a member of this household" },
+        { status: 409 }
+      );
+    }
+
     await db.insert(userHouseholds).values({
       userId,
       householdId: parseInt(id),
@@ -86,6 +104,19 @@ export async function DELETE(
     if (!userId) {
       return NextResponse.json(
         { error: "userId query param is required" },
+        { status: 400 }
+      );
+    }
+
+    // Don't allow removing the last member
+    const memberCount = await db
+      .select()
+      .from(userHouseholds)
+      .where(eq(userHouseholds.householdId, parseInt(id)));
+
+    if (memberCount.length <= 1) {
+      return NextResponse.json(
+        { error: "Cannot remove the last member of a household" },
         { status: 400 }
       );
     }

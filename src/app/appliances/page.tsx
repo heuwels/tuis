@@ -54,12 +54,13 @@ export default function AppliancesPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchAppliances = async () => {
+    if (!currentHousehold) return;
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.set("search", searchQuery);
       if (selectedLocation) params.set("location", selectedLocation);
 
-      const url = `/api/households/${currentHousehold!.id}/appliances${params.toString() ? `?${params}` : ""}`;
+      const url = `/api/households/${currentHousehold.id}/appliances${params.toString() ? `?${params}` : ""}`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
@@ -88,7 +89,7 @@ export default function AppliancesPage() {
   useEffect(() => {
     fetchAppliances();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLocation]);
+  }, [selectedLocation, currentHousehold]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -96,7 +97,7 @@ export default function AppliancesPage() {
     }, 300);
     return () => clearTimeout(debounce);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, currentHousehold]);
 
   const handleEdit = () => {
     if (selectedAppliance) {

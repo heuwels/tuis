@@ -521,20 +521,11 @@ function migrateCompletionCosts(sqlite: Database.Database) {
 }
 
 function migrateToHouseholds(sqlite: Database.Database) {
-  // Check if there are any rows with null household_id that need backfilling
-  const unassigned = sqlite
-    .prepare(`SELECT COUNT(*) as count FROM tasks WHERE household_id IS NULL`)
-    .get() as { count: number };
-
-  // Also check if households table is empty (fresh migration)
   const householdCount = sqlite
     .prepare(`SELECT COUNT(*) as count FROM households`)
     .get() as { count: number };
 
-  // Nothing to migrate if no unassigned rows and households already exist
-  if (unassigned.count === 0 && householdCount.count > 0) return;
-
-  // If no households exist but there are users, create a default one
+  // If no households exist, try to create a default one
   if (householdCount.count === 0) {
     const userCount = sqlite
       .prepare(`SELECT COUNT(*) as count FROM users`)
@@ -567,7 +558,30 @@ function migrateToHouseholds(sqlite: Database.Database) {
     });
 
     tx();
+    return;
   }
+
+  // Households exist — backfill any orphaned NULL rows to the first household
+  const unassigned = sqlite
+    .prepare(
+      `SELECT COUNT(*) as count FROM tasks WHERE household_id IS NULL
+       UNION ALL SELECT COUNT(*) FROM appliances WHERE household_id IS NULL
+       UNION ALL SELECT COUNT(*) FROM vendors WHERE household_id IS NULL
+       UNION ALL SELECT COUNT(*) FROM quotes WHERE household_id IS NULL`
+    )
+    .all() as { count: number }[];
+
+  const totalUnassigned = unassigned.reduce((sum, r) => sum + r.count, 0);
+  if (totalUnassigned === 0) return;
+
+  const defaultHousehold = sqlite
+    .prepare(`SELECT id FROM households ORDER BY id ASC LIMIT 1`)
+    .get() as { id: number };
+
+  sqlite.prepare(`UPDATE tasks SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
+  sqlite.prepare(`UPDATE appliances SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
+  sqlite.prepare(`UPDATE vendors SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
+  sqlite.prepare(`UPDATE quotes SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
 }
 
 export { schema };

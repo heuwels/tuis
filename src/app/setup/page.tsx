@@ -142,11 +142,8 @@ export default function SetupPage() {
       if (seedChores || seedShopping || seedRecipes) {
         const res = await fetch("/api/setup", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Household-Id": String(householdId),
-          },
-          body: JSON.stringify({ seedChores, seedShopping, seedRecipes }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ seedChores, seedShopping, seedRecipes, householdId }),
         });
         if (!res.ok) {
           throw new Error("Failed to seed starter data");

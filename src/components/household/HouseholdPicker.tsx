@@ -19,7 +19,28 @@ export function HouseholdPicker() {
   } = useCurrentHousehold();
 
   // Don't show if only one household (auto-selected)
-  if (households.length <= 1) return null;
+  if (households.length === 1) return null;
+
+  // Zero households — show a message
+  if (households.length === 0 && !currentHousehold) {
+    return (
+      <Dialog open={true}>
+        <DialogContent
+          className="sm:max-w-[360px]"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>No Household Found</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground py-2">
+            You are not a member of any household. Ask someone to add you, or
+            go to Settings to create a new household.
+          </p>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog

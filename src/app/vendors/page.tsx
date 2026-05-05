@@ -46,12 +46,13 @@ export default function VendorsPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchVendors = async () => {
+    if (!currentHousehold) return;
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.set("search", searchQuery);
       if (selectedCategory) params.set("category", selectedCategory);
 
-      const url = `/api/households/${currentHousehold!.id}/vendors${params.toString() ? `?${params}` : ""}`;
+      const url = `/api/households/${currentHousehold.id}/vendors${params.toString() ? `?${params}` : ""}`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
@@ -80,7 +81,7 @@ export default function VendorsPage() {
   useEffect(() => {
     fetchVendors();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory]);
+  }, [selectedCategory, currentHousehold]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -88,7 +89,7 @@ export default function VendorsPage() {
     }, 300);
     return () => clearTimeout(debounce);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, currentHousehold]);
 
   const handleEdit = () => {
     if (selectedVendor) {

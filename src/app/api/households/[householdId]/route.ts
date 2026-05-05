@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { households } from "@/lib/db/schema";
+import { households, userHouseholds, tasks, appliances, vendors, quotes } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
 
@@ -81,7 +81,15 @@ export async function DELETE(
     if (authError) return authError;
 
     const { householdId: id } = await params;
-    await db.delete(households).where(eq(households.id, parseInt(id)));
+    const houseId = parseInt(id);
+
+    // Cascade: remove all related data
+    await db.delete(quotes).where(eq(quotes.householdId, houseId));
+    await db.delete(vendors).where(eq(vendors.householdId, houseId));
+    await db.delete(appliances).where(eq(appliances.householdId, houseId));
+    await db.delete(tasks).where(eq(tasks.householdId, houseId));
+    await db.delete(userHouseholds).where(eq(userHouseholds.householdId, houseId));
+    await db.delete(households).where(eq(households.id, houseId));
 
     return NextResponse.json({ success: true });
   } catch (error) {
