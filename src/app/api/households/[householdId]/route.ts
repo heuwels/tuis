@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { households, userHouseholds, tasks, appliances, vendors, quotes } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { households, userHouseholds, tasks, appliances, vendors, quotes, completions, taskCalendarEvents } from "@/lib/db/schema";
+import { eq, inArray } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
@@ -84,6 +84,18 @@ export async function DELETE(
     const houseId = parseInt(id);
 
     // Cascade: remove all related data
+    // First get task IDs so we can clean up completions and calendar events
+    const householdTasks = await db
+      .select({ id: tasks.id })
+      .from(tasks)
+      .where(eq(tasks.householdId, houseId));
+    const taskIds = householdTasks.map((t) => t.id);
+
+    if (taskIds.length > 0) {
+      await db.delete(completions).where(inArray(completions.taskId, taskIds));
+      await db.delete(taskCalendarEvents).where(inArray(taskCalendarEvents.taskId, taskIds));
+    }
+
     await db.delete(quotes).where(eq(quotes.householdId, houseId));
     await db.delete(vendors).where(eq(vendors.householdId, houseId));
     await db.delete(appliances).where(eq(appliances.householdId, houseId));

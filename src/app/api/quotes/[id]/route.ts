@@ -59,6 +59,7 @@ export async function PUT(
     const { id } = await params;
     const quoteId = parseInt(id);
     const body = await request.json();
+    const { description, vendorId, total, labour, materials, other, status, receivedDate, notes } = body;
 
     const existing = await db.select().from(quotes).where(eq(quotes.id, quoteId)).limit(1);
     if (existing.length === 0) {
@@ -68,7 +69,15 @@ export async function PUT(
     await db
       .update(quotes)
       .set({
-        ...body,
+        description: description !== undefined ? description : undefined,
+        vendorId: vendorId !== undefined ? vendorId : undefined,
+        total: total !== undefined ? total : undefined,
+        labour: labour !== undefined ? labour : undefined,
+        materials: materials !== undefined ? materials : undefined,
+        other: other !== undefined ? other : undefined,
+        status: status !== undefined ? status : undefined,
+        receivedDate: receivedDate !== undefined ? receivedDate : undefined,
+        notes: notes !== undefined ? notes : undefined,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(quotes.id, quoteId));

@@ -108,25 +108,42 @@ export async function DELETE(
       );
     }
 
+    const houseId = parseInt(id);
+    const uid = parseInt(userId);
+
     // Don't allow removing the last member
-    const memberCount = await db
+    const members = await db
       .select()
       .from(userHouseholds)
-      .where(eq(userHouseholds.householdId, parseInt(id)));
+      .where(eq(userHouseholds.householdId, houseId));
 
-    if (memberCount.length <= 1) {
+    if (members.length <= 1) {
       return NextResponse.json(
         { error: "Cannot remove the last member of a household" },
         { status: 400 }
       );
     }
 
+    // Don't allow removing the last owner
+    const member = members.find((m) => m.userId === uid);
+    if (member?.role === "owner") {
+      const otherOwners = members.filter(
+        (m) => m.role === "owner" && m.userId !== uid
+      );
+      if (otherOwners.length === 0) {
+        return NextResponse.json(
+          { error: "Cannot remove the last owner. Promote another member to owner first." },
+          { status: 400 }
+        );
+      }
+    }
+
     await db
       .delete(userHouseholds)
       .where(
         and(
-          eq(userHouseholds.householdId, parseInt(id)),
-          eq(userHouseholds.userId, parseInt(userId))
+          eq(userHouseholds.householdId, houseId),
+          eq(userHouseholds.userId, uid)
         )
       );
 
