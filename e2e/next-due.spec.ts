@@ -36,11 +36,17 @@ test.afterAll(async ({ request }) => {
 
 test.describe.serial("Next Due Calculation", () => {
   let taskId: number;
+  let householdId: number;
 
   test("create a weekly task that is overdue", async ({ request }) => {
+    // Get the first household ID dynamically
+    const householdsRes = await request.get("/api/households");
+    const households = await householdsRes.json();
+    householdId = households[0].id;
+
     const pastDue = formatDate(addDays(new Date(), -7));
 
-    const res = await request.post("/api/tasks", {
+    const res = await request.post(`/api/households/${householdId}/tasks`, {
       data: {
         name: TEST_TASK_NAME,
         area: "Kitchen",

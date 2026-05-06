@@ -20,13 +20,24 @@ async function dismissUserPickerIfVisible(page: Page) {
   }
 }
 
+let cachedHouseholdId: number | null = null;
+
+async function getHouseholdId(request: APIRequestContext): Promise<number> {
+  if (cachedHouseholdId) return cachedHouseholdId;
+  const res = await request.get("/api/households");
+  const households = await res.json();
+  cachedHouseholdId = households[0].id;
+  return cachedHouseholdId;
+}
+
 /** Create a task via the API and return its id */
 async function createTaskViaApi(
   request: APIRequestContext,
   overrides: Record<string, unknown> = {}
 ): Promise<number> {
+  const householdId = await getHouseholdId(request);
   const name = overrides.name ?? `${PREFIX} ${Date.now()}`;
-  const res = await request.post("/api/tasks", {
+  const res = await request.post(`/api/households/${householdId}/tasks`, {
     data: {
       name,
       area: "Kitchen",
@@ -198,7 +209,7 @@ test.describe.serial("Bug regressions", () => {
     // Try to submit — intercept to ensure no network request fires
     let apiCalled = false;
     page.on("request", (req) => {
-      if (req.url().includes("/api/tasks") && req.method() === "POST") {
+      if (req.url().includes("/tasks") && req.method() === "POST") {
         apiCalled = true;
       }
     });

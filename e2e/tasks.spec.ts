@@ -78,7 +78,7 @@ test.describe.serial("Task Management", () => {
 
     // Submit the form
     const responsePromise = page.waitForResponse(
-      (resp) => resp.url().includes("/api/tasks") && resp.request().method() === "POST"
+      (resp) => resp.url().includes("/tasks") && resp.request().method() === "POST"
     );
     await dialog.getByRole("button", { name: "Add Task" }).click();
     await responsePromise;
@@ -132,7 +132,7 @@ test.describe.serial("Task Management", () => {
     // Submit
     const responsePromise = page.waitForResponse(
       (resp) =>
-        resp.url().includes("/api/tasks/") && resp.request().method() === "PUT"
+        resp.url().includes("/tasks/") && resp.request().method() === "PUT"
     );
     await dialog.getByRole("button", { name: "Save Changes" }).click();
     await responsePromise;
@@ -283,7 +283,7 @@ test.describe.serial("Task Management", () => {
 
     const responsePromise = page.waitForResponse(
       (resp) =>
-        resp.url().includes("/api/tasks/") &&
+        resp.url().includes("/tasks/") &&
         resp.request().method() === "DELETE"
     );
     await dialog.getByRole("button", { name: "Delete" }).click();

@@ -76,7 +76,7 @@ test.describe("Quote Management", () => {
       // Submit
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/quotes") &&
+          resp.url().includes("/quotes") &&
           resp.request().method() === "POST"
       );
       await dialog.getByRole("button", { name: "Add Quote" }).click();
@@ -173,7 +173,7 @@ test.describe("Quote Management", () => {
       // Click Accept Quote
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/quotes/") &&
+          resp.url().includes("/quotes/") &&
           resp.request().method() === "PUT"
       );
       await dialog
@@ -222,7 +222,7 @@ test.describe("Quote Management", () => {
       // Submit
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/quotes/") &&
+          resp.url().includes("/quotes/") &&
           resp.request().method() === "PUT"
       );
       await editDialog
@@ -255,7 +255,7 @@ test.describe("Quote Management", () => {
       // Click Delete
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/quotes/") &&
+          resp.url().includes("/quotes/") &&
           resp.request().method() === "DELETE"
       );
       await dialog.getByRole("button", { name: "Delete" }).click();

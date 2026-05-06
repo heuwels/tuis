@@ -83,7 +83,7 @@ test.describe("Appliance Management", () => {
       // Submit
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/appliances") &&
+          resp.url().includes("/appliances") &&
           resp.request().method() === "POST"
       );
       await dialog
@@ -247,7 +247,7 @@ test.describe("Vendor Management", () => {
       // Submit
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/vendors") &&
+          resp.url().includes("/vendors") &&
           resp.request().method() === "POST"
       );
       await dialog.getByRole("button", { name: "Add Vendor" }).click();
