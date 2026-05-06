@@ -14,9 +14,13 @@ async function globalSetup() {
   const { needsSetup } = await res.json();
 
   if (needsSetup) {
-    // Create a default test user so the app works normally
-    await ctx.post("/api/users", {
+    // Create a default test user and household so the app works normally
+    const userRes = await ctx.post("/api/users", {
       data: { name: "E2E Test User", color: "#3b82f6" },
+    });
+    const { id: userId } = await userRes.json();
+    await ctx.post("/api/households", {
+      data: { name: "Home", userId },
     });
   }
 

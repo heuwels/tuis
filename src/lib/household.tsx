@@ -40,7 +40,6 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     null
   );
   const [isSelecting, setIsSelecting] = useState(false);
-  const [loaded, setLoaded] = useState(!currentUser);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -72,12 +71,10 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
         } else if (data.length > 1) {
           setIsSelecting(true);
         }
-        setLoaded(true);
       })
       .catch((err) => {
         if (cancelled) return;
         console.error("Failed to fetch households:", err);
-        setLoaded(true);
       });
 
     return () => { cancelled = true; };
@@ -94,8 +91,6 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     },
     [households]
   );
-
-  if (!loaded) return <>{children}</>;
 
   return (
     <HouseholdContext.Provider
