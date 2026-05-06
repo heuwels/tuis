@@ -1,25 +1,16 @@
 "use client";
 
 import { useCurrentHousehold } from "@/lib/household";
-import { Home, ChevronsUpDown } from "lucide-react";
+import { Home } from "lucide-react";
 
 export function HouseholdSwitcher({ collapsed }: { collapsed?: boolean }) {
-  const { currentHousehold, households, setIsSelecting } =
+  const { currentHousehold, households, selectHousehold } =
     useCurrentHousehold();
 
-  if (!currentHousehold) {
-    // Static fallback label while loading or no household
-    if (collapsed) return null;
-    return (
-      <h3 className="px-2 mb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-        Household
-      </h3>
-    );
-  }
+  if (!currentHousehold || collapsed) return null;
 
-  // Single household — static label (no switcher needed)
+  // Single household — static label
   if (households.length <= 1) {
-    if (collapsed) return null;
     return (
       <div className="flex items-center gap-2 px-2 py-1">
         <Home className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
@@ -30,22 +21,21 @@ export function HouseholdSwitcher({ collapsed }: { collapsed?: boolean }) {
     );
   }
 
-  // Multiple households — interactive switcher
+  // Multiple households — dropdown
   return (
-    <button
-      onClick={() => setIsSelecting(true)}
-      className="flex items-center gap-2 w-full px-2 py-1 text-sm rounded-lg hover:bg-sidebar-accent/50 transition-colors text-sidebar-foreground"
-      title={collapsed ? currentHousehold.name : undefined}
-    >
-      <Home className="h-3.5 w-3.5 flex-shrink-0" />
-      {!collapsed && (
-        <>
-          <span className="truncate flex-1 text-left text-xs font-semibold uppercase tracking-wider">
-            {currentHousehold.name}
-          </span>
-          <ChevronsUpDown className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
-        </>
-      )}
-    </button>
+    <div className="flex items-center gap-2 px-2 py-1">
+      <Home className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+      <select
+        value={currentHousehold.id}
+        onChange={(e) => selectHousehold(parseInt(e.target.value))}
+        className="flex-1 text-xs font-semibold uppercase tracking-wider bg-transparent border-none outline-none cursor-pointer text-sidebar-foreground truncate"
+      >
+        {households.map((h) => (
+          <option key={h.id} value={h.id}>
+            {h.name}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }

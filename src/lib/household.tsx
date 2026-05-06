@@ -19,6 +19,7 @@ interface HouseholdContextValue {
   selectHousehold: (id: number) => void;
   isSelecting: boolean;
   setIsSelecting: (v: boolean) => void;
+  loading: boolean;
 }
 
 const HouseholdContext = createContext<HouseholdContextValue>({
@@ -27,6 +28,7 @@ const HouseholdContext = createContext<HouseholdContextValue>({
   selectHousehold: () => {},
   isSelecting: false,
   setIsSelecting: () => {},
+  loading: true,
 });
 
 export function useCurrentHousehold() {
@@ -40,10 +42,15 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     null
   );
   const [isSelecting, setIsSelecting] = useState(false);
+  const [loading, setLoading] = useState(!!currentUser);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
 
+    setLoading(true);
     let cancelled = false;
     fetch(`/api/households?userId=${currentUser.id}`)
       .then((res) => res.json())
@@ -71,10 +78,12 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
         } else if (data.length > 1) {
           setIsSelecting(true);
         }
+        setLoading(false);
       })
       .catch((err) => {
         if (cancelled) return;
         console.error("Failed to fetch households:", err);
+        setLoading(false);
       });
 
     return () => { cancelled = true; };
@@ -100,6 +109,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
         selectHousehold,
         isSelecting,
         setIsSelecting,
+        loading,
       }}
     >
       {children}

@@ -7,19 +7,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useCurrentHousehold } from "@/lib/household";
+import { useCurrentUser } from "@/lib/user-identity";
 import { Home } from "lucide-react";
 
 export function HouseholdPicker() {
+  const { currentUser } = useCurrentUser();
   const {
     households,
     selectHousehold,
     isSelecting,
     setIsSelecting,
     currentHousehold,
+    loading,
   } = useCurrentHousehold();
 
   // Don't show if only one household (auto-selected)
   if (households.length === 1) return null;
+
+  // Don't show if no user is logged in (setup flow)
+  if (!currentUser) return null;
+
+  // Still loading households
+  if (loading) return null;
 
   // Zero households — show a message
   if (households.length === 0 && !currentHousehold) {

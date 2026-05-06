@@ -125,11 +125,10 @@ test.describe.serial("Setup Wizard", () => {
 
   test("setup page shows welcome step", async ({ page }) => {
     await page.goto("/setup");
-    await page.waitForLoadState("networkidle");
 
     await expect(
       page.getByRole("heading", { name: "Welcome to Tuis" })
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15000 });
     await expect(
       page.getByRole("button", { name: "Get Started" })
     ).toBeVisible();
@@ -139,18 +138,16 @@ test.describe.serial("Setup Wizard", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
-    await expect(page).toHaveURL("/setup", { timeout: 5000 });
+    await expect(page).toHaveURL("/setup", { timeout: 15000 });
   });
 
   test("wizard navigates through all 4 steps", async ({ page }) => {
     await page.goto("/setup");
-    await page.waitForLoadState("networkidle");
 
     // Step 0: Welcome → Click Get Started
     await expect(
       page.getByRole("heading", { name: "Welcome to Tuis" })
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: "Get Started" }).click();
 
     // Step 1: Members → Should show "Who lives here?"
@@ -202,17 +199,15 @@ test.describe.serial("Setup Wizard", () => {
 
     // Click Go to Dashboard
     await page.getByRole("button", { name: "Go to Dashboard" }).click();
-    await page.waitForLoadState("networkidle");
 
     // Should be on the dashboard now
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/", { timeout: 15000 });
   });
 
   test("visiting /setup after completion redirects to dashboard", async ({
     page,
   }) => {
     await page.goto("/setup");
-    await page.waitForLoadState("networkidle");
-    await expect(page).toHaveURL("/", { timeout: 5000 });
+    await expect(page).toHaveURL("/", { timeout: 15000 });
   });
 });

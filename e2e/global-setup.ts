@@ -24,6 +24,10 @@ async function globalSetup() {
     });
   }
 
+  // Warm up the dev server by fetching the setup page so it's compiled
+  // before tests run (avoids first-visit compilation timeouts in CI)
+  await ctx.get("/setup");
+
   await ctx.dispose();
 }
 
