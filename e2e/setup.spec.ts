@@ -81,9 +81,8 @@ test.describe.serial("Setup Wizard", () => {
   });
 
   test.afterAll(async ({ request }) => {
-    // Clean up test households and users
-    await cleanupTestData(request, "households", "%");
-    await cleanupTestData(request, "users", `${TEST_USER_PREFIX}%`);
+    // Clean up tasks first — they FK to households, so household cleanup
+    // would fail silently if any starter chores still reference it.
     await cleanupTestData(request, "tasks", "Wash dishes");
     await cleanupTestData(request, "tasks", "Wipe kitchen counters");
     await cleanupTestData(request, "tasks", "Clean stovetop");
@@ -109,6 +108,10 @@ test.describe.serial("Setup Wizard", () => {
     await cleanupTestData(request, "recipes", "Pasta Bolognese");
     await cleanupTestData(request, "recipes", "Chicken Stir-Fry");
     await cleanupTestData(request, "recipes", "Scrambled Eggs on Toast");
+
+    // Now safe to remove households and users
+    await cleanupTestData(request, "households", "%");
+    await cleanupTestData(request, "users", `${TEST_USER_PREFIX}%`);
 
     // Restore original users
     await restoreUsers(request);

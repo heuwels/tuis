@@ -23,11 +23,12 @@ async function dismissUserPickerIfVisible(page: Page) {
 let cachedHouseholdId: number | null = null;
 
 async function getHouseholdId(request: APIRequestContext): Promise<number> {
-  if (cachedHouseholdId) return cachedHouseholdId;
+  if (cachedHouseholdId !== null) return cachedHouseholdId;
   const res = await request.get("/api/households");
   const households = await res.json();
-  cachedHouseholdId = households[0].id;
-  return cachedHouseholdId;
+  const id = households[0].id as number;
+  cachedHouseholdId = id;
+  return id;
 }
 
 /** Create a task via the API and return its id */

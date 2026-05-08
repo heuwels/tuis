@@ -42,15 +42,13 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     null
   );
   const [isSelecting, setIsSelecting] = useState(false);
-  const [loading, setLoading] = useState(!!currentUser);
+  const [loadedForUserId, setLoadedForUserId] = useState<number | null>(null);
+
+  const loading = !!currentUser && loadedForUserId !== currentUser.id;
 
   useEffect(() => {
-    if (!currentUser) {
-      setLoading(false);
-      return;
-    }
+    if (!currentUser) return;
 
-    setLoading(true);
     let cancelled = false;
     fetch(`/api/households?userId=${currentUser.id}`)
       .then((res) => res.json())
@@ -78,12 +76,12 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
         } else if (data.length > 1) {
           setIsSelecting(true);
         }
-        setLoading(false);
+        setLoadedForUserId(currentUser.id);
       })
       .catch((err) => {
         if (cancelled) return;
         console.error("Failed to fetch households:", err);
-        setLoading(false);
+        setLoadedForUserId(currentUser.id);
       });
 
     return () => { cancelled = true; };
