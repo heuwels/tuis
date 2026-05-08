@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCurrentHousehold } from "@/lib/household";
 import { Task } from "@/types";
 import { TaskTable, TaskFilters, TaskForm, TaskDetail, DeleteTaskDialog } from "@/components/tasks";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Plus } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 
 export default function TasksPage() {
+  const { currentHousehold } = useCurrentHousehold();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedArea, setSelectedArea] = useState("");
@@ -23,8 +25,9 @@ export default function TasksPage() {
   const [viewingTask, setViewingTask] = useState<Task | null>(null);
 
   const fetchTasks = useCallback(async () => {
+    if (!currentHousehold) return;
     try {
-      const response = await fetch("/api/tasks");
+      const response = await fetch(`/api/households/${currentHousehold.id}/tasks`);
       if (response.ok) {
         const data = await response.json();
         setTasks(data);
@@ -34,7 +37,7 @@ export default function TasksPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentHousehold]);
 
   useEffect(() => {
     fetchTasks();

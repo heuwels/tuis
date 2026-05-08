@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useCurrentHousehold } from "@/lib/household";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -32,13 +33,15 @@ interface Stats {
 
 
 export default function StatsPage() {
+  const { currentHousehold } = useCurrentHousehold();
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentHousehold) return;
     async function fetchStats() {
       try {
-        const response = await fetch("/api/stats");
+        const response = await fetch(`/api/households/${currentHousehold!.id}/stats`);
         if (response.ok) {
           const data = await response.json();
           setStats(data);
@@ -50,7 +53,7 @@ export default function StatsPage() {
       }
     }
     fetchStats();
-  }, []);
+  }, [currentHousehold]);
 
   if (isLoading) {
     return (

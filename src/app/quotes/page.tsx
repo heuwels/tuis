@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useCurrentHousehold } from "@/lib/household";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,6 +38,7 @@ const STATUS_FILTERS = [
 ];
 
 export default function QuotesPage() {
+  const { currentHousehold } = useCurrentHousehold();
   const [quotes, setQuotes] = useState<QuoteWithVendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -46,10 +48,11 @@ export default function QuotesPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchQuotes = async () => {
+    if (!currentHousehold) return;
     try {
       const params = new URLSearchParams();
       if (selectedStatus) params.set("status", selectedStatus);
-      const url = `/api/quotes${params.toString() ? `?${params}` : ""}`;
+      const url = `/api/households/${currentHousehold.id}/quotes${params.toString() ? `?${params}` : ""}`;
       const response = await fetch(url);
       if (response.ok) {
         setQuotes(await response.json());
@@ -64,7 +67,7 @@ export default function QuotesPage() {
   useEffect(() => {
     fetchQuotes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStatus]);
+  }, [selectedStatus, currentHousehold]);
 
   const pendingTotal = useMemo(
     () =>
@@ -93,7 +96,7 @@ export default function QuotesPage() {
       return;
 
     try {
-      const response = await fetch(`/api/quotes/${selectedQuote.id}`, {
+      const response = await fetch(`/api/households/${currentHousehold!.id}/quotes/${selectedQuote.id}`, {
         method: "DELETE",
       });
       if (response.ok) {
@@ -109,7 +112,7 @@ export default function QuotesPage() {
   const handleStatusChange = async (newStatus: string) => {
     if (!selectedQuote) return;
     try {
-      const response = await fetch(`/api/quotes/${selectedQuote.id}`, {
+      const response = await fetch(`/api/households/${currentHousehold!.id}/quotes/${selectedQuote.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

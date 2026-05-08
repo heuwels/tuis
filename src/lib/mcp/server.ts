@@ -30,21 +30,22 @@ export function createMcpServer(baseUrl: string) {
   server.tool(
     "list_tasks",
     "List all household tasks/chores. Returns name, area, frequency, due dates, and assignment info.",
-    {},
-    async () => text(await api("/api/tasks"))
+    { householdId: z.number().describe("Household ID") },
+    async ({ householdId }) => text(await api(`/api/households/${householdId}/tasks`))
   );
 
   server.tool(
     "get_task",
     "Get a single task by ID with full details.",
-    { id: z.number().describe("Task ID") },
-    async ({ id }) => text(await api(`/api/tasks/${id}`))
+    { householdId: z.number().describe("Household ID"), id: z.number().describe("Task ID") },
+    async ({ householdId, id }) => text(await api(`/api/households/${householdId}/tasks/${id}`))
   );
 
   server.tool(
     "create_task",
     "Create a new household task/chore.",
     {
+      householdId: z.number().describe("Household ID"),
       name: z.string().describe("Task name"),
       area: z.string().describe("Area of the house (e.g. Kitchen, Bathroom, Outdoor)"),
       frequency: z.string().describe("How often: Daily, Weekly, Bi-Weekly, Monthly, Quarterly, Bi-Annually, Annual, Ad-hoc"),
@@ -55,13 +56,14 @@ export function createMcpServer(baseUrl: string) {
       assignedTo: z.number().optional().describe("User ID to assign to"),
       applianceId: z.number().optional().describe("Linked appliance ID"),
     },
-    async (params) => text(await api("/api/tasks", { method: "POST", body: JSON.stringify(params) }))
+    async ({ householdId, ...params }) => text(await api(`/api/households/${householdId}/tasks`, { method: "POST", body: JSON.stringify(params) }))
   );
 
   server.tool(
     "update_task",
     "Update an existing task.",
     {
+      householdId: z.number().describe("Household ID"),
       id: z.number().describe("Task ID"),
       name: z.string().optional(),
       area: z.string().optional(),
@@ -73,39 +75,41 @@ export function createMcpServer(baseUrl: string) {
       assignedTo: z.number().optional(),
       applianceId: z.number().optional(),
     },
-    async ({ id, ...body }) => text(await api(`/api/tasks/${id}`, { method: "PUT", body: JSON.stringify(body) }))
+    async ({ householdId, id, ...body }) => text(await api(`/api/households/${householdId}/tasks/${id}`, { method: "PUT", body: JSON.stringify(body) }))
   );
 
   server.tool(
     "complete_task",
     "Mark a task as completed. Automatically calculates the next due date based on frequency.",
     {
+      householdId: z.number().describe("Household ID"),
       id: z.number().describe("Task ID"),
       completedDate: z.string().optional().describe("Completion date (ISO format, defaults to today)"),
       completedBy: z.string().optional().describe("User ID who completed it"),
       vendorId: z.number().optional().describe("Vendor who did the work"),
       cost: z.string().optional().describe("Cost if applicable"),
     },
-    async ({ id, ...body }) =>
-      text(await api(`/api/tasks/${id}/complete`, { method: "POST", body: JSON.stringify(body) }))
+    async ({ householdId, id, ...body }) =>
+      text(await api(`/api/households/${householdId}/tasks/${id}/complete`, { method: "POST", body: JSON.stringify(body) }))
   );
 
   server.tool(
     "snooze_task",
     "Snooze a task to push back its due date.",
     {
+      householdId: z.number().describe("Household ID"),
       id: z.number().describe("Task ID"),
       duration: z.enum(["1day", "3days", "1week", "2weeks"]).describe("How long to snooze"),
     },
-    async ({ id, ...body }) =>
-      text(await api(`/api/tasks/${id}/snooze`, { method: "POST", body: JSON.stringify(body) }))
+    async ({ householdId, id, ...body }) =>
+      text(await api(`/api/households/${householdId}/tasks/${id}/snooze`, { method: "POST", body: JSON.stringify(body) }))
   );
 
   server.tool(
     "delete_task",
     "Delete a task permanently.",
-    { id: z.number().describe("Task ID") },
-    async ({ id }) => text(await api(`/api/tasks/${id}`, { method: "DELETE" }))
+    { householdId: z.number().describe("Household ID"), id: z.number().describe("Task ID") },
+    async ({ householdId, id }) => text(await api(`/api/households/${householdId}/tasks/${id}`, { method: "DELETE" }))
   );
 
   // ─── Shopping ────────────────────────────────────────────────────────────────
@@ -381,8 +385,8 @@ export function createMcpServer(baseUrl: string) {
   server.tool(
     "get_stats",
     "Get household chore statistics: total tasks, overdue count, completions by day/area/task, and trends.",
-    {},
-    async () => text(await api("/api/stats"))
+    { householdId: z.number().describe("Household ID") },
+    async ({ householdId }) => text(await api(`/api/households/${householdId}/stats`))
   );
 
   // ─── Users ───────────────────────────────────────────────────────────────────
@@ -410,29 +414,31 @@ export function createMcpServer(baseUrl: string) {
     "list_appliances",
     "List all household appliances.",
     {
+      householdId: z.number().describe("Household ID"),
       search: z.string().optional().describe("Search by name"),
       location: z.string().optional().describe("Filter by location"),
     },
-    async ({ search, location }) => {
+    async ({ householdId, search, location }) => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (location) params.set("location", location);
       const qs = params.toString();
-      return text(await api(`/api/appliances${qs ? `?${qs}` : ""}`));
+      return text(await api(`/api/households/${householdId}/appliances${qs ? `?${qs}` : ""}`));
     }
   );
 
   server.tool(
     "get_appliance",
     "Get appliance details with linked tasks and service history.",
-    { id: z.number().describe("Appliance ID") },
-    async ({ id }) => text(await api(`/api/appliances/${id}`))
+    { householdId: z.number().describe("Household ID"), id: z.number().describe("Appliance ID") },
+    async ({ householdId, id }) => text(await api(`/api/households/${householdId}/appliances/${id}`))
   );
 
   server.tool(
     "create_appliance",
     "Add a new household appliance.",
     {
+      householdId: z.number().describe("Household ID"),
       name: z.string().describe("Appliance name (e.g. Dishwasher, Oven, Hot Water System)"),
       location: z.string().optional().describe("Where it is (e.g. Kitchen, Laundry, Garage)"),
       brand: z.string().optional().describe("Manufacturer"),
@@ -443,13 +449,14 @@ export function createMcpServer(baseUrl: string) {
       warrantyDocUrl: z.string().optional().describe("URL to warranty document"),
       notes: z.string().optional(),
     },
-    async (params) => text(await api("/api/appliances", { method: "POST", body: JSON.stringify(params) }))
+    async ({ householdId, ...params }) => text(await api(`/api/households/${householdId}/appliances`, { method: "POST", body: JSON.stringify(params) }))
   );
 
   server.tool(
     "update_appliance",
     "Update an existing appliance.",
     {
+      householdId: z.number().describe("Household ID"),
       id: z.number().describe("Appliance ID"),
       name: z.string().optional(),
       location: z.string().optional(),
@@ -461,15 +468,15 @@ export function createMcpServer(baseUrl: string) {
       warrantyDocUrl: z.string().optional(),
       notes: z.string().optional(),
     },
-    async ({ id, ...body }) =>
-      text(await api(`/api/appliances/${id}`, { method: "PUT", body: JSON.stringify(body) }))
+    async ({ householdId, id, ...body }) =>
+      text(await api(`/api/households/${householdId}/appliances/${id}`, { method: "PUT", body: JSON.stringify(body) }))
   );
 
   server.tool(
     "delete_appliance",
     "Delete an appliance.",
-    { id: z.number().describe("Appliance ID") },
-    async ({ id }) => text(await api(`/api/appliances/${id}`, { method: "DELETE" }))
+    { householdId: z.number().describe("Household ID"), id: z.number().describe("Appliance ID") },
+    async ({ householdId, id }) => text(await api(`/api/households/${householdId}/appliances/${id}`, { method: "DELETE" }))
   );
 
   // ─── Vendors ─────────────────────────────────────────────────────────────────
@@ -478,29 +485,31 @@ export function createMcpServer(baseUrl: string) {
     "list_vendors",
     "List all service vendors/contractors.",
     {
+      householdId: z.number().describe("Household ID"),
       search: z.string().optional().describe("Search by name"),
       category: z.string().optional().describe("Filter by category (Plumber, Electrician, etc.)"),
     },
-    async ({ search, category }) => {
+    async ({ householdId, search, category }) => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       if (category) params.set("category", category);
       const qs = params.toString();
-      return text(await api(`/api/vendors${qs ? `?${qs}` : ""}`));
+      return text(await api(`/api/households/${householdId}/vendors${qs ? `?${qs}` : ""}`));
     }
   );
 
   server.tool(
     "get_vendor",
     "Get vendor details with job history.",
-    { id: z.number().describe("Vendor ID") },
-    async ({ id }) => text(await api(`/api/vendors/${id}`))
+    { householdId: z.number().describe("Household ID"), id: z.number().describe("Vendor ID") },
+    async ({ householdId, id }) => text(await api(`/api/households/${householdId}/vendors/${id}`))
   );
 
   server.tool(
     "create_vendor",
     "Add a new service vendor/contractor.",
     {
+      householdId: z.number().describe("Household ID"),
       name: z.string().describe("Vendor/business name"),
       category: z.string().optional().describe("Category: Plumber, Electrician, HVAC, Appliance Repair, Landscaping, Cleaning, Chimney, General, Other"),
       phone: z.string().optional(),
@@ -509,13 +518,14 @@ export function createMcpServer(baseUrl: string) {
       notes: z.string().optional(),
       rating: z.number().optional().describe("Rating 1-5"),
     },
-    async (params) => text(await api("/api/vendors", { method: "POST", body: JSON.stringify(params) }))
+    async ({ householdId, ...params }) => text(await api(`/api/households/${householdId}/vendors`, { method: "POST", body: JSON.stringify(params) }))
   );
 
   server.tool(
     "update_vendor",
     "Update an existing vendor.",
     {
+      householdId: z.number().describe("Household ID"),
       id: z.number().describe("Vendor ID"),
       name: z.string().optional(),
       category: z.string().optional(),
@@ -525,15 +535,15 @@ export function createMcpServer(baseUrl: string) {
       notes: z.string().optional(),
       rating: z.number().optional(),
     },
-    async ({ id, ...body }) =>
-      text(await api(`/api/vendors/${id}`, { method: "PUT", body: JSON.stringify(body) }))
+    async ({ householdId, id, ...body }) =>
+      text(await api(`/api/households/${householdId}/vendors/${id}`, { method: "PUT", body: JSON.stringify(body) }))
   );
 
   server.tool(
     "delete_vendor",
     "Delete a vendor.",
-    { id: z.number().describe("Vendor ID") },
-    async ({ id }) => text(await api(`/api/vendors/${id}`, { method: "DELETE" }))
+    { householdId: z.number().describe("Household ID"), id: z.number().describe("Vendor ID") },
+    async ({ householdId, id }) => text(await api(`/api/households/${householdId}/vendors/${id}`, { method: "DELETE" }))
   );
 
   return server;

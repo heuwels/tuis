@@ -1,9 +1,27 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
+export const households = sqliteTable("households", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   color: text("color").notNull().default("#3b82f6"),
+  createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
+});
+
+export const userHouseholds = sqliteTable("user_households", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  householdId: integer("household_id")
+    .notNull()
+    .references(() => households.id),
+  role: text("role").notNull().default("member"), // owner, member
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
 });
 
@@ -18,6 +36,7 @@ export const tasks = sqliteTable("tasks", {
   extendedNotes: text("extended_notes"),
   assignedTo: integer("assigned_to").references(() => users.id),
   applianceId: integer("appliance_id"),
+  householdId: integer("household_id").references(() => households.id),
   lastCompleted: text("last_completed"),
   nextDue: text("next_due"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
@@ -160,6 +179,7 @@ export const appliances = sqliteTable("appliances", {
   warrantyExpiry: text("warranty_expiry"),
   manualUrl: text("manual_url"),
   warrantyDocUrl: text("warranty_doc_url"),
+  householdId: integer("household_id").references(() => households.id),
   notes: text("notes"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
@@ -174,10 +194,15 @@ export const vendors = sqliteTable("vendors", {
   website: text("website"),
   notes: text("notes"),
   rating: integer("rating"), // 1-5
+  householdId: integer("household_id").references(() => households.id),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
 });
 
+export type Household = typeof households.$inferSelect;
+export type NewHousehold = typeof households.$inferInsert;
+export type UserHousehold = typeof userHouseholds.$inferSelect;
+export type NewUserHousehold = typeof userHouseholds.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Task = typeof tasks.$inferSelect;
@@ -214,6 +239,7 @@ export const quotes = sqliteTable("quotes", {
   other: real("other"),
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   receivedDate: text("received_date"),
+  householdId: integer("household_id").references(() => households.id),
   notes: text("notes"),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),

@@ -39,11 +39,21 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
+    const { name, area, frequency, assignedDay, season, notes, extendedNotes, assignedTo, applianceId, nextDue } = body;
 
     const result = await db
       .update(tasks)
       .set({
-        ...body,
+        name: name !== undefined ? name : undefined,
+        area: area !== undefined ? area : undefined,
+        frequency: frequency !== undefined ? frequency : undefined,
+        assignedDay: assignedDay !== undefined ? assignedDay : undefined,
+        season: season !== undefined ? season : undefined,
+        notes: notes !== undefined ? notes : undefined,
+        extendedNotes: extendedNotes !== undefined ? extendedNotes : undefined,
+        assignedTo: assignedTo !== undefined ? assignedTo : undefined,
+        applianceId: applianceId !== undefined ? applianceId : undefined,
+        nextDue: nextDue !== undefined ? nextDue : undefined,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(tasks.id, parseInt(id)));

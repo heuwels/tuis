@@ -23,10 +23,24 @@ function initDb(): BetterSQLite3Database<typeof schema> {
 
   // Initialize tables
   sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS households (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       color TEXT NOT NULL DEFAULT '#3b82f6',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS user_households (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      household_id INTEGER NOT NULL REFERENCES households(id),
+      role TEXT NOT NULL DEFAULT 'member',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -396,6 +410,26 @@ function initDb(): BetterSQLite3Database<typeof schema> {
   // Backfill cost_amount from legacy TEXT cost field
   migrateCompletionCosts(sqlite);
 
+  // Multi-household support: add household_id columns
+  try {
+    sqlite.exec(`ALTER TABLE tasks ADD COLUMN household_id INTEGER REFERENCES households(id)`);
+  } catch { /* column already exists */ }
+
+  try {
+    sqlite.exec(`ALTER TABLE appliances ADD COLUMN household_id INTEGER REFERENCES households(id)`);
+  } catch { /* column already exists */ }
+
+  try {
+    sqlite.exec(`ALTER TABLE vendors ADD COLUMN household_id INTEGER REFERENCES households(id)`);
+  } catch { /* column already exists */ }
+
+  try {
+    sqlite.exec(`ALTER TABLE quotes ADD COLUMN household_id INTEGER REFERENCES households(id)`);
+  } catch { /* column already exists */ }
+
+  // Backfill: create default household and assign existing data
+  migrateToHouseholds(sqlite);
+
   _db = drizzle(sqlite, { schema });
   return _db;
 }
@@ -484,6 +518,70 @@ function migrateCompletionCosts(sqlite: Database.Database) {
   });
 
   tx();
+}
+
+function migrateToHouseholds(sqlite: Database.Database) {
+  const householdCount = sqlite
+    .prepare(`SELECT COUNT(*) as count FROM households`)
+    .get() as { count: number };
+
+  // If no households exist, try to create a default one
+  if (householdCount.count === 0) {
+    const userCount = sqlite
+      .prepare(`SELECT COUNT(*) as count FROM users`)
+      .get() as { count: number };
+
+    // No users yet (fresh install) - skip migration, setup wizard will handle it
+    if (userCount.count === 0) return;
+
+    const tx = sqlite.transaction(() => {
+      // Create default household
+      sqlite.exec(`INSERT INTO households (name) VALUES ('Home')`);
+      const household = sqlite
+        .prepare(`SELECT id FROM households ORDER BY id DESC LIMIT 1`)
+        .get() as { id: number };
+
+      // Assign all existing users to the default household
+      const users = sqlite.prepare(`SELECT id FROM users`).all() as { id: number }[];
+      const insertMembership = sqlite.prepare(
+        `INSERT INTO user_households (user_id, household_id, role) VALUES (?, ?, 'owner')`
+      );
+      for (const user of users) {
+        insertMembership.run(user.id, household.id);
+      }
+
+      // Backfill household_id on all existing rows
+      sqlite.prepare(`UPDATE tasks SET household_id = ? WHERE household_id IS NULL`).run(household.id);
+      sqlite.prepare(`UPDATE appliances SET household_id = ? WHERE household_id IS NULL`).run(household.id);
+      sqlite.prepare(`UPDATE vendors SET household_id = ? WHERE household_id IS NULL`).run(household.id);
+      sqlite.prepare(`UPDATE quotes SET household_id = ? WHERE household_id IS NULL`).run(household.id);
+    });
+
+    tx();
+    return;
+  }
+
+  // Households exist — backfill any orphaned NULL rows to the first household
+  const unassigned = sqlite
+    .prepare(
+      `SELECT COUNT(*) as count FROM tasks WHERE household_id IS NULL
+       UNION ALL SELECT COUNT(*) FROM appliances WHERE household_id IS NULL
+       UNION ALL SELECT COUNT(*) FROM vendors WHERE household_id IS NULL
+       UNION ALL SELECT COUNT(*) FROM quotes WHERE household_id IS NULL`
+    )
+    .all() as { count: number }[];
+
+  const totalUnassigned = unassigned.reduce((sum, r) => sum + r.count, 0);
+  if (totalUnassigned === 0) return;
+
+  const defaultHousehold = sqlite
+    .prepare(`SELECT id FROM households ORDER BY id ASC LIMIT 1`)
+    .get() as { id: number };
+
+  sqlite.prepare(`UPDATE tasks SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
+  sqlite.prepare(`UPDATE appliances SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
+  sqlite.prepare(`UPDATE vendors SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
+  sqlite.prepare(`UPDATE quotes SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
 }
 
 export { schema };

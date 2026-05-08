@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -32,6 +33,7 @@ export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonP
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { currentUser } = useCurrentUser();
+  const { currentHousehold } = useCurrentHousehold();
   const completingRef = useRef(false);
 
   const completeTask = async (date?: Date) => {
@@ -39,7 +41,7 @@ export function CompleteButton({ taskId, taskName, onComplete }: CompleteButtonP
     completingRef.current = true;
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/tasks/${taskId}/complete`, {
+      const response = await fetch(`/api/households/${currentHousehold!.id}/tasks/${taskId}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

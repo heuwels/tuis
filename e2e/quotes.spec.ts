@@ -76,7 +76,7 @@ test.describe("Quote Management", () => {
       // Submit
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/quotes") &&
+          resp.url().includes("/quotes") &&
           resp.request().method() === "POST"
       );
       await dialog.getByRole("button", { name: "Add Quote" }).click();
@@ -173,7 +173,7 @@ test.describe("Quote Management", () => {
       // Click Accept Quote
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/quotes/") &&
+          resp.url().includes("/quotes/") &&
           resp.request().method() === "PUT"
       );
       await dialog
@@ -222,7 +222,7 @@ test.describe("Quote Management", () => {
       // Submit
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/quotes/") &&
+          resp.url().includes("/quotes/") &&
           resp.request().method() === "PUT"
       );
       await editDialog
@@ -255,7 +255,7 @@ test.describe("Quote Management", () => {
       // Click Delete
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/quotes/") &&
+          resp.url().includes("/quotes/") &&
           resp.request().method() === "DELETE"
       );
       await dialog.getByRole("button", { name: "Delete" }).click();
@@ -267,8 +267,11 @@ test.describe("Quote Management", () => {
       // Wait for list to refresh
       await page.waitForLoadState("networkidle");
 
-      // Quote should no longer be visible
-      await expect(page.getByText(TEST_QUOTE_DESC)).not.toBeVisible({
+      // Quote should no longer be visible. Use .first() because the table
+      // renders both desktop and mobile rows in the DOM (one CSS-hidden);
+      // a bare getByText would trip strict-mode while React's post-fetch
+      // re-render is in flight on slower CI runners.
+      await expect(page.getByText(TEST_QUOTE_DESC).first()).not.toBeVisible({
         timeout: 5000,
       });
     });

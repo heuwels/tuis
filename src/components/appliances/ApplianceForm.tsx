@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCurrentHousehold } from "@/lib/household";
 import { Appliance } from "@/types";
 
 interface ApplianceFormProps {
@@ -55,6 +56,7 @@ export function ApplianceForm({
   const [manualUrl, setManualUrl] = useState("");
   const [warrantyDocUrl, setWarrantyDocUrl] = useState("");
   const [notes, setNotes] = useState("");
+  const { currentHousehold } = useCurrentHousehold();
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -87,8 +89,8 @@ export function ApplianceForm({
 
     try {
       const url = appliance
-        ? `/api/appliances/${appliance.id}`
-        : "/api/appliances";
+        ? `/api/households/${currentHousehold!.id}/appliances/${appliance.id}`
+        : `/api/households/${currentHousehold!.id}/appliances`;
       const method = appliance ? "PUT" : "POST";
 
       const response = await fetch(url, {

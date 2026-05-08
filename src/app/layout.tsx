@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { UserIdentityProvider } from "@/lib/user-identity";
+import { HouseholdProvider } from "@/lib/household";
 import { UserPicker } from "@/components/user-identity/UserPicker";
+import { HouseholdPicker } from "@/components/household/HouseholdPicker";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
@@ -66,8 +68,11 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <UserIdentityProvider>
-            {children}
-            <UserPicker />
+            <HouseholdProvider>
+              {children}
+              <UserPicker />
+              <HouseholdPicker />
+            </HouseholdProvider>
           </UserIdentityProvider>
         </ThemeProvider>
         <ServiceWorkerRegistration />

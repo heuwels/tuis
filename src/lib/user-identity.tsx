@@ -36,8 +36,6 @@ export function UserIdentityProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-
   useEffect(() => {
     fetch("/api/users")
       .then((res) => res.json())
@@ -55,7 +53,6 @@ export function UserIdentityProvider({ children }: { children: ReactNode }) {
         } else if (data.length > 0) {
           setIsSelecting(true);
         }
-        setLoaded(true);
       })
       .catch(console.error);
   }, []);
@@ -71,8 +68,6 @@ export function UserIdentityProvider({ children }: { children: ReactNode }) {
     },
     [users]
   );
-
-  if (!loaded) return <>{children}</>;
 
   return (
     <UserIdentityContext.Provider

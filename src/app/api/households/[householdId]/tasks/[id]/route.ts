@@ -1,0 +1,123 @@
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { tasks, completions } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { syncTask, deleteTaskCalendarEvents } from "@/lib/calendar";
+import { validateApiRequest } from "@/lib/auth/validate";
+
+export const dynamic = "force-dynamic";
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ householdId: string; id: string }> }
+) {
+  try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
+    const { householdId, id } = await params;
+    const task = await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.id, parseInt(id)), eq(tasks.householdId, parseInt(householdId))))
+      .limit(1);
+
+    if (task.length === 0) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(task[0]);
+  } catch (error) {
+    console.error("Error fetching task:", error);
+    return NextResponse.json({ error: "Failed to fetch task" }, { status: 500 });
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ householdId: string; id: string }> }
+) {
+  try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
+    const { householdId, id } = await params;
+    const body = await request.json();
+    const { name, area, frequency, assignedDay, season, notes, extendedNotes, assignedTo, applianceId, nextDue } = body;
+
+    const result = await db
+      .update(tasks)
+      .set({
+        name: name !== undefined ? name : undefined,
+        area: area !== undefined ? area : undefined,
+        frequency: frequency !== undefined ? frequency : undefined,
+        assignedDay: assignedDay !== undefined ? assignedDay : undefined,
+        season: season !== undefined ? season : undefined,
+        notes: notes !== undefined ? notes : undefined,
+        extendedNotes: extendedNotes !== undefined ? extendedNotes : undefined,
+        assignedTo: assignedTo !== undefined ? assignedTo : undefined,
+        applianceId: applianceId !== undefined ? applianceId : undefined,
+        nextDue: nextDue !== undefined ? nextDue : undefined,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(and(eq(tasks.id, parseInt(id)), eq(tasks.householdId, parseInt(householdId))));
+
+    if (result.changes === 0) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    // Sync to Google Calendar (if connected and task is syncable)
+    const updatedTask = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, parseInt(id)))
+      .limit(1);
+    if (updatedTask[0]) {
+      syncTask(updatedTask[0]).catch(console.error);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error updating task:", error);
+    return NextResponse.json({ error: "Failed to update task" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ householdId: string; id: string }> }
+) {
+  try {
+    const authError = await validateApiRequest(request);
+    if (authError) return authError;
+
+    const { householdId, id } = await params;
+    const taskId = parseInt(id);
+    const houseId = parseInt(householdId);
+
+    // Verify task belongs to household
+    const task = await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.id, taskId), eq(tasks.householdId, houseId)))
+      .limit(1);
+
+    if (task.length === 0) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    // Delete calendar events first
+    await deleteTaskCalendarEvents(taskId).catch(console.error);
+
+    // Delete related completions to avoid foreign key constraint
+    await db.delete(completions).where(eq(completions.taskId, taskId));
+
+    // Then delete the task
+    await db.delete(tasks).where(eq(tasks.id, taskId));
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    return NextResponse.json({ error: "Failed to delete task" }, { status: 500 });
+  }
+}

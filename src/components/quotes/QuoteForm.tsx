@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +41,7 @@ export function QuoteForm({
   onOpenChange,
   onSuccess,
 }: QuoteFormProps) {
+  const { currentHousehold } = useCurrentHousehold();
   const [description, setDescription] = useState("");
   const [vendorId, setVendorId] = useState<string>("none");
   const [total, setTotal] = useState("");
@@ -53,13 +55,14 @@ export function QuoteForm({
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    if (!currentHousehold) return;
     if (open) {
-      fetch("/api/vendors")
+      fetch(`/api/households/${currentHousehold.id}/vendors`)
         .then((r) => (r.ok ? r.json() : []))
         .then(setVendors)
         .catch(() => {});
     }
-  }, [open]);
+  }, [open, currentHousehold]);
 
   useEffect(() => {
     if (quote) {
@@ -91,7 +94,9 @@ export function QuoteForm({
     setIsSaving(true);
 
     try {
-      const url = quote ? `/api/quotes/${quote.id}` : "/api/quotes";
+      const url = quote
+        ? `/api/households/${currentHousehold!.id}/quotes/${quote.id}`
+        : `/api/households/${currentHousehold!.id}/quotes`;
       const method = quote ? "PUT" : "POST";
 
       const body: Record<string, unknown> = {

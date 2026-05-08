@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCurrentHousehold } from "@/lib/household";
 import { Task } from "@/types";
 import { TaskSection } from "./TaskSection";
 import { DailyTasksList } from "./DailyTasksList";
@@ -70,12 +71,14 @@ function categorizeTasks(tasks: Task[]): CategorizedTasks {
 }
 
 export function Dashboard() {
+  const { currentHousehold } = useCurrentHousehold();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchTasks = useCallback(async () => {
+    if (!currentHousehold) return;
     try {
-      const response = await fetch("/api/tasks");
+      const response = await fetch(`/api/households/${currentHousehold.id}/tasks`);
       if (response.ok) {
         const data = await response.json();
         setTasks(data);
@@ -85,7 +88,7 @@ export function Dashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentHousehold]);
 
   useEffect(() => {
     fetchTasks();

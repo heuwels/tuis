@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useCurrentHousehold } from "@/lib/household";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +43,7 @@ interface ApplianceWithDetails extends Appliance {
 }
 
 export default function AppliancesPage() {
+  const { currentHousehold } = useCurrentHousehold();
   const [appliances, setAppliances] = useState<Appliance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,12 +54,13 @@ export default function AppliancesPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const fetchAppliances = async () => {
+    if (!currentHousehold) return;
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.set("search", searchQuery);
       if (selectedLocation) params.set("location", selectedLocation);
 
-      const url = `/api/appliances${params.toString() ? `?${params}` : ""}`;
+      const url = `/api/households/${currentHousehold.id}/appliances${params.toString() ? `?${params}` : ""}`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
@@ -72,7 +75,7 @@ export default function AppliancesPage() {
 
   const fetchApplianceDetails = async (id: number) => {
     try {
-      const response = await fetch(`/api/appliances/${id}`);
+      const response = await fetch(`/api/households/${currentHousehold!.id}/appliances/${id}`);
       if (response.ok) {
         const data = await response.json();
         setSelectedAppliance(data);
@@ -86,7 +89,7 @@ export default function AppliancesPage() {
   useEffect(() => {
     fetchAppliances();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLocation]);
+  }, [selectedLocation, currentHousehold]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -94,7 +97,7 @@ export default function AppliancesPage() {
     }, 300);
     return () => clearTimeout(debounce);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, currentHousehold]);
 
   const handleEdit = () => {
     if (selectedAppliance) {
@@ -109,7 +112,7 @@ export default function AppliancesPage() {
     if (!confirm(`Delete "${selectedAppliance.name}"? This cannot be undone.`)) return;
 
     try {
-      const response = await fetch(`/api/appliances/${selectedAppliance.id}`, {
+      const response = await fetch(`/api/households/${currentHousehold!.id}/appliances/${selectedAppliance.id}`, {
         method: "DELETE",
       });
       if (response.ok) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useCurrentHousehold } from "@/lib/household";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, CheckCircle2, CalendarClock, TrendingUp } from "lucide-react";
 
@@ -12,14 +13,16 @@ interface Stats {
 }
 
 export function StatsRow() {
+  const { currentHousehold } = useCurrentHousehold();
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
-    fetch("/api/stats")
+    if (!currentHousehold) return;
+    fetch(`/api/households/${currentHousehold.id}/stats`)
       .then((r) => r.ok ? r.json() : null)
       .then(setStats)
       .catch(() => {});
-  }, []);
+  }, [currentHousehold]);
 
   if (!stats) return null;
 

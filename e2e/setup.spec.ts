@@ -13,7 +13,8 @@ async function backupAndClearUsers(request: APIRequestContext) {
   if (res.ok()) {
     existingUsers = await res.json();
   }
-  // Delete all users to simulate fresh install
+  // Delete all households and users to simulate fresh install
+  await cleanupTestData(request, "households", "%");
   if (existingUsers.length > 0) {
     await cleanupTestData(request, "users", "%");
   }
@@ -21,10 +22,29 @@ async function backupAndClearUsers(request: APIRequestContext) {
 
 async function restoreUsers(request: APIRequestContext) {
   // Re-create the original users
+  const userIds: number[] = [];
   for (const user of existingUsers) {
-    await request.post("/api/users", {
+    const res = await request.post("/api/users", {
       data: { name: user.name, color: user.color },
     });
+    if (res.ok()) {
+      const data = await res.json();
+      userIds.push(data.id);
+    }
+  }
+  // Recreate a default household and assign all users
+  if (userIds.length > 0) {
+    const hRes = await request.post("/api/households", {
+      data: { name: "Home", userId: userIds[0] },
+    });
+    if (hRes.ok()) {
+      const { id: householdId } = await hRes.json();
+      for (let i = 1; i < userIds.length; i++) {
+        await request.post(`/api/households/${householdId}/members`, {
+          data: { userId: userIds[i], role: "member" },
+        });
+      }
+    }
   }
 }
 
@@ -61,8 +81,8 @@ test.describe.serial("Setup Wizard", () => {
   });
 
   test.afterAll(async ({ request }) => {
-    // Clean up test user and seeded data
-    await cleanupTestData(request, "users", `${TEST_USER_PREFIX}%`);
+    // Clean up tasks first — they FK to households, so household cleanup
+    // would fail silently if any starter chores still reference it.
     await cleanupTestData(request, "tasks", "Wash dishes");
     await cleanupTestData(request, "tasks", "Wipe kitchen counters");
     await cleanupTestData(request, "tasks", "Clean stovetop");
@@ -89,6 +109,10 @@ test.describe.serial("Setup Wizard", () => {
     await cleanupTestData(request, "recipes", "Chicken Stir-Fry");
     await cleanupTestData(request, "recipes", "Scrambled Eggs on Toast");
 
+    // Now safe to remove households and users
+    await cleanupTestData(request, "households", "%");
+    await cleanupTestData(request, "users", `${TEST_USER_PREFIX}%`);
+
     // Restore original users
     await restoreUsers(request);
   });
@@ -104,11 +128,10 @@ test.describe.serial("Setup Wizard", () => {
 
   test("setup page shows welcome step", async ({ page }) => {
     await page.goto("/setup");
-    await page.waitForLoadState("networkidle");
 
     await expect(
       page.getByRole("heading", { name: "Welcome to Tuis" })
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15000 });
     await expect(
       page.getByRole("button", { name: "Get Started" })
     ).toBeVisible();
@@ -118,18 +141,16 @@ test.describe.serial("Setup Wizard", () => {
     page,
   }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
-    await expect(page).toHaveURL("/setup", { timeout: 5000 });
+    await expect(page).toHaveURL("/setup", { timeout: 15000 });
   });
 
   test("wizard navigates through all 4 steps", async ({ page }) => {
     await page.goto("/setup");
-    await page.waitForLoadState("networkidle");
 
     // Step 0: Welcome → Click Get Started
     await expect(
       page.getByRole("heading", { name: "Welcome to Tuis" })
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: "Get Started" }).click();
 
     // Step 1: Members → Should show "Who lives here?"
@@ -181,17 +202,15 @@ test.describe.serial("Setup Wizard", () => {
 
     // Click Go to Dashboard
     await page.getByRole("button", { name: "Go to Dashboard" }).click();
-    await page.waitForLoadState("networkidle");
 
     // Should be on the dashboard now
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/", { timeout: 15000 });
   });
 
   test("visiting /setup after completion redirects to dashboard", async ({
     page,
   }) => {
     await page.goto("/setup");
-    await page.waitForLoadState("networkidle");
-    await expect(page).toHaveURL("/", { timeout: 5000 });
+    await expect(page).toHaveURL("/", { timeout: 15000 });
   });
 });

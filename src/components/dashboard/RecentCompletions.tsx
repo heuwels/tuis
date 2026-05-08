@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useCurrentHousehold } from "@/lib/household";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
@@ -25,19 +26,21 @@ function formatCompletionDate(dateStr: string): string {
 }
 
 export function RecentCompletions() {
+  const { currentHousehold } = useCurrentHousehold();
   const [completions, setCompletions] = useState<RecentCompletion[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
-    fetch("/api/stats/recent-completions")
+    if (!currentHousehold) return;
+    fetch(`/api/households/${currentHousehold.id}/stats/recent-completions`)
       .then((r) => r.ok ? r.json() : [])
       .then((data: RecentCompletion[]) => {
         setCompletions(data);
         setLoaded(true);
       })
       .catch(() => setLoaded(true));
-  }, []);
+  }, [currentHousehold]);
 
   if (!loaded || completions.length === 0) return null;
 

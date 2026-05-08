@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { appliances } from "@/lib/db/schema";
-import { eq, like, or, desc } from "drizzle-orm";
+import { eq, like, or, desc, and } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,6 @@ export async function GET(request: Request) {
 
     let result;
     if (conditions.length > 0) {
-      const { and } = await import("drizzle-orm");
       result = await query.where(and(...conditions)).orderBy(desc(appliances.updatedAt));
     } else {
       result = await query.orderBy(desc(appliances.updatedAt));

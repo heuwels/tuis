@@ -101,6 +101,7 @@ export default function SetupPage() {
 
     try {
       // Create all members
+      const userIds: number[] = [];
       for (const member of validMembers) {
         const res = await fetch("/api/users", {
           method: "POST",
@@ -110,14 +111,39 @@ export default function SetupPage() {
         if (!res.ok) {
           throw new Error(`Failed to create member: ${member.name}`);
         }
+        const data = await res.json();
+        userIds.push(data.id);
       }
+
+      // Create the default household and assign the first user as owner
+      const householdRes = await fetch("/api/households", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Home", userId: userIds[0] }),
+      });
+      if (!householdRes.ok) {
+        throw new Error("Failed to create household");
+      }
+      const { id: householdId } = await householdRes.json();
+
+      // Add remaining users as members
+      for (let i = 1; i < userIds.length; i++) {
+        await fetch(`/api/households/${householdId}/members`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: userIds[i], role: "member" }),
+        });
+      }
+
+      // Store household selection
+      localStorage.setItem("tuis-household-id", String(householdId));
 
       // Seed starter data if any selected
       if (seedChores || seedShopping || seedRecipes) {
         const res = await fetch("/api/setup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ seedChores, seedShopping, seedRecipes }),
+          body: JSON.stringify({ seedChores, seedShopping, seedRecipes, householdId }),
         });
         if (!res.ok) {
           throw new Error("Failed to seed starter data");
