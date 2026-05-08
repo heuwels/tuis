@@ -12,10 +12,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { User } from "@/types";
-import { Plus, Pencil, Trash2, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Home } from "lucide-react";
 import { GoogleCalendarCard } from "@/components/settings/GoogleCalendarCard";
 import { PersonalAccessTokensCard } from "@/components/settings/PersonalAccessTokensCard";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { useCurrentUser } from "@/lib/user-identity";
+import { useCurrentHousehold } from "@/lib/household";
 
 const COLORS = [
   "#3b82f6", // blue
@@ -29,12 +31,20 @@ const COLORS = [
 ];
 
 export default function SettingsPage() {
+  const { currentUser } = useCurrentUser();
+  const { households, refresh, selectHousehold } = useCurrentHousehold();
+
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({ name: "", color: COLORS[0] });
   const [isSaving, setIsSaving] = useState(false);
+
+  const [isHouseholdFormOpen, setIsHouseholdFormOpen] = useState(false);
+  const [householdName, setHouseholdName] = useState("");
+  const [householdError, setHouseholdError] = useState<string | null>(null);
+  const [isSavingHousehold, setIsSavingHousehold] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -109,11 +119,95 @@ export default function SettingsPage() {
     }
   };
 
+  const openHouseholdForm = () => {
+    setHouseholdName("");
+    setHouseholdError(null);
+    setIsHouseholdFormOpen(true);
+  };
+
+  const handleHouseholdSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setHouseholdError(null);
+
+    const trimmed = householdName.trim();
+    if (!trimmed) {
+      setHouseholdError("Name is required");
+      return;
+    }
+    if (!currentUser) {
+      setHouseholdError("Pick a user before creating a household");
+      return;
+    }
+
+    setIsSavingHousehold(true);
+    try {
+      const response = await fetch("/api/households", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed, userId: currentUser.id }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setHouseholdError(body.error ?? "Failed to create household");
+        return;
+      }
+
+      const { id } = await response.json();
+      await refresh();
+      selectHousehold(id);
+      setIsHouseholdFormOpen(false);
+    } catch (error) {
+      console.error("Error creating household:", error);
+      setHouseholdError("Failed to create household");
+    } finally {
+      setIsSavingHousehold(false);
+    }
+  };
+
   return (
     <AppLayout title="Settings">
       <div className="space-y-6 max-w-2xl">
         <GoogleCalendarCard />
         <PersonalAccessTokensCard />
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Home className="h-5 w-5" />
+              Households
+            </CardTitle>
+            <Button
+              onClick={openHouseholdForm}
+              size="sm"
+              disabled={!currentUser}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Household
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {households.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                You are not a member of any household yet.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {households.map((h) => (
+                  <div
+                    key={h.id}
+                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-900 rounded-lg"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                      <Home className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <span className="font-medium">{h.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -173,6 +267,44 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={isHouseholdFormOpen} onOpenChange={setIsHouseholdFormOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Add Household</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleHouseholdSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="household-name">Name</Label>
+              <Input
+                id="household-name"
+                value={householdName}
+                onChange={(e) => setHouseholdName(e.target.value)}
+                placeholder="e.g., Beach House"
+                autoFocus
+                required
+              />
+              {householdError && (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {householdError}
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsHouseholdFormOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSavingHousehold}>
+                {isSavingHousehold ? "Saving..." : "Add"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="sm:max-w-[400px]">
