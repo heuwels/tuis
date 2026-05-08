@@ -20,6 +20,7 @@ interface HouseholdContextValue {
   isSelecting: boolean;
   setIsSelecting: (v: boolean) => void;
   loading: boolean;
+  refresh: () => Promise<void>;
 }
 
 const HouseholdContext = createContext<HouseholdContextValue>({
@@ -29,6 +30,7 @@ const HouseholdContext = createContext<HouseholdContextValue>({
   isSelecting: false,
   setIsSelecting: () => {},
   loading: true,
+  refresh: async () => {},
 });
 
 export function useCurrentHousehold() {
@@ -99,6 +101,14 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     [households]
   );
 
+  const refresh = useCallback(async () => {
+    if (!currentUser) return;
+    const res = await fetch(`/api/households?userId=${currentUser.id}`);
+    if (!res.ok) return;
+    const data: Household[] = await res.json();
+    setHouseholds(data);
+  }, [currentUser]);
+
   return (
     <HouseholdContext.Provider
       value={{
@@ -108,6 +118,7 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
         isSelecting,
         setIsSelecting,
         loading,
+        refresh,
       }}
     >
       {children}
