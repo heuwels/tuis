@@ -8,6 +8,7 @@ import type { MetricConfig } from "@/components/charts";
 import { PropertySetup } from "@/components/finance/PropertySetup";
 import { Property } from "@/types";
 import { format, parse } from "date-fns";
+import { useCurrentHousehold } from "@/lib/household";
 
 const formatCurrency = new Intl.NumberFormat("en-AU", {
   style: "currency",
@@ -87,18 +88,23 @@ export function EquityOverview({
 }: {
   onPropertyId: (id: number) => void;
 }) {
+  const { currentHousehold } = useCurrentHousehold();
   const [property, setProperty] = useState<Property | null>(null);
   const [equity, setEquity] = useState<EquityData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
+    if (!currentHousehold) return;
     try {
-      const res = await fetch("/api/finance/properties");
+      const base = `/api/households/${currentHousehold.id}/finance/properties`;
+      const res = await fetch(base);
       if (!res.ok) return;
       const props: Property[] = await res.json();
       if (props.length === 0) {
         setProperty(null);
+        setEquity(null);
+        onPropertyId(0);
         return;
       }
 
@@ -106,7 +112,7 @@ export function EquityOverview({
       setProperty(prop);
       onPropertyId(prop.id);
 
-      const eqRes = await fetch(`/api/finance/properties/${prop.id}/equity`);
+      const eqRes = await fetch(`${base}/${prop.id}/equity`);
       if (eqRes.ok) {
         setEquity(await eqRes.json());
       }
@@ -115,7 +121,7 @@ export function EquityOverview({
     } finally {
       setIsLoading(false);
     }
-  }, [onPropertyId]);
+  }, [currentHousehold, onPropertyId]);
 
   useEffect(() => {
     fetchData();

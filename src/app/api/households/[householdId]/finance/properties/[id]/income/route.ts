@@ -3,19 +3,24 @@ import { db } from "@/lib/db";
 import { propertyIncome } from "@/lib/db/schema";
 import { eq, and, desc, gte, lte } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
+import { propertyBelongsToHousehold } from "@/lib/finance/scope";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+type Params = { params: Promise<{ householdId: string; id: string }> };
+
+export async function GET(request: NextRequest, { params }: Params) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId: hid, id } = await params;
+    const householdId = parseInt(hid);
     const propertyId = parseInt(id);
+
+    if (!(await propertyBelongsToHousehold(propertyId, householdId))) {
+      return NextResponse.json({ error: "Property not found" }, { status: 404 });
+    }
 
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
@@ -43,16 +48,19 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: Params) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId: hid, id } = await params;
+    const householdId = parseInt(hid);
     const propertyId = parseInt(id);
+
+    if (!(await propertyBelongsToHousehold(propertyId, householdId))) {
+      return NextResponse.json({ error: "Property not found" }, { status: 404 });
+    }
+
     const body = await request.json();
     const { date, amount, category, description, tenant, notes } = body;
 

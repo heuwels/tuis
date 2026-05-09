@@ -22,10 +22,18 @@ async function dismissUserPickerIfVisible(page: Page) {
 
 async function cleanupTestProperties(request: import("@playwright/test").APIRequestContext) {
   try {
-    const res = await request.get("/api/finance/properties");
-    const properties = await res.json();
-    for (const prop of properties) {
-      await request.delete(`/api/finance/properties/${prop.id}`);
+    const householdsRes = await request.get("/api/households");
+    const households = await householdsRes.json();
+    for (const h of households) {
+      const res = await request.get(
+        `/api/households/${h.id}/finance/properties`
+      );
+      const properties = await res.json();
+      for (const prop of properties) {
+        await request.delete(
+          `/api/households/${h.id}/finance/properties/${prop.id}`
+        );
+      }
     }
   } catch {
     console.warn("Cleanup failed for finance properties");
@@ -76,7 +84,7 @@ test.describe("Property & Equity", () => {
       // Submit
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/finance/properties") &&
+          resp.url().includes("/finance/properties") &&
           resp.request().method() === "POST"
       );
       await dialog.getByRole("button", { name: "Add Property" }).click();

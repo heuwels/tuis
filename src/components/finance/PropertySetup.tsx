@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Home, Plus } from "lucide-react";
 import { Property } from "@/types";
+import { useCurrentHousehold } from "@/lib/household";
 
 interface PropertySetupProps {
   onPropertyCreated: (id: number) => void;
@@ -28,6 +29,7 @@ export function PropertySetup({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
 }: PropertySetupProps) {
+  const { currentHousehold } = useCurrentHousehold();
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const onOpenChange = controlledOnOpenChange ?? setInternalOpen;
@@ -65,12 +67,12 @@ export function PropertySetup({
     e.preventDefault();
     if (!address.trim() || !purchasePrice || !purchaseDate || !loanAmountOriginal)
       return;
+    if (!currentHousehold) return;
     setIsSaving(true);
 
     try {
-      const url = property
-        ? `/api/finance/properties/${property.id}`
-        : "/api/finance/properties";
+      const base = `/api/households/${currentHousehold.id}/finance/properties`;
+      const url = property ? `${base}/${property.id}` : base;
       const method = property ? "PUT" : "POST";
 
       const body = {

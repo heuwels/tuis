@@ -24,11 +24,19 @@ async function dismissUserPickerIfVisible(page: Page) {
 
 test.afterAll(async ({ request }) => {
   try {
-    const res = await request.get("/api/finance/expenses");
-    const expenses = await res.json();
-    for (const exp of expenses) {
-      if (exp.description.startsWith(TEST_PREFIX)) {
-        await request.delete(`/api/finance/expenses/${exp.id}`);
+    const householdsRes = await request.get("/api/households");
+    const households = await householdsRes.json();
+    for (const h of households) {
+      const res = await request.get(
+        `/api/households/${h.id}/finance/expenses`
+      );
+      const expenses = await res.json();
+      for (const exp of expenses) {
+        if (exp.description.startsWith(TEST_PREFIX)) {
+          await request.delete(
+            `/api/households/${h.id}/finance/expenses/${exp.id}`
+          );
+        }
       }
     }
   } catch {
@@ -93,7 +101,7 @@ test.describe("Household Expenses", () => {
       // Submit
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/finance/expenses") &&
+          resp.url().includes("/finance/expenses") &&
           resp.request().method() === "POST"
       );
       await dialog.getByRole("button", { name: "Add Expense" }).click();
@@ -132,7 +140,7 @@ test.describe("Household Expenses", () => {
 
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/finance/expenses") &&
+          resp.url().includes("/finance/expenses") &&
           resp.request().method() === "POST"
       );
       await dialog.getByRole("button", { name: "Add Expense" }).click();
@@ -193,7 +201,7 @@ test.describe("Household Expenses", () => {
       // Submit
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/finance/expenses/") &&
+          resp.url().includes("/finance/expenses/") &&
           resp.request().method() === "PUT"
       );
       await dialog.getByRole("button", { name: "Save Changes" }).click();
@@ -235,7 +243,7 @@ test.describe("Household Expenses", () => {
         .filter({ hasText: TEST_EXPENSE_EDITED });
       const responsePromise = page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/finance/expenses/") &&
+          resp.url().includes("/finance/expenses/") &&
           resp.request().method() === "DELETE"
       );
       await row.locator("button:has(svg.lucide-trash-2)").first().click();
@@ -244,7 +252,7 @@ test.describe("Household Expenses", () => {
       // Wait for list to refresh after delete
       await page.waitForResponse(
         (resp) =>
-          resp.url().includes("/api/finance/expenses") &&
+          resp.url().includes("/finance/expenses") &&
           resp.request().method() === "GET"
       );
 

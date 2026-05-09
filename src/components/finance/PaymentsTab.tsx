@@ -28,6 +28,7 @@ import {
   PropertyValuation,
   PropertyIncome,
 } from "@/types";
+import { useCurrentHousehold } from "@/lib/household";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-AU", {
@@ -68,15 +69,18 @@ export function PaymentsTab({ propertyId }: { propertyId: number | null }) {
 // MARK: - Mortgage Payments Section
 
 function MortgagePaymentsSection({ propertyId }: { propertyId: number }) {
+  const { currentHousehold } = useCurrentHousehold();
+  const householdId = currentHousehold?.id;
   const [payments, setPayments] = useState<MortgagePayment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<MortgagePayment | null>(null);
 
   const fetchPayments = useCallback(async () => {
+    if (!householdId) return;
     try {
       const res = await fetch(
-        `/api/finance/properties/${propertyId}/payments`
+        `/api/households/${householdId}/finance/properties/${propertyId}/payments`
       );
       if (res.ok) setPayments(await res.json());
     } catch (error) {
@@ -84,7 +88,7 @@ function MortgagePaymentsSection({ propertyId }: { propertyId: number }) {
     } finally {
       setIsLoading(false);
     }
-  }, [propertyId]);
+  }, [propertyId, householdId]);
 
   useEffect(() => {
     fetchPayments();
@@ -94,7 +98,7 @@ function MortgagePaymentsSection({ propertyId }: { propertyId: number }) {
     if (!window.confirm("Delete this payment? This cannot be undone.")) return;
     try {
       const res = await fetch(
-        `/api/finance/properties/${propertyId}/payments/${payment.id}`,
+        `/api/households/${householdId}/finance/properties/${propertyId}/payments/${payment.id}`,
         { method: "DELETE" }
       );
       if (res.ok) fetchPayments();
@@ -282,6 +286,8 @@ function PaymentFormDialog({
   payment: MortgagePayment | null;
   onSave: () => void;
 }) {
+  const { currentHousehold } = useCurrentHousehold();
+  const householdId = currentHousehold?.id;
   const [date, setDate] = useState("");
   const [paymentAmount, setPaymentAmount] = useState("");
   const [interestAmount, setInterestAmount] = useState("");
@@ -312,8 +318,8 @@ function PaymentFormDialog({
 
     try {
       const url = payment
-        ? `/api/finance/properties/${propertyId}/payments/${payment.id}`
-        : `/api/finance/properties/${propertyId}/payments`;
+        ? `/api/households/${householdId}/finance/properties/${propertyId}/payments/${payment.id}`
+        : `/api/households/${householdId}/finance/properties/${propertyId}/payments`;
       const method = payment ? "PUT" : "POST";
 
       const body = {
@@ -447,6 +453,8 @@ function PaymentFormDialog({
 // MARK: - Rate History Section
 
 function RateHistorySection({ propertyId }: { propertyId: number }) {
+  const { currentHousehold } = useCurrentHousehold();
+  const householdId = currentHousehold?.id;
   const [rates, setRates] = useState<MortgageRate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -454,7 +462,7 @@ function RateHistorySection({ propertyId }: { propertyId: number }) {
   const fetchRates = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/finance/properties/${propertyId}/rates`
+        `/api/households/${householdId}/finance/properties/${propertyId}/rates`
       );
       if (res.ok) setRates(await res.json());
     } catch (error) {
@@ -462,7 +470,7 @@ function RateHistorySection({ propertyId }: { propertyId: number }) {
     } finally {
       setIsLoading(false);
     }
-  }, [propertyId]);
+  }, [propertyId, householdId]);
 
   useEffect(() => {
     fetchRates();
@@ -537,6 +545,8 @@ function RateFormDialog({
   onOpenChange: (open: boolean) => void;
   onSave: () => void;
 }) {
+  const { currentHousehold } = useCurrentHousehold();
+  const householdId = currentHousehold?.id;
   const [effectiveDate, setEffectiveDate] = useState("");
   const [annualRate, setAnnualRate] = useState("");
   const [notes, setNotes] = useState("");
@@ -557,7 +567,7 @@ function RateFormDialog({
 
     try {
       const response = await fetch(
-        `/api/finance/properties/${propertyId}/rates`,
+        `/api/households/${householdId}/finance/properties/${propertyId}/rates`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -648,6 +658,8 @@ function RateFormDialog({
 // MARK: - Valuations Section
 
 function ValuationsSection({ propertyId }: { propertyId: number }) {
+  const { currentHousehold } = useCurrentHousehold();
+  const householdId = currentHousehold?.id;
   const [valuations, setValuations] = useState<PropertyValuation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -656,7 +668,7 @@ function ValuationsSection({ propertyId }: { propertyId: number }) {
   const fetchValuations = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/finance/properties/${propertyId}/valuations`
+        `/api/households/${householdId}/finance/properties/${propertyId}/valuations`
       );
       if (res.ok) setValuations(await res.json());
     } catch (error) {
@@ -664,7 +676,7 @@ function ValuationsSection({ propertyId }: { propertyId: number }) {
     } finally {
       setIsLoading(false);
     }
-  }, [propertyId]);
+  }, [propertyId, householdId]);
 
   useEffect(() => {
     fetchValuations();
@@ -675,7 +687,7 @@ function ValuationsSection({ propertyId }: { propertyId: number }) {
       return;
     try {
       const res = await fetch(
-        `/api/finance/properties/${propertyId}/valuations/${v.id}`,
+        `/api/households/${householdId}/finance/properties/${propertyId}/valuations/${v.id}`,
         { method: "DELETE" }
       );
       if (res.ok) fetchValuations();
@@ -786,6 +798,8 @@ function ValuationFormDialog({
   valuation: PropertyValuation | null;
   onSave: () => void;
 }) {
+  const { currentHousehold } = useCurrentHousehold();
+  const householdId = currentHousehold?.id;
   const [date, setDate] = useState("");
   const [estimatedValue, setEstimatedValue] = useState("");
   const [source, setSource] = useState("");
@@ -813,8 +827,8 @@ function ValuationFormDialog({
 
     try {
       const url = valuation
-        ? `/api/finance/properties/${propertyId}/valuations/${valuation.id}`
-        : `/api/finance/properties/${propertyId}/valuations`;
+        ? `/api/households/${householdId}/finance/properties/${propertyId}/valuations/${valuation.id}`
+        : `/api/households/${householdId}/finance/properties/${propertyId}/valuations`;
       const method = valuation ? "PUT" : "POST";
 
       const body = {
@@ -924,6 +938,8 @@ function ValuationFormDialog({
 // MARK: - Income Section
 
 function IncomeSection({ propertyId }: { propertyId: number }) {
+  const { currentHousehold } = useCurrentHousehold();
+  const householdId = currentHousehold?.id;
   const [income, setIncome] = useState<PropertyIncome[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
@@ -932,7 +948,7 @@ function IncomeSection({ propertyId }: { propertyId: number }) {
   const fetchIncome = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/finance/properties/${propertyId}/income`
+        `/api/households/${householdId}/finance/properties/${propertyId}/income`
       );
       if (res.ok) setIncome(await res.json());
     } catch (error) {
@@ -940,7 +956,7 @@ function IncomeSection({ propertyId }: { propertyId: number }) {
     } finally {
       setIsLoading(false);
     }
-  }, [propertyId]);
+  }, [propertyId, householdId]);
 
   useEffect(() => {
     fetchIncome();
@@ -951,7 +967,7 @@ function IncomeSection({ propertyId }: { propertyId: number }) {
       return;
     try {
       const res = await fetch(
-        `/api/finance/properties/${propertyId}/income/${item.id}`,
+        `/api/households/${householdId}/finance/properties/${propertyId}/income/${item.id}`,
         { method: "DELETE" }
       );
       if (res.ok) fetchIncome();
@@ -1138,6 +1154,8 @@ function IncomeFormDialog({
   income: PropertyIncome | null;
   onSave: () => void;
 }) {
+  const { currentHousehold } = useCurrentHousehold();
+  const householdId = currentHousehold?.id;
   const [date, setDate] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("rent");
@@ -1171,8 +1189,8 @@ function IncomeFormDialog({
 
     try {
       const url = income
-        ? `/api/finance/properties/${propertyId}/income/${income.id}`
-        : `/api/finance/properties/${propertyId}/income`;
+        ? `/api/households/${householdId}/finance/properties/${propertyId}/income/${income.id}`
+        : `/api/households/${householdId}/finance/properties/${propertyId}/income`;
       const method = income ? "PUT" : "POST";
 
       const body = {

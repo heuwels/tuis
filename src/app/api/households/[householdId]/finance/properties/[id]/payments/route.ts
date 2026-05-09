@@ -3,45 +3,39 @@ import { db } from "@/lib/db";
 import { mortgagePayments } from "@/lib/db/schema";
 import { eq, and, desc, gte, lte } from "drizzle-orm";
 import { validateApiRequest } from "@/lib/auth/validate";
+import { propertyBelongsToHousehold } from "@/lib/finance/scope";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+type Params = { params: Promise<{ householdId: string; id: string }> };
+
+export async function GET(request: NextRequest, { params }: Params) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId: hid, id } = await params;
+    const householdId = parseInt(hid);
     const propertyId = parseInt(id);
+
+    if (!(await propertyBelongsToHousehold(propertyId, householdId))) {
+      return NextResponse.json({ error: "Property not found" }, { status: 404 });
+    }
 
     const { searchParams } = new URL(request.url);
     const from = searchParams.get("from");
     const to = searchParams.get("to");
 
-    let query = db
-      .select()
-      .from(mortgagePayments)
-      .where(eq(mortgagePayments.propertyId, propertyId))
-      .orderBy(desc(mortgagePayments.date))
-      .$dynamic();
-
     const conditions = [eq(mortgagePayments.propertyId, propertyId)];
     if (from) conditions.push(gte(mortgagePayments.date, from));
     if (to) conditions.push(lte(mortgagePayments.date, to));
 
-    if (conditions.length > 1) {
-      query = db
-        .select()
-        .from(mortgagePayments)
-        .where(and(...conditions))
-        .orderBy(desc(mortgagePayments.date))
-        .$dynamic();
-    }
+    const results = await db
+      .select()
+      .from(mortgagePayments)
+      .where(and(...conditions))
+      .orderBy(desc(mortgagePayments.date));
 
-    const results = await query;
     return NextResponse.json(results);
   } catch (error) {
     console.error("Error fetching mortgage payments:", error);
@@ -52,16 +46,19 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: Params) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId: hid, id } = await params;
+    const householdId = parseInt(hid);
     const propertyId = parseInt(id);
+
+    if (!(await propertyBelongsToHousehold(propertyId, householdId))) {
+      return NextResponse.json({ error: "Property not found" }, { status: 404 });
+    }
+
     const body = await request.json();
     const { date, paymentAmount, interestAmount, principalAmount, notes } = body;
 
