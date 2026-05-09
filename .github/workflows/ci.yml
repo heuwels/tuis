@@ -4,6 +4,12 @@ on:
   pull_request:
     branches: [master]
 
+# Opt JavaScript-based actions (checkout, setup-node, upload-artifact)
+# into Node.js 24 now, ahead of the 2026-06-02 forced switch and the
+# 2026-09-16 removal of Node 20 from runners.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   lint:
     runs-on: ubuntu-latest
