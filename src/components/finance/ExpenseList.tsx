@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Pencil, Trash2, Receipt } from "lucide-react";
 import { ExpenseForm } from "@/components/finance/ExpenseForm";
 import { HouseholdExpenseWithVendor } from "@/types";
+import { useCurrentHousehold } from "@/lib/household";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-AU", {
@@ -19,6 +20,7 @@ function formatCurrency(amount: number): string {
 }
 
 export function ExpenseList() {
+  const { currentHousehold } = useCurrentHousehold();
   const [expenses, setExpenses] = useState<HouseholdExpenseWithVendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -29,8 +31,11 @@ export function ExpenseList() {
     useState<HouseholdExpenseWithVendor | null>(null);
 
   const fetchExpenses = async () => {
+    if (!currentHousehold) return;
     try {
-      const response = await fetch("/api/finance/expenses");
+      const response = await fetch(
+        `/api/households/${currentHousehold.id}/finance/expenses`
+      );
       if (response.ok) {
         setExpenses(await response.json());
       }
@@ -43,7 +48,8 @@ export function ExpenseList() {
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentHousehold]);
 
   // Listen for "Add Expense" button in AppLayout header
   useEffect(() => {
@@ -93,10 +99,14 @@ export function ExpenseList() {
     )
       return;
 
+    if (!currentHousehold) return;
     try {
-      const response = await fetch(`/api/finance/expenses/${expense.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/households/${currentHousehold.id}/finance/expenses/${expense.id}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (response.ok) {
         fetchExpenses();
       }

@@ -334,6 +334,7 @@ export const properties = sqliteTable("properties", {
   loanTermYears: integer("loan_term_years"),
   lender: text("lender"),
   notes: text("notes"),
+  householdId: integer("household_id").references(() => households.id),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
 });
@@ -377,6 +378,7 @@ export const householdExpenses = sqliteTable("household_expenses", {
   vendorId: integer("vendor_id").references(() => vendors.id),
   receiptUrl: text("receipt_url"),
   notes: text("notes"),
+  householdId: integer("household_id").references(() => households.id),
   createdAt: text("created_at").default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").default("CURRENT_TIMESTAMP"),
 });

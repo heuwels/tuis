@@ -6,17 +6,26 @@ import { validateApiRequest } from "@/lib/auth/validate";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ householdId: string }> }
+) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
+    const householdId = parseInt((await params).householdId);
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const from = searchParams.get("from");
     const to = searchParams.get("to");
 
-    let query = db
+    const conditions = [eq(householdExpenses.householdId, householdId)];
+    if (category) conditions.push(eq(householdExpenses.category, category));
+    if (from) conditions.push(gte(householdExpenses.date, from));
+    if (to) conditions.push(lte(householdExpenses.date, to));
+
+    const results = await db
       .select({
         id: householdExpenses.id,
         date: householdExpenses.date,
@@ -26,25 +35,16 @@ export async function GET(request: NextRequest) {
         vendorId: householdExpenses.vendorId,
         receiptUrl: householdExpenses.receiptUrl,
         notes: householdExpenses.notes,
+        householdId: householdExpenses.householdId,
         createdAt: householdExpenses.createdAt,
         updatedAt: householdExpenses.updatedAt,
         vendorName: vendors.name,
       })
       .from(householdExpenses)
       .leftJoin(vendors, eq(householdExpenses.vendorId, vendors.id))
-      .orderBy(desc(householdExpenses.date))
-      .$dynamic();
+      .where(and(...conditions))
+      .orderBy(desc(householdExpenses.date));
 
-    const conditions = [];
-    if (category) conditions.push(eq(householdExpenses.category, category));
-    if (from) conditions.push(gte(householdExpenses.date, from));
-    if (to) conditions.push(lte(householdExpenses.date, to));
-
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const results = await query;
     return NextResponse.json(results);
   } catch (error) {
     console.error("Error fetching expenses:", error);
@@ -52,11 +52,15 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ householdId: string }> }
+) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
+    const householdId = parseInt((await params).householdId);
     const body = await request.json();
     const { date, category, description, amount, vendorId, receiptUrl, notes } = body;
 
@@ -82,6 +86,7 @@ export async function POST(request: NextRequest) {
       vendorId: vendorId || null,
       receiptUrl: receiptUrl || null,
       notes: notes || null,
+      householdId,
     });
 
     return NextResponse.json(

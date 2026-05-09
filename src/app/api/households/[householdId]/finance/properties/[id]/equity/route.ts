@@ -7,7 +7,7 @@ import {
   mortgageRates,
   propertyIncome,
 } from "@/lib/db/schema";
-import { eq, asc, desc } from "drizzle-orm";
+import { eq, and, asc, desc } from "drizzle-orm";
 import { format, addMonths, isBefore, startOfMonth } from "date-fns";
 import { validateApiRequest } from "@/lib/auth/validate";
 
@@ -15,20 +15,23 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ householdId: string; id: string }> }
 ) {
   try {
     const authError = await validateApiRequest(request);
     if (authError) return authError;
 
-    const { id } = await params;
+    const { householdId: hid, id } = await params;
+    const householdId = parseInt(hid);
     const propertyId = parseInt(id);
 
-    // Fetch property
+    // Fetch property scoped to the household in the path
     const propertyResult = await db
       .select()
       .from(properties)
-      .where(eq(properties.id, propertyId))
+      .where(
+        and(eq(properties.id, propertyId), eq(properties.householdId, householdId))
+      )
       .limit(1);
 
     if (propertyResult.length === 0) {

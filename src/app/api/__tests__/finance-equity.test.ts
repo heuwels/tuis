@@ -17,6 +17,11 @@ vi.mock("@/lib/db", () => ({
 
 function createTables() {
   sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS households (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE TABLE IF NOT EXISTS properties (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       address TEXT NOT NULL,
@@ -26,6 +31,7 @@ function createTables() {
       loan_term_years INTEGER,
       lender TEXT,
       notes TEXT,
+      household_id INTEGER REFERENCES households(id),
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
@@ -71,10 +77,20 @@ function createTables() {
   `);
 }
 
+let householdId: number;
+
+function insertHousehold(name = "Home"): number {
+  const result = sqlite
+    .prepare(`INSERT INTO households (name) VALUES (?)`)
+    .run(name);
+  return Number(result.lastInsertRowid);
+}
+
 beforeEach(() => {
   sqlite = new Database(":memory:");
   testDb = drizzle(sqlite, { schema });
   createTables();
+  householdId = insertHousehold();
 });
 
 afterEach(() => {
@@ -103,9 +119,19 @@ function putBody(data: Record<string, unknown>): RequestInit {
   };
 }
 
-function makeParams(id: string): { params: Promise<{ id: string }> } {
-  return { params: Promise.resolve({ id }) };
+function makeParams(
+  id: string,
+  hid: string | number = householdId
+): { params: Promise<{ householdId: string; id: string }> } {
+  return { params: Promise.resolve({ householdId: String(hid), id }) };
 }
+
+function makeListParams(hid: string | number = householdId): {
+  params: Promise<{ householdId: string }>;
+} {
+  return { params: Promise.resolve({ householdId: String(hid) }) };
+}
+
 
 // ─── Insert helpers (raw SQL for setting up test state) ─────────────────────
 
@@ -116,8 +142,22 @@ function insertProperty(
   loanAmountOriginal: number,
   extra: Record<string, unknown> = {}
 ) {
-  const cols = ["address", "purchase_price", "purchase_date", "loan_amount_original", ...Object.keys(extra)];
-  const vals = [address, purchasePrice, purchaseDate, loanAmountOriginal, ...Object.values(extra)];
+  const withHousehold =
+    "household_id" in extra ? extra : { ...extra, household_id: householdId };
+  const cols = [
+    "address",
+    "purchase_price",
+    "purchase_date",
+    "loan_amount_original",
+    ...Object.keys(withHousehold),
+  ];
+  const vals = [
+    address,
+    purchasePrice,
+    purchaseDate,
+    loanAmountOriginal,
+    ...Object.values(withHousehold),
+  ];
   const placeholders = cols.map(() => "?").join(", ");
   return sqlite
     .prepare(`INSERT INTO properties (${cols.join(", ")}) VALUES (${placeholders})`)
@@ -159,20 +199,22 @@ function insertValuation(propertyId: number, date: string, estimatedValue: numbe
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("Property & Equity API", () => {
-  let propertiesRoute: typeof import("@/app/api/finance/properties/route");
-  let propertiesIdRoute: typeof import("@/app/api/finance/properties/[id]/route");
-  let paymentsRoute: typeof import("@/app/api/finance/properties/[id]/payments/route");
-  let ratesRoute: typeof import("@/app/api/finance/properties/[id]/rates/route");
-  let valuationsRoute: typeof import("@/app/api/finance/properties/[id]/valuations/route");
-  let equityRoute: typeof import("@/app/api/finance/properties/[id]/equity/route");
+  const NESTED = "@/app/api/households/[householdId]/finance/properties";
+  let propertiesRoute: typeof import("@/app/api/households/[householdId]/finance/properties/route");
+  let propertiesIdRoute: typeof import("@/app/api/households/[householdId]/finance/properties/[id]/route");
+  let paymentsRoute: typeof import("@/app/api/households/[householdId]/finance/properties/[id]/payments/route");
+  let ratesRoute: typeof import("@/app/api/households/[householdId]/finance/properties/[id]/rates/route");
+  let valuationsRoute: typeof import("@/app/api/households/[householdId]/finance/properties/[id]/valuations/route");
+  let equityRoute: typeof import("@/app/api/households/[householdId]/finance/properties/[id]/equity/route");
 
   beforeEach(async () => {
-    propertiesRoute = await import("@/app/api/finance/properties/route");
-    propertiesIdRoute = await import("@/app/api/finance/properties/[id]/route");
-    paymentsRoute = await import("@/app/api/finance/properties/[id]/payments/route");
-    ratesRoute = await import("@/app/api/finance/properties/[id]/rates/route");
-    valuationsRoute = await import("@/app/api/finance/properties/[id]/valuations/route");
-    equityRoute = await import("@/app/api/finance/properties/[id]/equity/route");
+    void NESTED; // doc anchor
+    propertiesRoute = await import("@/app/api/households/[householdId]/finance/properties/route");
+    propertiesIdRoute = await import("@/app/api/households/[householdId]/finance/properties/[id]/route");
+    paymentsRoute = await import("@/app/api/households/[householdId]/finance/properties/[id]/payments/route");
+    ratesRoute = await import("@/app/api/households/[householdId]/finance/properties/[id]/rates/route");
+    valuationsRoute = await import("@/app/api/households/[householdId]/finance/properties/[id]/valuations/route");
+    equityRoute = await import("@/app/api/households/[householdId]/finance/properties/[id]/equity/route");
   });
 
   // ── Property CRUD ─────────────────────────────────────────────────────
@@ -190,7 +232,7 @@ describe("Property & Equity API", () => {
           lender: "CBA",
         })
       );
-      const res = await propertiesRoute.POST(req);
+      const res = await propertiesRoute.POST(req, makeListParams());
 
       expect(res.status).toBe(201);
       const data = await res.json();
@@ -211,7 +253,7 @@ describe("Property & Equity API", () => {
       insertProperty("2 Beta St", 700000, "2024-06-01", 560000);
 
       const req = makeRequest("/api/finance/properties");
-      const res = await propertiesRoute.GET(req);
+      const res = await propertiesRoute.GET(req, makeListParams());
       const data = await res.json();
 
       expect(res.status).toBe(200);
@@ -455,6 +497,48 @@ describe("Property & Equity API", () => {
       );
       expect(sepEntry).toBeDefined();
       expect(sepEntry.estimatedValue).toBe(520000);
+    });
+  });
+
+  // ── Multi-household isolation ─────────────────────────────────────────
+
+  describe("Household isolation", () => {
+    it("GET /properties only returns properties for the household in the path", async () => {
+      const otherHouseholdId = insertHousehold("Beach House");
+      insertProperty("Default house", 500000, "2025-01-01", 400000);
+      insertProperty("Beach house", 700000, "2025-02-01", 500000, {
+        household_id: otherHouseholdId,
+      });
+
+      const defaultRes = await propertiesRoute.GET(
+        makeRequest("/api/finance/properties"),
+        makeListParams(householdId)
+      );
+      expect((await defaultRes.json())).toHaveLength(1);
+
+      const otherRes = await propertiesRoute.GET(
+        makeRequest("/api/finance/properties"),
+        makeListParams(otherHouseholdId)
+      );
+      const otherData = await otherRes.json();
+      expect(otherData).toHaveLength(1);
+      expect(otherData[0].address).toBe("Beach house");
+    });
+
+    it("nested child routes 404 when the property is in a different household", async () => {
+      const otherHouseholdId = insertHousehold("Beach House");
+      const otherProperty = insertProperty("Beach house", 700000, "2025-02-01", 500000, {
+        household_id: otherHouseholdId,
+      });
+      const otherPropertyId = String(otherProperty.lastInsertRowid);
+
+      // Try to read payments for the OTHER household's property using OUR
+      // household's path — should 404.
+      const res = await paymentsRoute.GET(
+        makeRequest(`/api/finance/properties/${otherPropertyId}/payments`),
+        makeParams(otherPropertyId, householdId)
+      );
+      expect(res.status).toBe(404);
     });
   });
 });

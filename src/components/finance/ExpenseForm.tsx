@@ -86,12 +86,13 @@ export function ExpenseForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!description.trim() || !amount || !date || !category.trim()) return;
+    if (!currentHousehold) return;
     setIsSaving(true);
 
     try {
       const url = expense
-        ? `/api/finance/expenses/${expense.id}`
-        : "/api/finance/expenses";
+        ? `/api/households/${currentHousehold.id}/finance/expenses/${expense.id}`
+        : `/api/households/${currentHousehold.id}/finance/expenses`;
       const method = expense ? "PUT" : "POST";
 
       const body: Record<string, unknown> = {

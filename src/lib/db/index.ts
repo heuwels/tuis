@@ -286,6 +286,7 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       loan_term_years INTEGER,
       lender TEXT,
       notes TEXT,
+      household_id INTEGER REFERENCES households(id),
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
@@ -329,6 +330,7 @@ function initDb(): BetterSQLite3Database<typeof schema> {
       vendor_id INTEGER REFERENCES vendors(id),
       receipt_url TEXT,
       notes TEXT,
+      household_id INTEGER REFERENCES households(id),
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
@@ -409,6 +411,20 @@ function initDb(): BetterSQLite3Database<typeof schema> {
 
   // Backfill cost_amount from legacy TEXT cost field
   migrateCompletionCosts(sqlite);
+
+  // Finance multi-household support: add household_id columns to top-level
+  // finance tables. Children (mortgage_*, property_valuations, property_income)
+  // inherit scope via property_id FK.
+  try {
+    sqlite.exec(`ALTER TABLE properties ADD COLUMN household_id INTEGER REFERENCES households(id)`);
+  } catch {
+    // Column already exists
+  }
+  try {
+    sqlite.exec(`ALTER TABLE household_expenses ADD COLUMN household_id INTEGER REFERENCES households(id)`);
+  } catch {
+    // Column already exists
+  }
 
   // Multi-household support: add household_id columns
   try {
@@ -555,6 +571,8 @@ function migrateToHouseholds(sqlite: Database.Database) {
       sqlite.prepare(`UPDATE appliances SET household_id = ? WHERE household_id IS NULL`).run(household.id);
       sqlite.prepare(`UPDATE vendors SET household_id = ? WHERE household_id IS NULL`).run(household.id);
       sqlite.prepare(`UPDATE quotes SET household_id = ? WHERE household_id IS NULL`).run(household.id);
+      sqlite.prepare(`UPDATE properties SET household_id = ? WHERE household_id IS NULL`).run(household.id);
+      sqlite.prepare(`UPDATE household_expenses SET household_id = ? WHERE household_id IS NULL`).run(household.id);
     });
 
     tx();
@@ -567,7 +585,9 @@ function migrateToHouseholds(sqlite: Database.Database) {
       `SELECT COUNT(*) as count FROM tasks WHERE household_id IS NULL
        UNION ALL SELECT COUNT(*) FROM appliances WHERE household_id IS NULL
        UNION ALL SELECT COUNT(*) FROM vendors WHERE household_id IS NULL
-       UNION ALL SELECT COUNT(*) FROM quotes WHERE household_id IS NULL`
+       UNION ALL SELECT COUNT(*) FROM quotes WHERE household_id IS NULL
+       UNION ALL SELECT COUNT(*) FROM properties WHERE household_id IS NULL
+       UNION ALL SELECT COUNT(*) FROM household_expenses WHERE household_id IS NULL`
     )
     .all() as { count: number }[];
 
@@ -582,6 +602,8 @@ function migrateToHouseholds(sqlite: Database.Database) {
   sqlite.prepare(`UPDATE appliances SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
   sqlite.prepare(`UPDATE vendors SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
   sqlite.prepare(`UPDATE quotes SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
+  sqlite.prepare(`UPDATE properties SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
+  sqlite.prepare(`UPDATE household_expenses SET household_id = ? WHERE household_id IS NULL`).run(defaultHousehold.id);
 }
 
 export { schema };

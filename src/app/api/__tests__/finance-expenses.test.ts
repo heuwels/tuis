@@ -17,6 +17,11 @@ vi.mock("@/lib/db", () => ({
 
 function createTables() {
   sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS households (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -44,16 +49,27 @@ function createTables() {
       vendor_id INTEGER REFERENCES vendors(id),
       receipt_url TEXT,
       notes TEXT,
+      household_id INTEGER REFERENCES households(id),
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `);
 }
 
+let householdId: number;
+
+function insertHousehold(name = "Home"): number {
+  const result = sqlite
+    .prepare(`INSERT INTO households (name) VALUES (?)`)
+    .run(name);
+  return Number(result.lastInsertRowid);
+}
+
 beforeEach(() => {
   sqlite = new Database(":memory:");
   testDb = drizzle(sqlite, { schema });
   createTables();
+  householdId = insertHousehold();
 });
 
 afterEach(() => {
@@ -86,8 +102,17 @@ function deleteRequest(): RequestInit {
   return { method: "DELETE" };
 }
 
-function makeParams(id: string): { params: Promise<{ id: string }> } {
-  return { params: Promise.resolve({ id }) };
+function makeParams(
+  id: string,
+  hid: string | number = householdId
+): { params: Promise<{ householdId: string; id: string }> } {
+  return { params: Promise.resolve({ householdId: String(hid), id }) };
+}
+
+function makeListParams(hid: string | number = householdId): {
+  params: Promise<{ householdId: string }>;
+} {
+  return { params: Promise.resolve({ householdId: String(hid) }) };
 }
 
 // ─── Insert helpers (raw SQL for setting up test state) ─────────────────────
@@ -113,8 +138,23 @@ function insertExpense(
   amount: number,
   extra: Record<string, unknown> = {}
 ) {
-  const cols = ["date", "category", "description", "amount", ...Object.keys(extra)];
-  const vals = [date, category, description, amount, ...Object.values(extra)];
+  const withHousehold = "household_id" in extra
+    ? extra
+    : { ...extra, household_id: householdId };
+  const cols = [
+    "date",
+    "category",
+    "description",
+    "amount",
+    ...Object.keys(withHousehold),
+  ];
+  const vals = [
+    date,
+    category,
+    description,
+    amount,
+    ...Object.values(withHousehold),
+  ];
   const placeholders = cols.map(() => "?").join(", ");
   return sqlite
     .prepare(
@@ -128,12 +168,20 @@ function insertExpense(
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("Household Expenses API", () => {
-  let expensesRoute: typeof import("@/app/api/finance/expenses/route");
-  let expensesIdRoute: typeof import("@/app/api/finance/expenses/[id]/route");
+  let expensesRoute: typeof import(
+    "@/app/api/households/[householdId]/finance/expenses/route"
+  );
+  let expensesIdRoute: typeof import(
+    "@/app/api/households/[householdId]/finance/expenses/[id]/route"
+  );
 
   beforeEach(async () => {
-    expensesRoute = await import("@/app/api/finance/expenses/route");
-    expensesIdRoute = await import("@/app/api/finance/expenses/[id]/route");
+    expensesRoute = await import(
+      "@/app/api/households/[householdId]/finance/expenses/route"
+    );
+    expensesIdRoute = await import(
+      "@/app/api/households/[householdId]/finance/expenses/[id]/route"
+    );
   });
 
   // ── GET /api/finance/expenses ──────────────────────────────────────────
@@ -141,7 +189,7 @@ describe("Household Expenses API", () => {
   describe("GET /api/finance/expenses", () => {
     it("returns empty array when no expenses exist", async () => {
       const req = makeRequest("/api/finance/expenses");
-      const res = await expensesRoute.GET(req);
+      const res = await expensesRoute.GET(req, makeListParams());
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual([]);
     });
@@ -151,7 +199,7 @@ describe("Household Expenses API", () => {
       insertExpense("2025-04-02", "Utilities", "Electricity bill", 220);
 
       const req = makeRequest("/api/finance/expenses");
-      const res = await expensesRoute.GET(req);
+      const res = await expensesRoute.GET(req, makeListParams());
       const data = await res.json();
 
       expect(data).toHaveLength(2);
@@ -166,7 +214,7 @@ describe("Household Expenses API", () => {
       insertExpense("2025-04-03", "Groceries", "Meat and dairy", 120);
 
       const req = makeRequest("/api/finance/expenses?category=Groceries");
-      const res = await expensesRoute.GET(req);
+      const res = await expensesRoute.GET(req, makeListParams());
       const data = await res.json();
 
       expect(data).toHaveLength(2);
@@ -179,7 +227,7 @@ describe("Household Expenses API", () => {
       insertExpense("2025-05-20", "Groceries", "May shop", 150);
 
       const req = makeRequest("/api/finance/expenses?from=2025-02-01&to=2025-04-30");
-      const res = await expensesRoute.GET(req);
+      const res = await expensesRoute.GET(req, makeListParams());
       const data = await res.json();
 
       expect(data).toHaveLength(1);
@@ -192,7 +240,7 @@ describe("Household Expenses API", () => {
       insertExpense("2025-04-01", "Groceries", "Weekly shop", 200, { vendor_id: vendorId });
 
       const req = makeRequest("/api/finance/expenses");
-      const res = await expensesRoute.GET(req);
+      const res = await expensesRoute.GET(req, makeListParams());
       const data = await res.json();
 
       expect(data[0].vendorName).toBe("Woolworths");
@@ -202,7 +250,7 @@ describe("Household Expenses API", () => {
       insertExpense("2025-04-01", "Groceries", "Cash purchase", 50);
 
       const req = makeRequest("/api/finance/expenses");
-      const res = await expensesRoute.GET(req);
+      const res = await expensesRoute.GET(req, makeListParams());
       const data = await res.json();
 
       expect(data[0].vendorId).toBeNull();
@@ -229,7 +277,7 @@ describe("Household Expenses API", () => {
           notes: "Bought extra for braai",
         })
       );
-      const res = await expensesRoute.POST(req);
+      const res = await expensesRoute.POST(req, makeListParams());
 
       expect(res.status).toBe(201);
       const data = await res.json();
@@ -259,7 +307,7 @@ describe("Household Expenses API", () => {
           amount: 95,
         })
       );
-      const res = await expensesRoute.POST(req);
+      const res = await expensesRoute.POST(req, makeListParams());
 
       expect(res.status).toBe(201);
       const data = await res.json();
@@ -275,26 +323,30 @@ describe("Household Expenses API", () => {
     it("returns 400 for missing required fields", async () => {
       // Missing date
       const res1 = await expensesRoute.POST(
-        makeRequest("/api/finance/expenses", jsonBody({ category: "Groceries", description: "Shop", amount: 100 }))
+        makeRequest("/api/finance/expenses", jsonBody({ category: "Groceries", description: "Shop", amount: 100 })),
+        makeListParams()
       );
       expect(res1.status).toBe(400);
       expect((await res1.json()).error).toBe("Date, category, description, and amount are required");
 
       // Missing category
       const res2 = await expensesRoute.POST(
-        makeRequest("/api/finance/expenses", jsonBody({ date: "2025-04-10", description: "Shop", amount: 100 }))
+        makeRequest("/api/finance/expenses", jsonBody({ date: "2025-04-10", description: "Shop", amount: 100 })),
+        makeListParams()
       );
       expect(res2.status).toBe(400);
 
       // Missing description
       const res3 = await expensesRoute.POST(
-        makeRequest("/api/finance/expenses", jsonBody({ date: "2025-04-10", category: "Groceries", amount: 100 }))
+        makeRequest("/api/finance/expenses", jsonBody({ date: "2025-04-10", category: "Groceries", amount: 100 })),
+        makeListParams()
       );
       expect(res3.status).toBe(400);
 
       // Missing amount
       const res4 = await expensesRoute.POST(
-        makeRequest("/api/finance/expenses", jsonBody({ date: "2025-04-10", category: "Groceries", description: "Shop" }))
+        makeRequest("/api/finance/expenses", jsonBody({ date: "2025-04-10", category: "Groceries", description: "Shop" })),
+        makeListParams()
       );
       expect(res4.status).toBe(400);
     });
@@ -304,7 +356,8 @@ describe("Household Expenses API", () => {
         makeRequest(
           "/api/finance/expenses",
           jsonBody({ date: "2025-04-10", category: "Groceries", description: "Shop", amount: 0 })
-        )
+        ),
+        makeListParams()
       );
       expect(res1.status).toBe(400);
       expect((await res1.json()).error).toBe("Amount must be a positive number");
@@ -313,7 +366,8 @@ describe("Household Expenses API", () => {
         makeRequest(
           "/api/finance/expenses",
           jsonBody({ date: "2025-04-10", category: "Groceries", description: "Shop", amount: -50 })
-        )
+        ),
+        makeListParams()
       );
       expect(res2.status).toBe(400);
       expect((await res2.json()).error).toBe("Amount must be a positive number");
@@ -333,7 +387,7 @@ describe("Household Expenses API", () => {
           vendorId,
         })
       );
-      const res = await expensesRoute.POST(req);
+      const res = await expensesRoute.POST(req, makeListParams());
       expect(res.status).toBe(201);
 
       const data = await res.json();
@@ -452,12 +506,77 @@ describe("Household Expenses API", () => {
       expect(row).toBeUndefined();
     });
 
-    it("succeeds even for non-existent expense (idempotent)", async () => {
+    it("returns 404 for non-existent expense", async () => {
       const req = makeRequest("/api/finance/expenses/999", deleteRequest());
       const res = await expensesIdRoute.DELETE(req, makeParams("999"));
 
-      expect(res.status).toBe(200);
-      expect(await res.json()).toEqual({ success: true });
+      expect(res.status).toBe(404);
+      expect((await res.json()).error).toBe("Expense not found");
+    });
+
+    it("does not delete an expense from a different household", async () => {
+      const otherHouseholdId = insertHousehold("Beach House");
+      const result = insertExpense("2025-04-01", "Groceries", "Other shop", 100, {
+        household_id: otherHouseholdId,
+      });
+      const id = String(result.lastInsertRowid);
+
+      // DELETE scoped to the default household should NOT find it
+      const req = makeRequest(`/api/finance/expenses/${id}`, deleteRequest());
+      const res = await expensesIdRoute.DELETE(req, makeParams(id));
+
+      expect(res.status).toBe(404);
+
+      const row = sqlite
+        .prepare("SELECT * FROM household_expenses WHERE id = ?")
+        .get(id);
+      expect(row).toBeDefined();
+    });
+  });
+
+  // ── Multi-household isolation ────────────────────────────────────────────
+
+  describe("Household isolation", () => {
+    it("GET only returns expenses for the household in the path", async () => {
+      const otherHouseholdId = insertHousehold("Beach House");
+      insertExpense("2025-04-01", "Groceries", "Default house shop", 100);
+      insertExpense("2025-04-02", "Groceries", "Beach house shop", 200, {
+        household_id: otherHouseholdId,
+      });
+
+      const defaultRes = await expensesRoute.GET(
+        makeRequest("/api/finance/expenses"),
+        makeListParams(householdId)
+      );
+      const defaultData = await defaultRes.json();
+      expect(defaultData).toHaveLength(1);
+      expect(defaultData[0].description).toBe("Default house shop");
+
+      const otherRes = await expensesRoute.GET(
+        makeRequest("/api/finance/expenses"),
+        makeListParams(otherHouseholdId)
+      );
+      const otherData = await otherRes.json();
+      expect(otherData).toHaveLength(1);
+      expect(otherData[0].description).toBe("Beach house shop");
+    });
+
+    it("POST stamps the expense with the household from the path", async () => {
+      const req = makeRequest(
+        "/api/finance/expenses",
+        jsonBody({
+          date: "2025-04-10",
+          category: "Groceries",
+          description: "Scope check",
+          amount: 50,
+        })
+      );
+      const res = await expensesRoute.POST(req, makeListParams());
+      const data = await res.json();
+      const row = sqlite
+        .prepare("SELECT household_id FROM household_expenses WHERE id = ?")
+        .get(Number(data.id)) as Record<string, unknown>;
+      expect(row.household_id).toBe(householdId);
     });
   });
 });

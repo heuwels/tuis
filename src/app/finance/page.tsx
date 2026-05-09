@@ -8,16 +8,33 @@ import { ExpenseList } from "@/components/finance/ExpenseList";
 import { EquityOverview } from "@/components/finance/EquityOverview";
 import { PaymentsTab } from "@/components/finance/PaymentsTab";
 import { cn } from "@/lib/utils";
+import { useCurrentHousehold } from "@/lib/household";
 
 type Tab = "equity" | "payments" | "expenses";
 
 export default function FinancePage() {
+  const { currentHousehold } = useCurrentHousehold();
   const [activeTab, setActiveTab] = useState<Tab>("equity");
-  const [propertyId, setPropertyId] = useState<number | null>(null);
+  const [propertyState, setPropertyState] = useState<{
+    id: number | null;
+    hid: number | undefined;
+  }>({ id: null, hid: undefined });
 
-  const handlePropertyId = useCallback((id: number) => {
-    setPropertyId(id);
-  }, []);
+  // Derived: the previously-selected property only counts if it belongs to
+  // the household that was active when it was set. When currentHousehold
+  // changes, this falls back to null without an effect.
+  const propertyId =
+    propertyState.hid === currentHousehold?.id ? propertyState.id : null;
+
+  const handlePropertyId = useCallback(
+    (id: number) => {
+      setPropertyState({
+        id: id || null,
+        hid: currentHousehold?.id,
+      });
+    },
+    [currentHousehold?.id]
+  );
 
   const actions =
     activeTab === "expenses" ? (
