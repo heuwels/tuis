@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -13,7 +14,14 @@ import { Button } from "@/components/ui/button";
 import { CompleteButton, SnoozeButton } from "@/components/dashboard";
 import { Task } from "@/types";
 import { format, parseISO, isBefore, startOfDay } from "date-fns";
-import { Pencil, Trash2, FileText } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  FileText,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+} from "lucide-react";
 import { areaColors, areaColorFallback } from "@/lib/area-colors";
 
 interface TaskTableProps {
@@ -24,9 +32,68 @@ interface TaskTableProps {
   onView?: (task: Task) => void;
 }
 
+type SortColumn = "frequency" | "lastCompleted" | "nextDue";
+type SortDirection = "asc" | "desc";
+
+const FREQUENCY_RANK: Record<string, number> = {
+  daily: 1,
+  "twice-weekly": 2,
+  weekly: 3,
+  fortnightly: 4,
+  "bi-weekly": 4,
+  monthly: 5,
+  quarterly: 6,
+  "bi-annually": 7,
+  annual: 8,
+  annually: 8,
+};
+
+function frequencyRank(frequency: string): number {
+  return FREQUENCY_RANK[frequency.toLowerCase()] ?? Number.POSITIVE_INFINITY;
+}
+
+function compareNullableDates(
+  a: string | null,
+  b: string | null,
+  direction: SortDirection
+): number {
+  if (a === b) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  const diff = parseISO(a).getTime() - parseISO(b).getTime();
+  return direction === "asc" ? diff : -diff;
+}
 
 export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete, onView }: TaskTableProps) {
   const today = startOfDay(new Date());
+  const [sortColumn, setSortColumn] = useState<SortColumn>("nextDue");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  const handleSort = (column: SortColumn) => {
+    if (column === sortColumn) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const sortedTasks = useMemo(() => {
+    const copy = [...tasks];
+    copy.sort((a, b) => {
+      if (sortColumn === "frequency") {
+        const diff = frequencyRank(a.frequency) - frequencyRank(b.frequency);
+        if (diff !== 0) return sortDirection === "asc" ? diff : -diff;
+        const nameDiff = a.frequency.localeCompare(b.frequency);
+        return sortDirection === "asc" ? nameDiff : -nameDiff;
+      }
+      if (sortColumn === "lastCompleted") {
+        return compareNullableDates(a.lastCompleted, b.lastCompleted, sortDirection);
+      }
+      return compareNullableDates(a.nextDue, b.nextDue, sortDirection);
+    });
+    return copy;
+  }, [tasks, sortColumn, sortDirection]);
 
   const getStatusBadge = (task: Task) => {
     if (!task.nextDue) {
@@ -42,6 +109,32 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete, onView }: T
     return null;
   };
 
+  const renderSortIcon = (column: SortColumn) => {
+    if (column !== sortColumn) {
+      return <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" aria-hidden="true" />;
+    }
+    return sortDirection === "asc" ? (
+      <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+    ) : (
+      <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+    );
+  };
+
+  const ariaSortFor = (column: SortColumn): "ascending" | "descending" | "none" =>
+    sortColumn === column ? (sortDirection === "asc" ? "ascending" : "descending") : "none";
+
+  const sortableHeader = (label: string, column: SortColumn) => (
+    <button
+      type="button"
+      onClick={() => handleSort(column)}
+      aria-label={`Sort by ${label}`}
+      className="inline-flex items-center gap-1 font-medium hover:text-foreground transition-colors"
+    >
+      {label}
+      {renderSortIcon(column)}
+    </button>
+  );
+
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
@@ -49,21 +142,27 @@ export function TaskTable({ tasks, onTaskComplete, onEdit, onDelete, onView }: T
           <TableRow>
             <TableHead className="min-w-[200px] max-w-[300px]">Task</TableHead>
             <TableHead className="whitespace-nowrap">Area</TableHead>
-            <TableHead className="whitespace-nowrap">Frequency</TableHead>
-            <TableHead className="whitespace-nowrap">Last Done</TableHead>
-            <TableHead className="whitespace-nowrap">Next Due</TableHead>
+            <TableHead className="whitespace-nowrap" aria-sort={ariaSortFor("frequency")}>
+              {sortableHeader("Frequency", "frequency")}
+            </TableHead>
+            <TableHead className="whitespace-nowrap" aria-sort={ariaSortFor("lastCompleted")}>
+              {sortableHeader("Last Done", "lastCompleted")}
+            </TableHead>
+            <TableHead className="whitespace-nowrap" aria-sort={ariaSortFor("nextDue")}>
+              {sortableHeader("Next Due", "nextDue")}
+            </TableHead>
             <TableHead className="text-right whitespace-nowrap">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tasks.length === 0 ? (
+          {sortedTasks.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                 No tasks found
               </TableCell>
             </TableRow>
           ) : (
-            tasks.map((task) => {
+            sortedTasks.map((task) => {
               const areaColor = areaColors[task.area] || areaColorFallback;
               return (
                 <TableRow key={task.id}>
